@@ -1,10 +1,12 @@
 import { App, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import {BlockPublicAccess, Bucket} from "aws-cdk-lib/aws-s3";
 
 export class MyStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
     super(scope, id, props);
 
+    new Bucket(this, "Bucket", {blockPublicAccess: BlockPublicAccess.BLOCK_ALL})
     // define resources here...
   }
 }
