@@ -1,15 +1,8 @@
-import { App, Stack, StackProps } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import {BlockPublicAccess, Bucket} from "aws-cdk-lib/aws-s3";
+import { App } from 'aws-cdk-lib';
+import {SpokeStack} from "./stacks/SpokeStack";
 
-export class MyStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps = {}) {
-    super(scope, id, props);
 
-    new Bucket(this, "Bucket", {blockPublicAccess: BlockPublicAccess.BLOCK_ALL})
-    // define resources here...
-  }
-}
+
 
 // for development, use account/region from cdk cli
 const devEnv = {
@@ -19,7 +12,7 @@ const devEnv = {
 
 const app = new App();
 
-new MyStack(app, 'aws-organizations-tag-inventory-dev', { env: devEnv });
+new SpokeStack(app, 'aws-organizations-tag-inventory-spokestack', { env: devEnv });
 // new MyStack(app, 'aws-organizations-tag-inventory-prod', { env: prodEnv });
 
 app.synth();
