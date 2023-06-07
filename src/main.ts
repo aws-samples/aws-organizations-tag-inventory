@@ -8,6 +8,7 @@ import {SpokeStack} from "./stacks/SpokeStack";
 const devEnv = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEFAULT_REGION,
+
 };
 
 const app = new App();

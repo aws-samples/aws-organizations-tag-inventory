@@ -7,11 +7,11 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   name: 'aws-organizations-tag-inventory',
   projenrcTs: true,
  packageManager: NodePackageManager.NPM,
-    gitignore: [".idea", "*.iml"]
+    gitignore: [".idea", "*.iml"],
 
-  // deps: [],                /* Runtime dependencies of this module. */
+   deps: ['@aws-sdk/client-resource-explorer-2','uuid'],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-  // devDeps: [],             /* Build dependencies for this module. */
+   devDeps: ['@types/aws-lambda'],             /* Build dependencies for this module. */
   // packageName: undefined,  /* The "name" in package.json. */
 });
 project.synth();
