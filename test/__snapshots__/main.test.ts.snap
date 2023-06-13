@@ -1,0 +1,283 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snapshot 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "MyIndexresourceexplorerindexcustomresource6FC13F1F": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "AGGREGATOR_INDEX_REGION": "us-east-2",
+        "ENABLED_REGIONS": [
+          "us-east-1",
+          "use-east-2",
+          "us-west-1",
+          "us-west-2",
+        ],
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::ResourceExplorerIndex",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB": {
+      "DependsOn": [
+        "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRoleDefaultPolicy196222C7",
+        "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRole6629EB69",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (test/com.amazonaws.cdk.custom-resources.resource-explorer-index-provider/resource-explorer-index-provider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnE4EA2129",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "Handler": "framework.onEvent",
+        "Role": {
+          "Fn::GetAtt": [
+            "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRole6629EB69",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRole6629EB69": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRoleDefaultPolicy196222C7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnE4EA2129",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnE4EA2129",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRoleDefaultPolicy196222C7",
+        "Roles": [
+          {
+            "Ref": "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRole6629EB69",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnE4EA2129": {
+      "DependsOn": [
+        "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRoleDefaultPolicy74BEE050",
+        "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRole2F22B68A",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "047b881f12bb38c7e3d50e532c9048b66235bccd742887c67da10f8cf38ab80a.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "Handler": "index.onEvent",
+        "Layers": [
+          {
+            "Ref": "layerslayerB10D4ECB",
+          },
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRole2F22B68A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 60,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRole2F22B68A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRoleDefaultPolicy74BEE050": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "resource-explorer-2:CreateView",
+                "resource-explorer-2:ListViews",
+                "resource-explorer-2:GetView",
+                "resource-explorer-2:GetIndex",
+                "resource-explorer-2:CreateIndex",
+                "resource-explorer-2:UpdateIndexType",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRoleDefaultPolicy74BEE050",
+        "Roles": [
+          {
+            "Ref": "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRole2F22B68A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "layerslayerB10D4ECB": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "CompatibleArchitectures": [
+          "arm64",
+          "x86_64",
+        ],
+        "Content": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "8e894bb5f763430b49c0be65d7378dcc0c5cf617a6b3fa971fb906019abdd368.zip",
+        },
+      },
+      "Type": "AWS::Lambda::LayerVersion",
+      "UpdateReplacePolicy": "Delete",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

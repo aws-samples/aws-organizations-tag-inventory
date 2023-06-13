@@ -1,7 +1,5 @@
 import { App } from 'aws-cdk-lib';
-import {SpokeStack} from "./stacks/SpokeStack";
-
-
+import { SpokeStack } from './stacks/SpokeStack';
 
 
 // for development, use account/region from cdk cli
