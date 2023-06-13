@@ -9,6 +9,9 @@ import { Layers } from './Layers';
 
 export interface ResourceExplorerIndexConfig {
   layers: Layers;
+  enabledRegions:string[]
+  aggregatorRegion:string
+
 }
 
 export class ResourceExplorerIndex extends Construct {
@@ -20,8 +23,8 @@ export class ResourceExplorerIndex extends Construct {
       serviceToken: ResourceExplorerIndexProvider.getOrCreate(this, config.layers),
       resourceType: 'Custom::ResourceExplorerIndex',
       properties: {
-        ENABLED_REGIONS: ['us-east-1', 'use-east-2', 'us-west-1', 'us-west-2'],
-        AGGREGATOR_INDEX_REGION: 'us-east-2',
+        ENABLED_REGIONS: config.enabledRegions,
+        AGGREGATOR_INDEX_REGION: config.aggregatorRegion,
       },
     });
     resource.getAtt('Arn');
