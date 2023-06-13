@@ -1,5 +1,5 @@
 import path from 'path';
-import { CustomResource, Duration, Stack } from 'aws-cdk-lib';
+import { CfnOutput, CustomResource, Duration, Stack } from 'aws-cdk-lib';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -9,8 +9,8 @@ import { Layers } from './Layers';
 
 export interface ResourceExplorerIndexConfig {
   layers: Layers;
-  enabledRegions:string[]
-  aggregatorRegion:string
+  enabledRegions: string[];
+  aggregatorRegion: string;
 
 }
 
@@ -27,8 +27,12 @@ export class ResourceExplorerIndex extends Construct {
         AGGREGATOR_INDEX_REGION: config.aggregatorRegion,
       },
     });
-    resource.getAtt('Arn');
 
+    new CfnOutput(this, 'tag-inventory-all-resources-arn-output', {
+      value: resource.getAtt('ViewArn').toString(),
+      description: 'Arn of tag-inventory-all-resources view',
+
+    });
   }
 }
 
@@ -55,8 +59,20 @@ class ResourceExplorerIndexProvider extends Construct {
         layers: [layers.layer],
         initialPolicy: [new PolicyStatement({
           effect: Effect.ALLOW,
-          actions: ['resource-explorer-2:CreateView', 'resource-explorer-2:ListViews', 'resource-explorer-2:GetView', 'resource-explorer-2:GetIndex', 'resource-explorer-2:CreateIndex', 'resource-explorer-2:UpdateIndexType'],
+          actions: ['resource-explorer-2:CreateView',
+            'resource-explorer-2:ListViews',
+            'resource-explorer-2:GetView',
+            'resource-explorer-2:GetIndex',
+            'resource-explorer-2:CreateIndex',
+            'resource-explorer-2:UpdateIndexType',
+            'resource-explorer-2:GetDefaultView',
+            'resource-explorer-2:AssociateDefaultView'],
           resources: ['*'],
+        }),
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ['iam:CreateServiceLinkedRole'],
+          resources: ['arn:aws:iam::*:role/aws-service-role/resource-explorer-2.amazonaws.com/AWSServiceRoleForResourceExplorer'],
         })],
       }),
     });

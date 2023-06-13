@@ -2,6 +2,17 @@
 
 exports[`Snapshot 1`] = `
 {
+  "Outputs": {
+    "MyIndextaginventoryallresourcesarnoutputFF1B3C48": {
+      "Description": "Arn of tag-inventory-all-resources view",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyIndexresourceexplorerindexcustomresource6FC13F1F",
+          "ViewArn",
+        ],
+      },
+    },
+  },
   "Parameters": {
     "BootstrapVersion": {
       "Default": "/cdk-bootstrap/hnb659fds/version",
@@ -16,7 +27,7 @@ exports[`Snapshot 1`] = `
         "AGGREGATOR_INDEX_REGION": "us-east-2",
         "ENABLED_REGIONS": [
           "us-east-1",
-          "use-east-2",
+          "us-east-2",
           "us-west-1",
           "us-west-2",
         ],
@@ -151,7 +162,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "047b881f12bb38c7e3d50e532c9048b66235bccd742887c67da10f8cf38ab80a.zip",
+          "S3Key": "1bc588ded6131e95c9a74932458c763c9b79b8630e152997854b2bd4133460ae.zip",
         },
         "Environment": {
           "Variables": {
@@ -218,9 +229,16 @@ exports[`Snapshot 1`] = `
                 "resource-explorer-2:GetIndex",
                 "resource-explorer-2:CreateIndex",
                 "resource-explorer-2:UpdateIndexType",
+                "resource-explorer-2:GetDefaultView",
+                "resource-explorer-2:AssociateDefaultView",
               ],
               "Effect": "Allow",
               "Resource": "*",
+            },
+            {
+              "Action": "iam:CreateServiceLinkedRole",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::*:role/aws-service-role/resource-explorer-2.amazonaws.com/AWSServiceRoleForResourceExplorer",
             },
           ],
           "Version": "2012-10-17",
@@ -245,7 +263,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "8e894bb5f763430b49c0be65d7378dcc0c5cf617a6b3fa971fb906019abdd368.zip",
+          "S3Key": "fc41ded09c2576262fb9939fdcf5b8bfe75a2d20d4103ff39a9c0bc7c63c9139.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

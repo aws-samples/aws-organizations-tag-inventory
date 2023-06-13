@@ -4,8 +4,8 @@ import { Layers } from '../constructs/Layers';
 import { ResourceExplorerIndex } from '../constructs/ResourceExplorerIndex';
 
 export interface SpokeStackProps extends StackProps{
-  enabledRegions:string[]
-  aggregatorRegion:string
+  enabledRegions:string[];
+  aggregatorRegion:string;
 }
 export class SpokeStack extends Stack {
 
@@ -16,7 +16,7 @@ export class SpokeStack extends Stack {
     new ResourceExplorerIndex(this, 'MyIndex', {
       layers: layers,
       enabledRegions: props.enabledRegions,
-      aggregatorRegion: props.aggregatorRegion
+      aggregatorRegion: props.aggregatorRegion,
 
     });
 
