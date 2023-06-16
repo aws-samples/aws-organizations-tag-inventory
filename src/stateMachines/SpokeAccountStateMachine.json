@@ -1,0 +1,70 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Initialize Next Token",
+  "States": {
+    "Initialize Next Token": {
+      "Type": "Pass",
+      "Next": "Search",
+      "Result": {
+        "NextToken": null
+      }
+    },
+    "Search": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${SEARCH_FUNCTION}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Map"
+    },
+    "Map": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Pass",
+        "States": {
+          "Pass": {
+            "Type": "Pass",
+            "OutputPath": "$.Arn",
+            "End": true
+          }
+        }
+      },
+      "ItemsPath": "$.Resources",
+      "ResultPath": null,
+      "Next": "Are there more results?"
+    },
+    "Are there more results?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.NextToken",
+          "IsPresent": true,
+          "Comment": "NextToken : Present",
+          "Next": "Search"
+        }
+      ],
+      "Default": "Success"
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  }
+}

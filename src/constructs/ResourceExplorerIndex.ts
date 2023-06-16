@@ -15,7 +15,7 @@ export interface ResourceExplorerIndexConfig {
 }
 
 export class ResourceExplorerIndex extends Construct {
-
+  readonly viewArn:string;
   constructor(scope: Construct, id: string, config: ResourceExplorerIndexConfig) {
     super(scope, id);
 
@@ -33,6 +33,7 @@ export class ResourceExplorerIndex extends Construct {
       description: 'Arn of tag-inventory-all-resources view',
 
     });
+    this.viewArn = resource.getAtt('ViewArn').toString();
   }
 }
 

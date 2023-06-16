@@ -2,6 +2,109 @@
 
 exports[`Snapshot 1`] = `
 {
+  "Mappings": {
+    "ServiceprincipalMap": {
+      "af-south-1": {
+        "states": "states.af-south-1.amazonaws.com",
+      },
+      "ap-east-1": {
+        "states": "states.ap-east-1.amazonaws.com",
+      },
+      "ap-northeast-1": {
+        "states": "states.ap-northeast-1.amazonaws.com",
+      },
+      "ap-northeast-2": {
+        "states": "states.ap-northeast-2.amazonaws.com",
+      },
+      "ap-northeast-3": {
+        "states": "states.ap-northeast-3.amazonaws.com",
+      },
+      "ap-south-1": {
+        "states": "states.ap-south-1.amazonaws.com",
+      },
+      "ap-south-2": {
+        "states": "states.ap-south-2.amazonaws.com",
+      },
+      "ap-southeast-1": {
+        "states": "states.ap-southeast-1.amazonaws.com",
+      },
+      "ap-southeast-2": {
+        "states": "states.ap-southeast-2.amazonaws.com",
+      },
+      "ap-southeast-3": {
+        "states": "states.ap-southeast-3.amazonaws.com",
+      },
+      "ca-central-1": {
+        "states": "states.ca-central-1.amazonaws.com",
+      },
+      "cn-north-1": {
+        "states": "states.cn-north-1.amazonaws.com",
+      },
+      "cn-northwest-1": {
+        "states": "states.cn-northwest-1.amazonaws.com",
+      },
+      "eu-central-1": {
+        "states": "states.eu-central-1.amazonaws.com",
+      },
+      "eu-central-2": {
+        "states": "states.eu-central-2.amazonaws.com",
+      },
+      "eu-north-1": {
+        "states": "states.eu-north-1.amazonaws.com",
+      },
+      "eu-south-1": {
+        "states": "states.eu-south-1.amazonaws.com",
+      },
+      "eu-south-2": {
+        "states": "states.eu-south-2.amazonaws.com",
+      },
+      "eu-west-1": {
+        "states": "states.eu-west-1.amazonaws.com",
+      },
+      "eu-west-2": {
+        "states": "states.eu-west-2.amazonaws.com",
+      },
+      "eu-west-3": {
+        "states": "states.eu-west-3.amazonaws.com",
+      },
+      "me-central-1": {
+        "states": "states.me-central-1.amazonaws.com",
+      },
+      "me-south-1": {
+        "states": "states.me-south-1.amazonaws.com",
+      },
+      "sa-east-1": {
+        "states": "states.sa-east-1.amazonaws.com",
+      },
+      "us-east-1": {
+        "states": "states.us-east-1.amazonaws.com",
+      },
+      "us-east-2": {
+        "states": "states.us-east-2.amazonaws.com",
+      },
+      "us-gov-east-1": {
+        "states": "states.us-gov-east-1.amazonaws.com",
+      },
+      "us-gov-west-1": {
+        "states": "states.us-gov-west-1.amazonaws.com",
+      },
+      "us-iso-east-1": {
+        "states": "states.amazonaws.com",
+      },
+      "us-iso-west-1": {
+        "states": "states.amazonaws.com",
+      },
+      "us-isob-east-1": {
+        "states": "states.amazonaws.com",
+      },
+      "us-west-1": {
+        "states": "states.us-west-1.amazonaws.com",
+      },
+      "us-west-2": {
+        "states": "states.us-west-2.amazonaws.com",
+      },
+    },
+  },
   "Outputs": {
     "MyIndextaginventoryallresourcesarnoutputFF1B3C48": {
       "Description": "Arn of tag-inventory-all-resources view",
@@ -40,6 +143,276 @@ exports[`Snapshot 1`] = `
       },
       "Type": "Custom::ResourceExplorerIndex",
       "UpdateReplacePolicy": "Delete",
+    },
+    "Searchfn39BBF692": {
+      "DependsOn": [
+        "SearchfnServiceRoleDefaultPolicy46A0B0D1",
+        "SearchfnServiceRole3456AD27",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "4f27b8111ac1f6e4f9f3d36bc2228dfe79c7fa9cf424e99c0c032d749b85d5b2.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "LOG_LEVEL": "DEBUG",
+            "VIEW_ARN": {
+              "Fn::GetAtt": [
+                "MyIndexresourceexplorerindexcustomresource6FC13F1F",
+                "ViewArn",
+              ],
+            },
+          },
+        },
+        "Handler": "index.onEvent",
+        "Layers": [
+          {
+            "Ref": "layerslayerB10D4ECB",
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:lambda:",
+                {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:11",
+              ],
+            ],
+          },
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "SearchfnServiceRole3456AD27",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 60,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SearchfnServiceRole3456AD27": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SearchfnServiceRoleDefaultPolicy46A0B0D1": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "resource-explorer-2:Search",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SearchfnServiceRoleDefaultPolicy46A0B0D1",
+        "Roles": [
+          {
+            "Ref": "SearchfnServiceRole3456AD27",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SpokeAccountStateMachine10567581": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "SpokeAccountStateMachineRoleDefaultPolicyF9A051B5",
+        "SpokeAccountStateMachineRole9B579215",
+      ],
+      "Properties": {
+        "DefinitionString": "{
+  "Comment": "A description of my state machine",
+  "StartAt": "Initialize Next Token",
+  "States": {
+    "Initialize Next Token": {
+      "Type": "Pass",
+      "Next": "Search",
+      "Result": {
+        "NextToken": null
+      }
+    },
+    "Search": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "\${SEARCH_FUNCTION}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Map"
+    },
+    "Map": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Pass",
+        "States": {
+          "Pass": {
+            "Type": "Pass",
+            "OutputPath": "$.Arn",
+            "End": true
+          }
+        }
+      },
+      "ItemsPath": "$.Resources",
+      "ResultPath": null,
+      "Next": "Are there more results?"
+    },
+    "Are there more results?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.NextToken",
+          "IsPresent": true,
+          "Comment": "NextToken : Present",
+          "Next": "Search"
+        }
+      ],
+      "Default": "Success"
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  }
+}",
+        "DefinitionSubstitutions": {
+          "SEARCH_FUNCTION": {
+            "Fn::GetAtt": [
+              "Searchfn39BBF692",
+              "Arn",
+            ],
+          },
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "SpokeAccountStateMachineRole9B579215",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::StepFunctions::StateMachine",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "SpokeAccountStateMachineRole9B579215": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::FindInMap": [
+                    "ServiceprincipalMap",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    "states",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SpokeAccountStateMachineRoleDefaultPolicyF9A051B5": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "Searchfn39BBF692",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Searchfn39BBF692",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SpokeAccountStateMachineRoleDefaultPolicyF9A051B5",
+        "Roles": [
+          {
+            "Ref": "SpokeAccountStateMachineRole9B579215",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB": {
       "DependsOn": [
@@ -162,7 +535,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "1bc588ded6131e95c9a74932458c763c9b79b8630e152997854b2bd4133460ae.zip",
+          "S3Key": "b8e091a77bcc50bb4224e76797cf692cbdb2669fd2e6e0a8434d54ffbd9dfeb0.zip",
         },
         "Environment": {
           "Variables": {
@@ -263,7 +636,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "fc41ded09c2576262fb9939fdcf5b8bfe75a2d20d4103ff39a9c0bc7c63c9139.zip",
+          "S3Key": "2e1211f8b940b0f9f163f1d0024547982cd4cd1a113bcec9926727fd203bf9f5.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
