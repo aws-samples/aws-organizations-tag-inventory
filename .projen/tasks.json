@@ -637,10 +637,10 @@
           "exec": "cp -R node_modules/strnum/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/strnum"
         },
         {
-          "exec": "mkdir ./dist;(cd /tmp/aws-organizations-tag-inventory && zip -r //Users/ekunzova/IdeaProjects/aws-organizations-tag-inventory/dist/aws-organizations-tag-inventory-layer.zip ./nodejs)"
+          "exec": "mkdir ./dist;(cd /tmp/aws-organizations-tag-inventory && zip -r //Users/awsgalen/IdeaProjects/aws-organizations-tag-inventory/dist/aws-organizations-tag-inventory-layer.zip ./nodejs)"
         }
       ],
-      "cwd": "/Users/ekunzova/IdeaProjects/aws-organizations-tag-inventory"
+      "cwd": "/Users/awsgalen/IdeaProjects/aws-organizations-tag-inventory"
     }
   },
   "env": {
