@@ -1,5 +1,4 @@
 {
-  "Comment": "A description of my state machine",
   "StartAt": "Initialize",
   "States": {
     "Initialize": {
@@ -165,10 +164,64 @@
           "BackoffRate": 2
         }
       ],
-      "Next": "Are there more results?",
+      "Next": "Loop over merged results",
       "ResultSelector": {
         "Payload.$": "States.StringToJson($.Payload)"
       }
+    },
+    "Loop over merged results": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Build PutRequest items",
+        "States": {
+          "Build PutRequest items": {
+            "Type": "Pass",
+            "Next": "DynamoDB PutItem"
+          },
+          "DynamoDB PutItem": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::dynamodb:putItem",
+            "Parameters": {
+              "TableName": "SpokeMachineTags",
+              "Item": {
+                "Column": {
+                  "S": "MyEntry"
+                }
+              }
+            },
+            "End": true,
+            "OutputPath": "$.Results"
+          }
+        }
+      },
+      "Next": "BatchWriteItem",
+      "MaxConcurrency": 10,
+      "ResultSelector": {
+        "flatten.$": "$[*][*]"
+      },
+      "OutputPath": "$.Results",
+      "ItemsPath": "$.Results"
+    },
+    "BatchWriteItem": {
+      "Type": "Task",
+      "Next": "Are there more results?",
+      "Parameters": {
+        "RequestItems": {
+          "SpokeMachine": [
+            {
+              "PutRequest": {
+                "Item": {
+                  "Results.$": "$"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "Resource": "arn:aws:states:::aws-sdk:dynamodb:batchWriteItem"
     },
     "Are there more results?": {
       "Type": "Choice",
@@ -193,6 +246,6 @@
     "Success": {
       "Type": "Succeed"
     }
-  }
+  },
+  "Comment": "Runs through the resources and tags of the spoke account."
 }
-

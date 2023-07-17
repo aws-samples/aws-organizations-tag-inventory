@@ -124,6 +124,83 @@ exports[`Snapshot 1`] = `
     },
   },
   "Resources": {
+    "MergeResultsfnAA3E2F42": {
+      "DependsOn": [
+        "MergeResultsfnServiceRoleB265D4F0",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "bf51f6fb91d0b70b4815e6b75f4305b217bd78880d6f8f33735d8ce473e478bb.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "LOG_LEVEL": "DEBUG",
+          },
+        },
+        "Handler": "index.onEvent",
+        "Layers": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:lambda:",
+                {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:11",
+              ],
+            ],
+          },
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "MergeResultsfnServiceRoleB265D4F0",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 60,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "MergeResultsfnServiceRoleB265D4F0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
     "MyIndexresourceexplorerindexcustomresource6FC13F1F": {
       "DeletionPolicy": "Delete",
       "Properties": {
@@ -157,7 +234,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "4f27b8111ac1f6e4f9f3d36bc2228dfe79c7fa9cf424e99c0c032d749b85d5b2.zip",
+          "S3Key": "0a8d0f1bcaeeb11f4ce40dce4cf58f894fcb5ce2b1b4262c437b3cbd26a9ae7a.zip",
         },
         "Environment": {
           "Variables": {
@@ -236,7 +313,10 @@ exports[`Snapshot 1`] = `
         "PolicyDocument": {
           "Statement": [
             {
-              "Action": "resource-explorer-2:Search",
+              "Action": [
+                "resource-explorer-2:Search",
+                "dynamodb:PutItem",
+              ],
               "Effect": "Allow",
               "Resource": "*",
             },
@@ -261,22 +341,24 @@ exports[`Snapshot 1`] = `
       "Properties": {
         "DefinitionString": "{
   "Comment": "A description of my state machine",
-  "StartAt": "Initialize Next Token",
+  "StartAt": "Initialize",
   "States": {
-    "Initialize Next Token": {
+    "Initialize": {
       "Type": "Pass",
       "Next": "Search",
       "Result": {
-        "NextToken": null
+        "NextToken": null,
+        "PreviousResults": []
       }
     },
     "Search": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
-      "OutputPath": "$.Payload",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
-        "Payload.$": "$",
-        "FunctionName": "\${SEARCH_FUNCTION}"
+        "FunctionName": "\${SEARCH_FUNCTION}",
+        "Payload": {
+          "NextToken.$": "$.NextToken"
+        }
       },
       "Retry": [
         {
@@ -291,26 +373,143 @@ exports[`Snapshot 1`] = `
           "BackoffRate": 2
         }
       ],
-      "Next": "Map"
+      "Next": "For each resource",
+      "ResultSelector": {
+        "Result.$": "States.StringToJson($.Payload)"
+      },
+      "ResultPath": "$.Payload"
     },
-    "Map": {
+    "For each resource": {
       "Type": "Map",
       "ItemProcessor": {
         "ProcessorConfig": {
           "Mode": "INLINE"
         },
-        "StartAt": "Pass",
+        "StartAt": "Extract tags if the exist",
         "States": {
-          "Pass": {
+          "Extract tags if the exist": {
             "Type": "Pass",
-            "OutputPath": "$.Arn",
+            "Parameters": {
+              "Arn.$": "$.Arn",
+              "OwningAccountId.$": "$.OwningAccountId",
+              "Region.$": "$.Region",
+              "ResourceType.$": "$.ResourceType",
+              "Service.$": "$.Service",
+              "Tags.$": "$.Properties[?(@.Name==tags)]",
+              "TagsLength.$": "States.ArrayLength($.Properties[?(@.Name==tags)])"
+            },
+            "Next": "Are there tags?"
+          },
+          "Are there tags?": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Variable": "$.TagsLength",
+                "NumericEquals": 1,
+                "Next": "Pull Tags up",
+                "Comment": "Yes"
+              }
+            ],
+            "Default": "Set NoTag and NoValue"
+          },
+          "Pull Tags up": {
+            "Type": "Pass",
+            "Parameters": {
+              "Arn.$": "$.Arn",
+              "OwningAccountId.$": "$.OwningAccountId",
+              "Region.$": "$.Region",
+              "ResourceType.$": "$.ResourceType",
+              "Service.$": "$.Service",
+              "Tags.$": "$.Tags[0].Data",
+              "TagsLength.$": "States.ArrayLength($.Tags[0].Data)"
+            },
+            "Next": "For each tag"
+          },
+          "For each tag": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Transform resource to Tag",
+              "States": {
+                "Transform resource to Tag": {
+                  "Type": "Pass",
+                  "End": true,
+                  "Parameters": {
+                    "Join.$": "States.StringToJson(States.Format('\\\\{\\"{}\\":\\\\{\\"{}\\":[{}]\\\\}\\\\}', $.TagKey, $.TagValue,States.JsonToString($.Resource)))"
+                  },
+                  "OutputPath": "$.Join"
+                }
+              }
+            },
+            "ItemsPath": "$.Tags",
+            "ItemSelector": {
+              "TagKey.$": "$$.Map.Item.Value.Key",
+              "TagValue.$": "$$.Map.Item.Value.Value",
+              "Resource": {
+                "Arn.$": "$.Arn",
+                "OwningAccountId.$": "$.OwningAccountId",
+                "Region.$": "$.Region",
+                "ResourceType.$": "$.ResourceType",
+                "Service.$": "$.Service"
+              }
+            },
             "End": true
+          },
+          "Set NoTag and NoValue": {
+            "Type": "Pass",
+            "End": true,
+            "Parameters": [
+              {
+                "NoTag": {
+                  "NoValue": [
+                    {
+                      "Arn.$": "$.Arn",
+                      "OwningAccountId.$": "$.OwningAccountId",
+                      "Region.$": "$.Region",
+                      "ResourceType.$": "$.ResourceType",
+                      "Service.$": "$.Service"
+                    }
+                  ]
+                }
+              }
+            ]
           }
         }
       },
-      "ItemsPath": "$.Resources",
-      "ResultPath": null,
-      "Next": "Are there more results?"
+      "ItemsPath": "$.Payload.Result.Resources",
+      "Next": "Merge results",
+      "ResultPath": "$.Results",
+      "ResultSelector": {
+        "flatten.$": "$[*][*]"
+      }
+    },
+    "Merge results": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "\${MERGE_FUNCTION}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Are there more results?",
+      "ResultSelector": {
+        "Payload.$": "States.StringToJson($.Payload)"
+      }
     },
     "Are there more results?": {
       "Type": "Choice",
@@ -319,17 +518,33 @@ exports[`Snapshot 1`] = `
           "Variable": "$.NextToken",
           "IsPresent": true,
           "Comment": "NextToken : Present",
-          "Next": "Search"
+          "Next": "Drop previous Resources"
         }
       ],
       "Default": "Success"
+    },
+    "Drop previous Resources": {
+      "Type": "Pass",
+      "Next": "Search",
+      "Parameters": {
+        "NextToken.$": "$.NextToken",
+        "PreviousResults.$": "$.Results"
+      }
     },
     "Success": {
       "Type": "Succeed"
     }
   }
-}",
+}
+
+",
         "DefinitionSubstitutions": {
+          "MERGE_FUNCTION": {
+            "Fn::GetAtt": [
+              "MergeResultsfnAA3E2F42",
+              "Arn",
+            ],
+          },
           "SEARCH_FUNCTION": {
             "Fn::GetAtt": [
               "Searchfn39BBF692",
@@ -376,6 +591,32 @@ exports[`Snapshot 1`] = `
       "Properties": {
         "PolicyDocument": {
           "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "MergeResultsfnAA3E2F42",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "MergeResultsfnAA3E2F42",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
             {
               "Action": "lambda:InvokeFunction",
               "Effect": "Allow",
@@ -636,7 +877,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "2e1211f8b940b0f9f163f1d0024547982cd4cd1a113bcec9926727fd203bf9f5.zip",
+          "S3Key": "f668ca1672d2ee024680309603b6f8d9f04567730cacf05b4b93c90894e087a2.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
