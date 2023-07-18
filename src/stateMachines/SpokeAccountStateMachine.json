@@ -175,50 +175,69 @@
         "ProcessorConfig": {
           "Mode": "INLINE"
         },
-        "StartAt": "Build PutRequest items",
+        "StartAt": "Loop Over Resources",
         "States": {
-          "Build PutRequest items": {
-            "Type": "Pass",
-            "Next": "DynamoDB PutItem"
-          },
-          "DynamoDB PutItem": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::dynamodb:putItem",
-            "Parameters": {
-              "TableName": "SpokeMachineTags",
-              "Item": {
-                "Column": {
-                  "S": "MyEntry"
+          "Loop Over Resources": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Transform Data",
+              "States": {
+                "Transform Data": {
+                  "Type": "Pass",
+                  "Parameters": {
+                    "Join.$": "States.StringToJson(States.Format(' \\{  \"M\": \\{   \"OwningAccountId\": \\{    \"S\":\"{}\" \\},  \"Region\": \\{\"S\":\"{}\"\\},  \"Service\": \\{\"S\":\"{}\"\\},  \"ResourceType\": \\{\"S\":\"{}\"\\},  \"Arn\": \\{\"S\":\"{}\"\\}\\}\\} ', $.Resource.OwningAccountId, $.Resource.Region, $.Resource.Service,$.Resource.ResourceType,$.Resource.Arn))"
+                  },
+                  "End": true,
+                  "OutputPath": "$.Join"
                 }
               }
             },
+            "ItemsPath": "$.Resources",
+            "ItemSelector": {
+              "TagName.$": "$.TagName",
+              "TagValue.$": "$.TagValue",
+              "Resource.$": "$$.Map.Item.Value"
+            },
+            "Next": "Pass",
+            "ResultPath": "$.Resources"
+          },
+          "Pass": {
+            "Type": "Pass",
             "End": true,
-            "OutputPath": "$.Results"
+            "Parameters": {
+              "PutRequest": {
+                "Item": {
+                  "TagName": {
+                    "S.$": "$.TagName"
+                  },
+                  "TagValue": {
+                    "S.$": "$.TagValue"
+                  },
+                  "Resources": {
+                    "L.$": "$.Resources"
+                  }
+                }
+              }
+            }
           }
         }
       },
       "Next": "BatchWriteItem",
       "MaxConcurrency": 10,
+      "ItemsPath": "$.Results",
       "ResultSelector": {
-        "flatten.$": "$[*][*]"
-      },
-      "OutputPath": "$.Results",
-      "ItemsPath": "$.Results"
+        "flatten.$": "$[*]"
+      }
     },
     "BatchWriteItem": {
       "Type": "Task",
       "Next": "Are there more results?",
       "Parameters": {
         "RequestItems": {
-          "SpokeMachine": [
-            {
-              "PutRequest": {
-                "Item": {
-                  "Results.$": "$"
-                }
-              }
-            }
-          ]
+          "SpokeMachineTags.$": "$.flatten"
         }
       },
       "Resource": "arn:aws:states:::aws-sdk:dynamodb:batchWriteItem"
