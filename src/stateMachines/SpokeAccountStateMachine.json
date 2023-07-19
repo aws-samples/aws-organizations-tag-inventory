@@ -230,17 +230,19 @@
       "ItemsPath": "$.Results",
       "ResultSelector": {
         "flatten.$": "$[*]"
-      }
+      },
+      "ResultPath": "$.Results"
     },
     "BatchWriteItem": {
       "Type": "Task",
       "Next": "Are there more results?",
       "Parameters": {
         "RequestItems": {
-          "SpokeMachineTags.$": "$.flatten"
+          "SpokeMachineTags.$": "$.Results.flatten"
         }
       },
-      "Resource": "arn:aws:states:::aws-sdk:dynamodb:batchWriteItem"
+      "Resource": "arn:aws:states:::aws-sdk:dynamodb:batchWriteItem",
+      "ResultPath": "$.Results"
     },
     "Are there more results?": {
       "Type": "Choice",
@@ -258,8 +260,7 @@
       "Type": "Pass",
       "Next": "Search",
       "Parameters": {
-        "NextToken.$": "$.NextToken",
-        "PreviousResults.$": "$.Results"
+        "NextToken.$": "$.NextToken"
       }
     },
     "Success": {
