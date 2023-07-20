@@ -61,7 +61,7 @@ export class SpokeStack extends Stack {
       { name: 'SpokeAccountStateMachine', file: path.join(__dirname, '..', 'stateMachines', 'SpokeAccountStateMachine.json'), searchFunction: searchFunction, mergeFunction: mergeFunction });
     stateMachine.stateMachine.addToRolePolicy(new PolicyStatement({
       effect:Effect.ALLOW,
-      actions: ["dynamodb:PutItem","dynamodb:BatchWriteItem"],
+      actions: ["dynamodb:PutItem","dynamodb:BatchWriteItem","dynamodb:UpdateItem"],
       resources: ["*"]
 
 

@@ -201,48 +201,52 @@
               "TagValue.$": "$.TagValue",
               "Resource.$": "$$.Map.Item.Value"
             },
-            "Next": "Pass",
+            "Next": "Build statements",
             "ResultPath": "$.Resources"
           },
-          "Pass": {
+          "Build statements": {
             "Type": "Pass",
-            "End": true,
             "Parameters": {
-              "PutRequest": {
-                "Item": {
+              "TableName": "SpokeMachineTags",
+              "Insert": {
+                "Key": {
                   "TagName": {
                     "S.$": "$.TagName"
                   },
                   "TagValue": {
                     "S.$": "$.TagValue"
-                  },
-                  "Resources": {
+                  }
+                },
+                "UpdateExpression": "set Resources=list_append(if_not_exists(Resources, :emptyList), :resources)",
+                "ExpressionAttributeValues": {
+                  ":resources": {
                     "L.$": "$.Resources"
+                  },
+                  ":emptyList": {
+                    "L": []
                   }
                 }
               }
-            }
+            },
+            "Next": "Insert Item"
+          },
+          "Insert Item": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::dynamodb:updateItem",
+            "Parameters": {
+              "TableName.$": "$.TableName",
+              "Key.$": "$.Insert.Key",
+              "UpdateExpression.$": "$.Insert.UpdateExpression",
+              "ExpressionAttributeValues.$": "$.Insert.ExpressionAttributeValues"
+            },
+            "End": true
           }
         }
       },
-      "Next": "BatchWriteItem",
       "MaxConcurrency": 10,
       "ItemsPath": "$.Results",
-      "ResultSelector": {
-        "flatten.$": "$[*]"
-      },
-      "ResultPath": "$.Results"
-    },
-    "BatchWriteItem": {
-      "Type": "Task",
       "Next": "Are there more results?",
-      "Parameters": {
-        "RequestItems": {
-          "SpokeMachineTags.$": "$.Results.flatten"
-        }
-      },
-      "Resource": "arn:aws:states:::aws-sdk:dynamodb:batchWriteItem",
-      "ResultPath": "$.Results"
+      "ResultPath": null
     },
     "Are there more results?": {
       "Type": "Choice",
