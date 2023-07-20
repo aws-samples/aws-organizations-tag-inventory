@@ -175,20 +175,36 @@
         "ProcessorConfig": {
           "Mode": "INLINE"
         },
-        "StartAt": "PutObject",
+        "StartAt": "Prep Partitions",
         "States": {
+          "Prep Partitions": {
+            "Type": "Pass",
+            "Next": "PutObject",
+            "Parameters": {
+              "TagName.$": "$.TagName",
+              "TagValue.$": "$.TagValue",
+              "Resources.$": "$.Resources",
+              "year.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),0)",
+              "month.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),1)",
+              "day.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),2)",
+              "hour.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),3)",
+              "minute.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),4)"
+            }
+          },
           "PutObject": {
             "Type": "Task",
-            "End": true,
             "Parameters": {
               "Body": {
                 "Resources.$": "$.Resources"
               },
-              "Bucket": "aws-organizations-tag-inventory-tagbucket58e01f8e-ndhbsty5j4op",
-              "Key.$": "States.Format('TagName={}/TagValue={}/timestamp={}/{}.json',$.TagName,$.TagValue,$$.Execution.StartTime,$$.State.EnteredTime)"
+              "Bucket": "${CENTRAL_BUCKET_NAME}",
+              "Key.$": "States.Format('TagName={}/TagValue={}/year={}/month={}/day={}/hour={}/minute={}/{}.json',    $.TagName,    $.TagValue,    $.year,    $.month,    $.day,    $.hour,$.minute,        $$.State.EnteredTime)"
             },
             "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
-            "ResultPath": null
+            "ResultPath": null,
+            "Credentials": {
+              "RoleArn": "${CENTRAL_ROLE_ARN}"
+            }
           }
         }
       },
