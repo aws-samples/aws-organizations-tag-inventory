@@ -1,5 +1,5 @@
 import path from 'path';
-import {Aws, Duration, Stack, StackProps} from 'aws-cdk-lib';
+import {Aws, Duration, RemovalPolicy, Stack, StackProps} from 'aws-cdk-lib';
 import {Effect, PolicyStatement} from 'aws-cdk-lib/aws-iam';
 import {Architecture, LayerVersion, Runtime} from 'aws-cdk-lib/aws-lambda';
 import {NodejsFunction} from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -7,6 +7,7 @@ import {Construct} from 'constructs';
 import {Layers} from '../constructs/Layers';
 import {ResourceExplorerIndex} from '../constructs/ResourceExplorerIndex';
 import {StateMachineFromFile} from '../constructs/StateMachineFromFile';
+import {BlockPublicAccess, Bucket, HttpMethods} from "aws-cdk-lib/aws-s3";
 
 export interface SpokeStackProps extends StackProps {
   enabledRegions: string[];
@@ -17,6 +18,28 @@ export class SpokeStack extends Stack {
 
   constructor(scope: Construct, id: string, props: SpokeStackProps) {
     super(scope, id, props);
+    const serverAccessLogBucket = new Bucket(this, 'S3ServerAccessLogBucket', {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
+      autoDeleteObjects: true,
+    });
+    const bucket = new Bucket(this, 'TagBucket', {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      cors: [
+        {
+          allowedHeaders: ['*'],
+          allowedMethods: [HttpMethods.PUT, HttpMethods.GET, HttpMethods.POST, HttpMethods.HEAD],
+          allowedOrigins: ['*'],
+          exposedHeaders: ['ETag'],
+        },
+      ],
+      eventBridgeEnabled: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      serverAccessLogsBucket: serverAccessLogBucket,
+      enforceSSL: true,
+      autoDeleteObjects: true,
+    });
     const layers = new Layers(this, 'layers');
     //put resources here
     const resourceExplorerIndex = new ResourceExplorerIndex(this, 'MyIndex', {
@@ -68,6 +91,7 @@ export class SpokeStack extends Stack {
     }))
     mergeFunction.grantInvoke(stateMachine.stateMachine);
     searchFunction.grantInvoke(stateMachine.stateMachine);
+    bucket.grantReadWrite(stateMachine.stateMachine)
 
   }
 }

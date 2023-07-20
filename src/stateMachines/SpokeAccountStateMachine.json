@@ -175,71 +175,20 @@
         "ProcessorConfig": {
           "Mode": "INLINE"
         },
-        "StartAt": "Loop Over Resources",
+        "StartAt": "PutObject",
         "States": {
-          "Loop Over Resources": {
-            "Type": "Map",
-            "ItemProcessor": {
-              "ProcessorConfig": {
-                "Mode": "INLINE"
-              },
-              "StartAt": "Transform Data",
-              "States": {
-                "Transform Data": {
-                  "Type": "Pass",
-                  "Parameters": {
-                    "Join.$": "States.StringToJson(States.Format(' \\{  \"M\": \\{   \"OwningAccountId\": \\{    \"S\":\"{}\" \\},  \"Region\": \\{\"S\":\"{}\"\\},  \"Service\": \\{\"S\":\"{}\"\\},  \"ResourceType\": \\{\"S\":\"{}\"\\},  \"Arn\": \\{\"S\":\"{}\"\\}\\}\\} ', $.Resource.OwningAccountId, $.Resource.Region, $.Resource.Service,$.Resource.ResourceType,$.Resource.Arn))"
-                  },
-                  "End": true,
-                  "OutputPath": "$.Join"
-                }
-              }
-            },
-            "ItemsPath": "$.Resources",
-            "ItemSelector": {
-              "TagName.$": "$.TagName",
-              "TagValue.$": "$.TagValue",
-              "Resource.$": "$$.Map.Item.Value"
-            },
-            "Next": "Build statements",
-            "ResultPath": "$.Resources"
-          },
-          "Build statements": {
-            "Type": "Pass",
-            "Parameters": {
-              "TableName": "SpokeMachineTags",
-              "Insert": {
-                "Key": {
-                  "TagName": {
-                    "S.$": "$.TagName"
-                  },
-                  "TagValue": {
-                    "S.$": "$.TagValue"
-                  }
-                },
-                "UpdateExpression": "set Resources=list_append(if_not_exists(Resources, :emptyList), :resources)",
-                "ExpressionAttributeValues": {
-                  ":resources": {
-                    "L.$": "$.Resources"
-                  },
-                  ":emptyList": {
-                    "L": []
-                  }
-                }
-              }
-            },
-            "Next": "Insert Item"
-          },
-          "Insert Item": {
+          "PutObject": {
             "Type": "Task",
-            "Resource": "arn:aws:states:::dynamodb:updateItem",
+            "End": true,
             "Parameters": {
-              "TableName.$": "$.TableName",
-              "Key.$": "$.Insert.Key",
-              "UpdateExpression.$": "$.Insert.UpdateExpression",
-              "ExpressionAttributeValues.$": "$.Insert.ExpressionAttributeValues"
+              "Body": {
+                "Resources.$": "$.Resources"
+              },
+              "Bucket": "aws-organizations-tag-inventory-tagbucket58e01f8e-ndhbsty5j4op",
+              "Key.$": "States.Format('TagName={}/TagValue={}/timestamp={}/{}.json',$.TagName,$.TagValue,$$.Execution.StartTime,$$.State.EnteredTime)"
             },
-            "End": true
+            "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
+            "ResultPath": null
           }
         }
       },
