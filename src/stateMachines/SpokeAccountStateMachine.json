@@ -204,7 +204,8 @@
             "ResultPath": null,
             "Credentials": {
               "RoleArn": "${CENTRAL_ROLE_ARN}"
-            }
+            },
+            "End": true
           }
         }
       },
