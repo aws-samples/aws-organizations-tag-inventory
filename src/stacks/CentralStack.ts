@@ -90,9 +90,10 @@ export class CentralStack extends Stack {
 			description: 'Organizational tag inventory crawler',
 			databaseName: database.ref,
 			role: athenaRole.roleArn,
+			configuration: "{\"Version\":1,\"CreatePartitionIndex\":true,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\",\"TableThreshold\":1}},\"Grouping\":{\"TableLevelConfiguration\":1}}",
 			targets: {
 				s3Targets: [{
-					path: bucket.bucketName,
+					path: bucket.s3UrlForObject(""),
 					eventQueueArn: tagInventoryEventQueue.queueArn
 				}]
 			},
@@ -100,9 +101,10 @@ export class CentralStack extends Stack {
 				recrawlBehavior: "CRAWL_EVENT_MODE"
 
 			},
-			schedule:{
-				scheduleExpression:"cron(0 0/1 * * ? *)"
-			}
+			schedule: {
+				scheduleExpression: "cron(0 0/1 * * ? *)"
+			},
+
 		})
 		const centralStackRole = new Role(this, "CentralStackPutTagInventoryRole", {
 			assumedBy: new OrganizationPrincipal(props.organizationId),
