@@ -18,7 +18,7 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
     gitignore: ['.idea', '*.iml', '.DS_Store'],
     deps: ['@types/aws-lambda', '@aws-sdk/client-resource-explorer-2', 'uuid'], /* Runtime dependencies of this module. */
     // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-    devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist'], /* Build dependencies for this module. */
+    devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist','cdk-assets'], /* Build dependencies for this module. */
     // packageName: undefined,  /* The "name" in package.json. */
   });
   await addZipLayerTask(project, ['@aws-lambda-powertools', 'aws-cdk-lib', 'constructs', '@types']);

@@ -41,6 +41,10 @@
       "type": "build"
     },
     {
+      "name": "cdk-assets",
+      "type": "build"
+    },
+    {
       "name": "esbuild",
       "type": "build"
     },
