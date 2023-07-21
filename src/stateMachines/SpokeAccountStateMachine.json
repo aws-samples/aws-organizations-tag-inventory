@@ -198,7 +198,7 @@
                 "Resources.$": "$.Resources"
               },
               "Bucket": "${CENTRAL_BUCKET_NAME}",
-              "Key.$": "States.Format('TagName={}/TagValue={}/year={}/month={}/day={}/hour={}/minute={}/{}.json',    $.TagName,    $.TagValue,    $.year,    $.month,    $.day,    $.hour,$.minute,        $$.State.EnteredTime)"
+              "Key.$": "States.Format('TagName={}/TagValue={}/date={}-{}-{}/{}.json',    $.TagName,    $.TagValue,    $.year,    $.month,    $.day,   $$.State.EnteredTime)"
             },
             "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
             "ResultPath": null,

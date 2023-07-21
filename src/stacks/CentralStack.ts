@@ -90,7 +90,7 @@ export class CentralStack extends Stack {
 			description: 'Organizational tag inventory crawler',
 			databaseName: database.ref,
 			role: athenaRole.roleArn,
-			configuration: "{\"Version\":1,\"CreatePartitionIndex\":true,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\",\"TableThreshold\":1}},\"Grouping\":{\"TableLevelConfiguration\":1}}",
+			configuration: "{\"Version\":1,\"CreatePartitionIndex\":true,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}},\"Grouping\":{\"TableLevelConfiguration\":1}}",
 			targets: {
 				s3Targets: [{
 					path: bucket.s3UrlForObject(""),
@@ -114,7 +114,7 @@ export class CentralStack extends Stack {
 		new CfnOutput(
 			this, 'OrganizationsTagInventoryBucketNameOutput',
 			{
-				description: 'Name of the bucket where the Organizations Tag Inventory is stored',
+				description: 'Name of the bucket where the Organizations Tag inventory is stored',
 				value: bucket.bucketName,
 				exportName: 'OrganizationsTagInventoryBucketName',
 			},
