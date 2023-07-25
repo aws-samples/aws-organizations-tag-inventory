@@ -195,10 +195,12 @@
             "Type": "Task",
             "Parameters": {
               "Body": {
+                "TagName.$": "$.TagName",
+                "TagValue.$": "$.TagValue",
                 "Resources.$": "$.Resources"
               },
               "Bucket": "${CENTRAL_BUCKET_NAME}",
-              "Key.$": "States.Format('TagName={}/TagValue={}/date={}-{}-{}/{}.json',    $.TagName,    $.TagValue,    $.year,    $.month,    $.day,   $$.State.EnteredTime)"
+              "Key.$": "States.Format('d={}-{}-{}/{}.json',    $.year,    $.month,    $.day,   States.UUID())"
             },
             "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
             "ResultPath": null,

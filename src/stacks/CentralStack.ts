@@ -90,10 +90,13 @@ export class CentralStack extends Stack {
 			description: 'Organizational tag inventory crawler',
 			databaseName: database.ref,
 			role: athenaRole.roleArn,
-			configuration: "{\"Version\":1,\"CreatePartitionIndex\":true,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}},\"Grouping\":{\"TableLevelConfiguration\":1}}",
+			configuration: "{\"Version\":1,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}},\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"},\"CreatePartitionIndex\":false}",
 			targets: {
-				s3Targets: [{
-					path: bucket.s3UrlForObject(""),
+				catalogTargets: [{
+					databaseName: database.ref,
+					tables:[
+						bucket.bucketName
+					],
 					eventQueueArn: tagInventoryEventQueue.queueArn
 				}]
 			},
