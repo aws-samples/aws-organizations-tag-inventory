@@ -2,7 +2,7 @@ import {Aws, CfnOutput, RemovalPolicy, Stack, StackProps} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import {BlockPublicAccess, Bucket, HttpMethods} from "aws-cdk-lib/aws-s3";
 import {Effect, ManagedPolicy, OrganizationPrincipal, PolicyDocument, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
-import {CfnCrawler, CfnDatabase} from "aws-cdk-lib/aws-glue";
+import {CfnCrawler, CfnDatabase, CfnTable} from "aws-cdk-lib/aws-glue";
 import {Queue} from "aws-cdk-lib/aws-sqs";
 import {SqsDestination} from "aws-cdk-lib/aws-s3-notifications";
 
@@ -84,7 +84,57 @@ export class CentralStack extends Stack {
 			},
 
 		});
+		const table=new CfnTable(this,"TagInventoryTable", {
+			catalogId: Aws.ACCOUNT_ID,
+			databaseName: database.ref,
+			tableInput: {
+				name:`${props.organizationId}-tag-inventory-table`,
+				storageDescriptor: {
+					location: bucket.s3UrlForObject("/"),
+					inputFormat: "org.apache.hadoop.mapred.TextInputFormat",
+					outputFormat: "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+					compressed: false,
+					numberOfBuckets: -1,
+					serdeInfo: {
+						serializationLibrary: "org.openx.data.jsonserde.JsonSerDe",
+						parameters: {
+							"paths": "Resources,TagName,TagValue"
+						}
+					},
+					bucketColumns:[],
+					sortColumns:[],
+					parameters: {
+						"partition_filtering.enabled": "true",
+						"compressionType": "none",
+						"classification": "json",
+						"typeOfData": "file"
+					},
+					storedAsSubDirectories: false,
 
+					columns: [
+						{
+							name: "tagname",
+							type: "string"
+						},
+						{
+							name: "resources",
+							type: "array<struct<OwningAccountId:string,Region:string,Service:string,ResourceType:string,Arn:string>>"
+						},
+						{
+							name: "tagvalue",
+							type: "string"
+						}
+
+					]
+				},
+				partitionKeys:[{
+					name:"d",
+					type:"string"
+				}],
+				tableType:"EXTERNAL_TABLE",
+			}
+
+		})
 		new CfnCrawler(this, "OrganizationalTagInventoryCrawler", {
 			name: `${props.organizationId}-tag-inventory-crawler`,
 			description: 'Organizational tag inventory crawler',
@@ -95,7 +145,7 @@ export class CentralStack extends Stack {
 				catalogTargets: [{
 					databaseName: database.ref,
 					tables:[
-						bucket.bucketName
+						table.ref
 					],
 					eventQueueArn: tagInventoryEventQueue.queueArn
 				}]
