@@ -1,10 +1,14 @@
-import {Aws, CfnOutput, RemovalPolicy, Stack, StackProps} from 'aws-cdk-lib';
+import {Aws, CfnOutput, Duration, RemovalPolicy, Stack, StackProps} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import {BlockPublicAccess, Bucket, HttpMethods} from "aws-cdk-lib/aws-s3";
 import {Effect, ManagedPolicy, OrganizationPrincipal, PolicyDocument, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 import {CfnCrawler, CfnDatabase, CfnTable} from "aws-cdk-lib/aws-glue";
 import {Queue} from "aws-cdk-lib/aws-sqs";
 import {SqsDestination} from "aws-cdk-lib/aws-s3-notifications";
+import {NodejsFunction} from "aws-cdk-lib/aws-lambda-nodejs";
+import {Architecture,LayerVersion, Runtime} from "aws-cdk-lib/aws-lambda";
+import path from "path";
+import {CfnSchedule} from "aws-cdk-lib/aws-scheduler";
 
 export interface CentralStackProps extends StackProps {
 	organizationId: string | undefined
@@ -17,12 +21,31 @@ export class CentralStack extends Stack {
 		if (!props.organizationId) {
 			throw new Error("Organization Id is required")
 		}
+		const powerToolsLayer = LayerVersion.fromLayerVersionArn(this, 'powertools', `arn:aws:lambda:${Aws.REGION}:094274105915:layer:AWSLambdaPowertoolsTypeScript:11`);
 		const serverAccessLogBucket = new Bucket(this, 'S3ServerAccessLogBucket', {
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 			removalPolicy: RemovalPolicy.DESTROY,
 			enforceSSL: true,
 			autoDeleteObjects: true,
 		});
+		const athenaTagsBucket = new Bucket(this, 'ReportBucket', {
+			bucketName: `tag-inventory-athena-${props.organizationId}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
+			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+			cors: [
+				{
+					allowedHeaders: ['*'],
+					allowedMethods: [HttpMethods.PUT, HttpMethods.GET, HttpMethods.POST, HttpMethods.HEAD],
+					allowedOrigins: ['*'],
+					exposedHeaders: ['ETag'],
+				},
+			],
+			eventBridgeEnabled: true,
+			removalPolicy: RemovalPolicy.DESTROY,
+			serverAccessLogsBucket: serverAccessLogBucket,
+			enforceSSL: true,
+			autoDeleteObjects: true,
+		});
+
 		const bucket = new Bucket(this, 'TagBucket', {
 			bucketName: `tag-inventory-${props.organizationId}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
@@ -75,6 +98,7 @@ export class CentralStack extends Stack {
 			actions: ['SQS:SendMessage'],
 		}));
 		bucket.addObjectCreatedNotification(new SqsDestination(tagInventoryEventQueue));
+		athenaTagsBucket.addObjectCreatedNotification(new SqsDestination(tagInventoryEventQueue))
 		const database = new CfnDatabase(this, 'OrganizationalTagInventoryDatabase', {
 			catalogId: Aws.ACCOUNT_ID,
 			databaseInput: {
@@ -164,6 +188,35 @@ export class CentralStack extends Stack {
 			description: "Role with access to write to the central stack's OrganizationsTagInventory bucket"
 		})
 		bucket.grantPut(centralStackRole)
+		athenaTagsBucket.grantPut(centralStackRole)
+					const timedEventFunction = new NodejsFunction(this, 'Timed-Event-fn', {
+						architecture: Architecture.ARM_64,
+						runtime: Runtime.NODEJS_18_X,
+						entry: path.join(__dirname, '..', 'functions', 'GenerateCSV.ts'),
+						handler: 'index.onEvent',
+						timeout: Duration.seconds(60),
+						layers: [powerToolsLayer],
+						initialPolicy: [],
+						environment: {
+							LOG_LEVEL: 'DEBUG',
+						},
+					});
+					const role=new Role(this,"ReportSchedulerRole",{assumedBy: new ServicePrincipal("scheduler.amazonaws.com")})
+					timedEventFunction.grantInvoke(role)
+
+					new CfnSchedule(this,"Scheduler",{
+						name:"ReportGenerateSchedule",
+						flexibleTimeWindow:{
+							mode: "OFF"
+						},
+						state:"ENABLED",
+						scheduleExpression: "rate(1 minute)",
+						target: {
+							arn: timedEventFunction.functionArn,
+							roleArn:role.roleArn
+						},
+						scheduleExpressionTimezone:"America/New_York"
+					})
 		new CfnOutput(
 			this, 'OrganizationsTagInventoryBucketNameOutput',
 			{

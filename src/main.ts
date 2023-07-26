@@ -1,6 +1,7 @@
-import { App } from 'aws-cdk-lib';
+import {App} from 'aws-cdk-lib';
 import { SpokeStack } from './stacks/SpokeStack';
 import {CentralStack} from "./stacks/CentralStack";
+
 
 
 // for development, use account/region from cdk cli
@@ -12,11 +13,10 @@ const env = {
 
 const app = new App();
 const stackToDeploy = app.node.tryGetContext('stack') as String | undefined;
-
 if (stackToDeploy==undefined || stackToDeploy=="central") {
   new CentralStack(app, 'aws-organizations-tag-inventory-central-stack', {
     env: env,
-    organizationId: app.node.tryGetContext("organizationId")
+    organizationId: app.node.tryGetContext("organizationId"),
   })
 }
 if (stackToDeploy==undefined || stackToDeploy=="spoke") {

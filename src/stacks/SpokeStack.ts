@@ -14,6 +14,7 @@ export interface SpokeStackProps extends StackProps {
 	aggregatorRegion: string;
 	bucketName: string | undefined
 	centralRoleArn: string | undefined
+
 }
 
 export class SpokeStack extends Stack {
@@ -28,6 +29,8 @@ export class SpokeStack extends Stack {
 			throw new Error("Central role ARN is required")
 
 		}
+		const powerToolsLayer = LayerVersion.fromLayerVersionArn(this, 'powertools', `arn:aws:lambda:${Aws.REGION}:094274105915:layer:AWSLambdaPowertoolsTypeScript:11`);
+
 		const layers = new Layers(this, 'layers');
 		//put resources here
 		const resourceExplorerIndex = new ResourceExplorerIndex(this, 'MyIndex', {
@@ -36,7 +39,6 @@ export class SpokeStack extends Stack {
 			aggregatorRegion: props.aggregatorRegion,
 
 		});
-		const powerToolsLayer = LayerVersion.fromLayerVersionArn(this, 'powertools', `arn:aws:lambda:${Aws.REGION}:094274105915:layer:AWSLambdaPowertoolsTypeScript:11`);
 
 
 		const searchFunction = new NodejsFunction(this, 'Search-fn', {
