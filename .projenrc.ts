@@ -17,6 +17,7 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
     packageManager: NodePackageManager.NPM,
     gitignore: ['.idea', '*.iml', '.DS_Store'],
     license: "MIT-0",
+    github: false,
     copyrightOwner: "Amazon.com, Inc. or its affiliates. All Rights Reserved.",
     deps: ['@types/aws-lambda', '@aws-sdk/client-resource-explorer-2', 'uuid', '@aws-sdk/client-athena', '@aws-sdk/client-s3', '@aws-lambda-powertools/logger'], /* Runtime dependencies of this module. */
     // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
