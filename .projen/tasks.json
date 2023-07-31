@@ -83,6 +83,10 @@
       "description": "Deploys your CDK app to the AWS cloud",
       "steps": [
         {
+          "exec": "cdk synth",
+          "receiveArgs": true
+        },
+        {
           "exec": "cdk deploy",
           "receiveArgs": true
         }
@@ -152,12 +156,7 @@
     },
     "post-compile": {
       "name": "post-compile",
-      "description": "Runs after successful compilation",
-      "steps": [
-        {
-          "spawn": "synth:silent"
-        }
-      ]
+      "description": "Runs after successful compilation"
     },
     "post-upgrade": {
       "name": "post-upgrade",
@@ -271,10 +270,10 @@
           "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/aws-organizations-tag-inventory"
         },
         {
-          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-resource-explorer-2"
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-athena"
         },
         {
-          "exec": "cp -R node_modules/@aws-sdk/client-resource-explorer-2/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-resource-explorer-2"
+          "exec": "cp -R node_modules/@aws-sdk/client-athena/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-athena"
         },
         {
           "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-crypto/sha256-browser"
@@ -340,7 +339,7 @@
           "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-sts"
         },
         {
-          "exec": "cp -R node_modules/@aws-sdk/client-sts/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-sts"
+          "exec": "cp -R node_modules/@aws-sdk/client-athena/node_modules/@aws-sdk/client-sts/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-sts"
         },
         {
           "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/credential-provider-node"
@@ -703,10 +702,148 @@
           "exec": "cp -R node_modules/strnum/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/strnum"
         },
         {
-          "exec": "mkdir ./dist;(cd /tmp/aws-organizations-tag-inventory && zip -r //Users/ekunzova/IdeaProjects/aws-organizations-tag-inventory/dist/aws-organizations-tag-inventory-layer.zip ./nodejs)"
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-resource-explorer-2"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/client-resource-explorer-2/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-resource-explorer-2"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-s3"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/client-s3/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/client-s3"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-crypto/sha1-browser"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-crypto/sha1-browser/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-crypto/sha1-browser"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-bucket-endpoint"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/middleware-bucket-endpoint/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-bucket-endpoint"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/util-arn-parser"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/util-arn-parser/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/util-arn-parser"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-expect-continue"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/middleware-expect-continue/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-expect-continue"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-flexible-checksums"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/middleware-flexible-checksums/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-flexible-checksums"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-crypto/crc32c"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-crypto/crc32c/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-crypto/crc32c"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-location-constraint"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/middleware-location-constraint/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-location-constraint"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-sdk-s3"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/middleware-sdk-s3/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-sdk-s3"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-ssec"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/middleware-ssec/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/middleware-ssec"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/signature-v4-multi-region"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/signature-v4-multi-region/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/signature-v4-multi-region"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/xml-builder"
+        },
+        {
+          "exec": "cp -R node_modules/@aws-sdk/xml-builder/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@aws-sdk/xml-builder"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/eventstream-serde-browser"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/eventstream-serde-browser/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/eventstream-serde-browser"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/eventstream-serde-universal"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/eventstream-serde-universal/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/eventstream-serde-universal"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/eventstream-serde-config-resolver"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/eventstream-serde-config-resolver/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/eventstream-serde-config-resolver"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/eventstream-serde-node"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/eventstream-serde-node/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/eventstream-serde-node"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/hash-blob-browser"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/hash-blob-browser/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/hash-blob-browser"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/chunked-blob-reader"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/chunked-blob-reader/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/chunked-blob-reader"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/chunked-blob-reader-native"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/chunked-blob-reader-native/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/chunked-blob-reader-native"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/hash-stream-node"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/hash-stream-node/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/hash-stream-node"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/md5-js"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/md5-js/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/md5-js"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/util-waiter"
+        },
+        {
+          "exec": "cp -R node_modules/@smithy/util-waiter/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/util-waiter"
+        },
+        {
+          "exec": "mkdir ./dist;(cd /tmp/aws-organizations-tag-inventory && zip -r //Users/awsgalen/IdeaProjects/aws-organizations-tag-inventory/dist/aws-organizations-tag-inventory-layer.zip ./nodejs)"
         }
       ],
-      "cwd": "/Users/ekunzova/IdeaProjects/aws-organizations-tag-inventory"
+      "cwd": "/Users/awsgalen/IdeaProjects/aws-organizations-tag-inventory"
     }
   },
   "env": {

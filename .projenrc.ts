@@ -16,9 +16,9 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
     projenrcTs: true,
     packageManager: NodePackageManager.NPM,
     gitignore: ['.idea', '*.iml', '.DS_Store'],
-    deps: ['@types/aws-lambda', '@aws-sdk/client-resource-explorer-2', 'uuid'], /* Runtime dependencies of this module. */
+    deps: ['@types/aws-lambda', '@aws-sdk/client-resource-explorer-2', 'uuid', '@aws-sdk/client-athena', '@aws-sdk/client-s3', '@aws-lambda-powertools/logger'], /* Runtime dependencies of this module. */
     // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-    devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist','cdk-assets'], /* Build dependencies for this module. */
+    devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist', 'cdk-assets'], /* Build dependencies for this module. */
     // packageName: undefined,  /* The "name" in package.json. */
   });
   await addZipLayerTask(project, ['@aws-lambda-powertools', 'aws-cdk-lib', 'constructs', '@types']);
@@ -98,7 +98,12 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
 
   return project;
 };
+
 app().then(project => {
+  project.tasks.tryFind('post-compile')?.reset();
+  project.tasks.tryFind('deploy')?.prependExec('cdk synth', {
+    receiveArgs: true,
+  });
   project.synth();
 }).catch(reason => {
   throw new Error(reason);

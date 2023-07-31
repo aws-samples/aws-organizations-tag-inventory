@@ -96,7 +96,19 @@
       "type": "build"
     },
     {
+      "name": "@aws-lambda-powertools/logger",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-sdk/client-athena",
+      "type": "runtime"
+    },
+    {
       "name": "@aws-sdk/client-resource-explorer-2",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-sdk/client-s3",
       "type": "runtime"
     },
     {

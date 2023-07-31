@@ -136,7 +136,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "bf51f6fb91d0b70b4815e6b75f4305b217bd78880d6f8f33735d8ce473e478bb.zip",
+          "S3Key": "cad5db76106f78c96170fed6db77715981e73770b56550374034d8fc27f0411d.zip",
         },
         "Environment": {
           "Variables": {
@@ -221,6 +221,70 @@ exports[`Snapshot 1`] = `
       "Type": "Custom::ResourceExplorerIndex",
       "UpdateReplacePolicy": "Delete",
     },
+    "Scheduler": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "MaximumWindowInMinutes": 60,
+          "Mode": "FLEXIBLE",
+        },
+        "Name": "TagInventorySchedule",
+        "ScheduleExpression": "rate(1 days)",
+        "ScheduleExpressionTimezone": "America/New_York",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Ref": "SpokeAccountStateMachine10567581",
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRole59E73443",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "SchedulerRole59E73443": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleDefaultPolicy66F774B8": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "states:StartExecution",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SpokeAccountStateMachine10567581",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleDefaultPolicy66F774B8",
+        "Roles": [
+          {
+            "Ref": "SchedulerRole59E73443",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "Searchfn39BBF692": {
       "DependsOn": [
         "SearchfnServiceRoleDefaultPolicy46A0B0D1",
@@ -234,7 +298,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "0a8d0f1bcaeeb11f4ce40dce4cf58f894fcb5ce2b1b4262c437b3cbd26a9ae7a.zip",
+          "S3Key": "78ab3a2c05beab07911e5c08c72ace5b32c72d6f907c78467736771a8677e6a9.zip",
         },
         "Environment": {
           "Variables": {
@@ -313,10 +377,7 @@ exports[`Snapshot 1`] = `
         "PolicyDocument": {
           "Statement": [
             {
-              "Action": [
-                "resource-explorer-2:Search",
-                "dynamodb:PutItem",
-              ],
+              "Action": "resource-explorer-2:Search",
               "Effect": "Allow",
               "Resource": "*",
             },
@@ -340,7 +401,6 @@ exports[`Snapshot 1`] = `
       ],
       "Properties": {
         "DefinitionString": "{
-  "Comment": "A description of my state machine",
   "StartAt": "Initialize",
   "States": {
     "Initialize": {
@@ -506,10 +566,57 @@ exports[`Snapshot 1`] = `
           "BackoffRate": 2
         }
       ],
-      "Next": "Are there more results?",
+      "Next": "Loop over merged results",
       "ResultSelector": {
         "Payload.$": "States.StringToJson($.Payload)"
       }
+    },
+    "Loop over merged results": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Prep Partitions",
+        "States": {
+          "Prep Partitions": {
+            "Type": "Pass",
+            "Next": "PutObject",
+            "Parameters": {
+              "TagName.$": "$.TagName",
+              "TagValue.$": "$.TagValue",
+              "Resources.$": "$.Resources",
+              "year.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),0)",
+              "month.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),1)",
+              "day.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),2)",
+              "hour.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),3)",
+              "minute.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),4)"
+            }
+          },
+          "PutObject": {
+            "Type": "Task",
+            "Parameters": {
+              "Body": {
+                "TagName.$": "$.TagName",
+                "TagValue.$": "$.TagValue",
+                "Resources.$": "$.Resources"
+              },
+              "Bucket": "\${CENTRAL_BUCKET_NAME}",
+              "Key.$": "States.Format('d={}-{}-{}/{}.json',    $.year,    $.month,    $.day,   States.UUID())"
+            },
+            "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
+            "ResultPath": null,
+            "Credentials": {
+              "RoleArn": "\${CENTRAL_ROLE_ARN}"
+            },
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrency": 10,
+      "ItemsPath": "$.Results",
+      "Next": "Are there more results?",
+      "ResultPath": null
     },
     "Are there more results?": {
       "Type": "Choice",
@@ -527,18 +634,18 @@ exports[`Snapshot 1`] = `
       "Type": "Pass",
       "Next": "Search",
       "Parameters": {
-        "NextToken.$": "$.NextToken",
-        "PreviousResults.$": "$.Results"
+        "NextToken.$": "$.NextToken"
       }
     },
     "Success": {
       "Type": "Succeed"
     }
-  }
-}
-
-",
+  },
+  "Comment": "Runs through the resources and tags of the spoke account."
+}",
         "DefinitionSubstitutions": {
+          "CENTRAL_BUCKET_NAME": "test-bucket",
+          "CENTRAL_ROLE_ARN": "test-role",
           "MERGE_FUNCTION": {
             "Fn::GetAtt": [
               "MergeResultsfnAA3E2F42",
@@ -591,6 +698,31 @@ exports[`Snapshot 1`] = `
       "Properties": {
         "PolicyDocument": {
           "Statement": [
+            {
+              "Action": [
+                "dynamodb:PutItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:UpdateItem",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "s3:PutObject",
+                "s3:PutObjectAcl",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:s3:::test-bucket",
+                "arn:aws:s3:::test-bucket/*",
+              ],
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "test-role",
+            },
             {
               "Action": "lambda:InvokeFunction",
               "Effect": "Allow",
@@ -665,7 +797,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "8e3d635893ea17fa3158623489cd42c680fad925b38de1ef51cb10d84f6e245e.zip",
+          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (test/com.amazonaws.cdk.custom-resources.resource-explorer-index-provider/resource-explorer-index-provider)",
         "Environment": {
@@ -685,7 +817,7 @@ exports[`Snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -877,7 +1009,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f668ca1672d2ee024680309603b6f8d9f04567730cacf05b4b93c90894e087a2.zip",
+          "S3Key": "d631b7bdd9c23006d065284dd109c217c7e06e100144001c8e91982cb38b0623.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

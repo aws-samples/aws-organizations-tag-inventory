@@ -9,7 +9,7 @@ export interface StateMachineFromFileConfig {
   searchFunction: IFunction;
   mergeFunction: IFunction;
   putObjectRoleArn: string;
-  bucketName:string
+  bucketName: string;
 }
 
 export class StateMachineFromFile extends Construct {
@@ -25,7 +25,12 @@ export class StateMachineFromFile extends Construct {
     const cfnStatemachine = this.stateMachine.node.defaultChild as CfnStateMachine;
     const buffer = fs.readFileSync(config.file.toString());
     cfnStatemachine.definitionString = buffer.toString();
-    cfnStatemachine.definitionSubstitutions = { SEARCH_FUNCTION: config.searchFunction.functionArn, MERGE_FUNCTION: config.mergeFunction.functionArn, CENTRAL_ROLE_ARN: config.putObjectRoleArn,CENTRAL_BUCKET_NAME:config.bucketName};
+    cfnStatemachine.definitionSubstitutions = {
+      SEARCH_FUNCTION: config.searchFunction.functionArn,
+      MERGE_FUNCTION: config.mergeFunction.functionArn,
+      CENTRAL_ROLE_ARN: config.putObjectRoleArn,
+      CENTRAL_BUCKET_NAME: config.bucketName,
+    };
   }
 
 }
