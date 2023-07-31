@@ -15,7 +15,7 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
     name: 'aws-organizations-tag-inventory',
     projenrcTs: true,
     packageManager: NodePackageManager.NPM,
-    gitignore: ['.idea', '*.iml', '.DS_Store'],
+    gitignore: ['.idea', '*.iml', '.DS_Store','repolinter.txt'],
     license: "MIT-0",
     github: false,
     copyrightOwner: "Amazon.com, Inc. or its affiliates. All Rights Reserved.",

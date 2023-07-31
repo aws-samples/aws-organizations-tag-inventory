@@ -32,6 +32,7 @@ jspm_packages/
 .idea
 *.iml
 .DS_Store
+repolinter.txt
 !/.projenrc.js
 /test-reports/
 junit.xml
