@@ -196,13 +196,10 @@ export class CentralStack extends Stack {
       },
       recrawlPolicy: {
         recrawlBehavior: 'CRAWL_EVENT_MODE',
-
       },
       schedule: {
         scheduleExpression: 'cron(5 0/1 * * ? *)',
       },
-
-
     });
     const centralStackRole = new Role(this, 'CentralStackPutTagInventoryRole', {
       assumedBy: new OrganizationPrincipal(props.organizationId),
