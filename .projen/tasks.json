@@ -180,7 +180,8 @@
       "description": "Synthesizes your cdk app into cdk.out and suppresses the template in stdout (part of \"yarn build\")",
       "steps": [
         {
-          "exec": "cdk synth -q"
+          "exec": "cdk synth -q",
+          "receiveArgs": true
         }
       ]
     },
@@ -838,6 +839,12 @@
         },
         {
           "exec": "cp -R node_modules/@smithy/util-waiter/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/@smithy/util-waiter"
+        },
+        {
+          "exec": "mkdir -p /tmp/aws-organizations-tag-inventory/nodejs/node_modules/cdk-nag"
+        },
+        {
+          "exec": "cp -R node_modules/cdk-nag/* /tmp/aws-organizations-tag-inventory/nodejs/node_modules/cdk-nag"
         },
         {
           "exec": "mkdir ./dist;(cd /tmp/aws-organizations-tag-inventory && zip -r //Users/awsgalen/IdeaProjects/aws-organizations-tag-inventory/dist/aws-organizations-tag-inventory-layer.zip ./nodejs)"

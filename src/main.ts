@@ -15,7 +15,8 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { App } from 'aws-cdk-lib';
+import { App, Aspects } from 'aws-cdk-lib';
+import { AwsSolutionsChecks } from 'cdk-nag';
 import { CentralStack } from './stacks/CentralStack';
 import { SpokeStack } from './stacks/SpokeStack';
 
@@ -44,4 +45,6 @@ if (stackToDeploy == undefined || stackToDeploy == 'spoke') {
     centralRoleArn: app.node.tryGetContext('centralRoleArn'),
   });
 }
+Aspects.of(app).add(new AwsSolutionsChecks({}));
+
 app.synth();

@@ -33,6 +33,7 @@ jspm_packages/
 *.iml
 .DS_Store
 repolinter.txt
+.$architecture.drawio.bkp
 !/.projenrc.js
 /test-reports/
 junit.xml

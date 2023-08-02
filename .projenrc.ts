@@ -15,11 +15,11 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
     name: 'aws-organizations-tag-inventory',
     projenrcTs: true,
     packageManager: NodePackageManager.NPM,
-    gitignore: ['.idea', '*.iml', '.DS_Store','repolinter.txt'],
-    license: "MIT-0",
+    gitignore: ['.idea', '*.iml', '.DS_Store', 'repolinter.txt','.$architecture.drawio.bkp'],
+    license: 'MIT-0',
     github: false,
-    copyrightOwner: "Amazon.com, Inc. or its affiliates. All Rights Reserved.",
-    deps: ['@types/aws-lambda', '@aws-sdk/client-resource-explorer-2', 'uuid', '@aws-sdk/client-athena', '@aws-sdk/client-s3', '@aws-lambda-powertools/logger'], /* Runtime dependencies of this module. */
+    copyrightOwner: 'Amazon.com, Inc. or its affiliates. All Rights Reserved.',
+    deps: ['@types/aws-lambda', '@aws-sdk/client-resource-explorer-2', 'uuid', '@aws-sdk/client-athena', '@aws-sdk/client-s3', '@aws-lambda-powertools/logger', 'cdk-nag'], /* Runtime dependencies of this module. */
     // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
     devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist', 'cdk-assets'], /* Build dependencies for this module. */
     // packageName: undefined,  /* The "name" in package.json. */
@@ -104,6 +104,9 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
 
 app().then(project => {
   project.tasks.tryFind('post-compile')?.reset();
+  project.tasks.tryFind('synth:silent')?.reset('cdk synth -q', {
+    receiveArgs: true,
+  });
   project.tasks.tryFind('deploy')?.prependExec('cdk synth', {
     receiveArgs: true,
   });

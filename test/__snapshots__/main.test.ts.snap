@@ -1009,7 +1009,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "d631b7bdd9c23006d065284dd109c217c7e06e100144001c8e91982cb38b0623.zip",
+          "S3Key": "719c44c0051c8f8f5801fef6442da87b707cca0173f927e7bfb7ee96b88d3a30.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

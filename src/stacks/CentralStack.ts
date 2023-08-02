@@ -22,10 +22,11 @@ import { CfnCrawler, CfnDatabase, CfnTable } from 'aws-cdk-lib/aws-glue';
 import { Effect, ManagedPolicy, OrganizationPrincipal, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Architecture, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { BlockPublicAccess, Bucket, HttpMethods } from 'aws-cdk-lib/aws-s3';
+import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods } from 'aws-cdk-lib/aws-s3';
 import { SqsDestination } from 'aws-cdk-lib/aws-s3-notifications';
 import { CfnSchedule } from 'aws-cdk-lib/aws-scheduler';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 
@@ -99,6 +100,7 @@ export class CentralStack extends Stack {
       serverAccessLogsBucket: serverAccessLogBucket,
       enforceSSL: true,
       autoDeleteObjects: true,
+      encryption: BucketEncryption.S3_MANAGED,
     });
 
     const athenaRole = new Role(this, 'CentralStackTagInventoryAthenaRole', {
@@ -123,9 +125,17 @@ export class CentralStack extends Stack {
         }),
       },
     });
+    const tagInventoryEventDLQ = new Queue(this, 'TagInventoryEventDLQ', {
+      removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
+    });
     const tagInventoryEventQueue = new Queue(this, 'TagInventoryEventQueue', {
       removalPolicy: RemovalPolicy.DESTROY,
       enforceSSL: true,
+      deadLetterQueue: {
+        queue: tagInventoryEventDLQ,
+        maxReceiveCount: 3,
+      },
     });
     tagInventoryEventQueue.grantConsumeMessages(athenaRole);
 
@@ -196,6 +206,9 @@ export class CentralStack extends Stack {
       },
 
     });
+    // const tableArn=`arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:table/${table.databaseName}`;
+    // const databaseArn=`arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:database/${database.ref}`;
+    // const catalogArn=`arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog/${table.catalogId}`;
     new CfnCrawler(this, 'OrganizationalTagInventoryCrawler', {
       name: `${props.organizationId}-tag-inventory-crawler`,
       description: 'Organizational tag inventory crawler',
@@ -224,7 +237,19 @@ export class CentralStack extends Stack {
     });
     tagInventoryBucket.grantPut(centralStackRole);
     reportingBucket.grantPut(centralStackRole);
+    const workGroup = new CfnWorkGroup(this, 'AthenaWorkGroup', {
+      name: 'TagInventoryAthenaWorkGroup',
+      workGroupConfiguration: {
+        resultConfiguration: {
+          outputLocation: athenaWorkGroupBucket.s3UrlForObject(''),
+          encryptionConfiguration: {
+            encryptionOption: 'SSE_S3',
+          },
+        },
+        enforceWorkGroupConfiguration: false,
 
+      },
+    });
     const generateCsvReportFunction = new NodejsFunction(this, 'GenerateCsvReportFunction', {
       architecture: Architecture.ARM_64,
       runtime: Runtime.NODEJS_18_X,
@@ -234,7 +259,15 @@ export class CentralStack extends Stack {
       layers: [powerToolsLayer],
       initialPolicy: [new PolicyStatement({
         effect: Effect.ALLOW,
-        actions: ['athena:*', 'glue:*', 's3:*'],
+        actions: ['athena:*'],
+        resources: ['*'],
+      }), new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['s3:*'],
+        resources: ['*'],
+      }), new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['glue:*'],
         resources: ['*'],
       })],
       environment: {
@@ -245,24 +278,14 @@ export class CentralStack extends Stack {
         REPORT_BUCKET: reportingBucket.bucketName,
         TAG_INVENTORY_TABLE: table.ref,
         ATHENA_BUCKET: athenaWorkGroupBucket.bucketName,
+        WORKGROUP: workGroup.name,
       },
     });
     const role = new Role(this, 'ReportSchedulerRole', { assumedBy: new ServicePrincipal('scheduler.amazonaws.com') });
     generateCsvReportFunction.grantInvoke(role);
     reportingBucket.grantReadWrite(generateCsvReportFunction);
     athenaWorkGroupBucket.grantReadWrite(generateCsvReportFunction);
-    const workGroup = new CfnWorkGroup(this, 'AthenaWorkGroup', {
-      name: 'TagInventoryAthenaWorkGroup',
-      workGroupConfiguration: {
-        executionRole: generateCsvReportFunction.role?.roleArn,
-        resultConfiguration: {
-          outputLocation: athenaWorkGroupBucket.s3UrlForObject(''),
-
-        },
-        enforceWorkGroupConfiguration: false,
-      },
-    });
-    generateCsvReportFunction.addEnvironment('WORKGROUP', workGroup.name);
+    workGroup.addPropertyOverride('WorkGroupConfiguration.ExecutionRole', generateCsvReportFunction.role?.roleArn);
     new CfnSchedule(this, 'Scheduler', {
       name: 'ReportGenerateSchedule',
       flexibleTimeWindow: {
@@ -292,5 +315,28 @@ export class CentralStack extends Stack {
         exportName: 'CentralStackPutTagInventoryRoleO',
       },
     );
+    this.cdkNagSuppressions();
+  }
+
+  private cdkNagSuppressions() {
+    // NagSuppressions.addResourceSuppressionsByPath(this, `/${this.stackName}/S3ServerAccessLogBucket/Resource`, [
+    //   {
+    //     id: 'AwsSolutions-S1',
+    //     reason: 'This is the S3 server access log bucket',
+    //   },
+    // ]);
+    NagSuppressions.addStackSuppressions(this, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason: 'AWS managed policies acceptable for sample',
+      }, {
+        id: 'AwsSolutions-ATH1',
+        reason: 'Because the lambda is writing to an external table it needs to use client configuration',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard permissions have been scoped down',
+      },
+    ]);
   }
 }

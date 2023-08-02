@@ -55,6 +55,7 @@
     "@aws-sdk/client-s3": "^3.379.1",
     "@types/aws-lambda": "^8.10.119",
     "aws-cdk-lib": "^2.82.0",
+    "cdk-nag": "^2.27.86",
     "constructs": "^10.0.5",
     "uuid": "^8.3.2"
   },
