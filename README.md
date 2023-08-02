@@ -30,6 +30,12 @@ CREATE TABLE "<DATABASE>"."tag_inventory_csv"
 7. Athena creates the table in the Glue data catalog which generates a file in the reporting bucket in S3
 8. Once complete the GenerateCsvReportFunction will rename the report file and delete the table from the Glue data catalog.
 
+
+## Spoke Account State Machine
+Below is the state machine diagram that is run in each spoke account to gather and process tag inventory 
+
+![](./images/SpokeAccountStateMachine.png)
+
 ## Deploy
 
 ### Prerequsites
