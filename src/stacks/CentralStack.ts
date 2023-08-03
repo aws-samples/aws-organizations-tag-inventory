@@ -25,7 +25,7 @@ import {NodejsFunction} from 'aws-cdk-lib/aws-lambda-nodejs';
 import {BlockPublicAccess, Bucket, BucketEncryption, HttpMethods} from 'aws-cdk-lib/aws-s3';
 import {SqsDestination} from 'aws-cdk-lib/aws-s3-notifications';
 import {CfnSchedule} from 'aws-cdk-lib/aws-scheduler';
-import {Queue} from 'aws-cdk-lib/aws-sqs';
+import {Queue, QueueEncryption} from 'aws-cdk-lib/aws-sqs';
 import {NagSuppressions} from 'cdk-nag';
 import {Construct} from 'constructs';
 
@@ -128,6 +128,7 @@ export class CentralStack extends Stack {
 		const tagInventoryEventDLQ = new Queue(this, 'TagInventoryEventDLQ', {
 			removalPolicy: RemovalPolicy.DESTROY,
 			enforceSSL: true,
+			encryption: QueueEncryption.SQS_MANAGED
 		});
 		const tagInventoryEventQueue = new Queue(this, 'TagInventoryEventQueue', {
 			removalPolicy: RemovalPolicy.DESTROY,
@@ -136,6 +137,7 @@ export class CentralStack extends Stack {
 				queue: tagInventoryEventDLQ,
 				maxReceiveCount: 3,
 			},
+			encryption: QueueEncryption.SQS_MANAGED
 		});
 		tagInventoryEventQueue.grantConsumeMessages(athenaRole);
 
