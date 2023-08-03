@@ -18,7 +18,7 @@
 import path from 'path';
 import {Aws, CfnOutput, Duration, RemovalPolicy, Stack, StackProps} from 'aws-cdk-lib';
 import {CfnWorkGroup} from 'aws-cdk-lib/aws-athena';
-import {CfnCrawler, CfnDatabase, CfnTable} from 'aws-cdk-lib/aws-glue';
+import {CfnCrawler, CfnDatabase, CfnSecurityConfiguration, CfnTable} from 'aws-cdk-lib/aws-glue';
 import {Effect, ManagedPolicy, OrganizationPrincipal, PolicyDocument, PolicyStatement, Role, ServicePrincipal} from 'aws-cdk-lib/aws-iam';
 import {Architecture, LayerVersion, Runtime} from 'aws-cdk-lib/aws-lambda';
 import {NodejsFunction} from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -206,6 +206,18 @@ export class CentralStack extends Stack {
 			},
 
 		});
+
+		const securityConfiguration=new CfnSecurityConfiguration(this,"SecurityConfiguration",{
+			name:"TagInventorySecurityConfiguration",
+			encryptionConfiguration:{
+				s3Encryptions: [{
+					s3EncryptionMode:"SSE-S3"
+				}],
+				cloudWatchEncryption:{
+					cloudWatchEncryptionMode: "DISABLED"
+				}
+			}
+		})
 		const tableArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:table/${table.databaseName}`;
 		const databaseArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:database/${database.ref}`;
 		const catalogArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog/${table.catalogId}`;
@@ -224,6 +236,7 @@ export class CentralStack extends Stack {
 					eventQueueArn: tagInventoryEventQueue.queueArn,
 				}],
 			},
+			crawlerSecurityConfiguration: securityConfiguration.name,
 			recrawlPolicy: {
 				recrawlBehavior: 'CRAWL_EVENT_MODE',
 			},
@@ -332,6 +345,10 @@ export class CentralStack extends Stack {
 				id: 'AwsSolutions-IAM5',
 				reason: 'Wildcard permissions have been scoped down',
 			},
+			{
+				id: 'AwsSolutions-GL1',
+				reason: 'No sensitive data stored in cloudwatch logs',
+			}
 		]);
 	}
 }
