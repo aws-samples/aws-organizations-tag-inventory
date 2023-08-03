@@ -25,6 +25,7 @@ import { Construct } from 'constructs';
 import { Layers } from '../constructs/Layers';
 import { ResourceExplorerIndex } from '../constructs/ResourceExplorerIndex';
 import { StateMachineFromFile } from '../constructs/StateMachineFromFile';
+import {NagSuppressions} from "cdk-nag";
 
 export interface SpokeStackProps extends StackProps {
   enabledRegions: string[];
@@ -125,6 +126,28 @@ export class SpokeStack extends Stack {
       },
       scheduleExpressionTimezone: 'America/New_York',
     });
+    this.cdkNagSuppressions()
+  }
 
+  private cdkNagSuppressions() {
+    // NagSuppressions.addResourceSuppressionsByPath(this, `/${this.stackName}/S3ServerAccessLogBucket/Resource`, [
+    //   {
+    //     id: 'AwsSolutions-S1',
+    //     reason: 'This is the S3 server access log bucket',
+    //   },
+    // ]);
+    NagSuppressions.addStackSuppressions(this, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason: 'AWS managed policies acceptable for sample',
+      }, {
+        id: 'AwsSolutions-ATH1',
+        reason: 'Because the lambda is writing to an external table it needs to use client configuration',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard permissions have been scoped down',
+      },
+    ]);
   }
 }

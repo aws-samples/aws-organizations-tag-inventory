@@ -15,39 +15,48 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import * as fs from 'fs';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { CfnStateMachine, Pass, StateMachine } from 'aws-cdk-lib/aws-stepfunctions';
-import { Construct } from 'constructs';
+
+import {IFunction} from 'aws-cdk-lib/aws-lambda';
+import {DefinitionBody, LogLevel, StateMachine} from 'aws-cdk-lib/aws-stepfunctions';
+import {Construct} from 'constructs';
+import {LogGroup, RetentionDays} from "aws-cdk-lib/aws-logs";
+import {RemovalPolicy} from "aws-cdk-lib";
 
 export interface StateMachineFromFileConfig {
-  name: string;
-  file: string;
-  searchFunction: IFunction;
-  mergeFunction: IFunction;
-  putObjectRoleArn: string;
-  bucketName: string;
+	name: string;
+	file: string;
+	searchFunction: IFunction;
+	mergeFunction: IFunction;
+	putObjectRoleArn: string;
+	bucketName: string;
 }
 
 export class StateMachineFromFile extends Construct {
 
-  readonly stateMachine: StateMachine;
+	readonly stateMachine: StateMachine;
 
-  constructor(scope: Construct, id: string, config: StateMachineFromFileConfig) {
-    super(scope, id);
-    this.stateMachine = new StateMachine(this, config.name, {
-      definition: new Pass(this, 'StartState'),
-    });
+	constructor(scope: Construct, id: string, config: StateMachineFromFileConfig) {
+		super(scope, id);
+		const logGroup = new LogGroup(this, `${config.name}LogGroup`, {
+			logGroupName: `/aws/statemachine/${config.name}`,
+			removalPolicy: RemovalPolicy.DESTROY,
+			retention: RetentionDays.ONE_MONTH,
+		})
+		this.stateMachine = new StateMachine(this, config.name, {
+			definitionBody: DefinitionBody.fromFile(config.file),
+			definitionSubstitutions: {
+				SEARCH_FUNCTION: config.searchFunction.functionArn,
+				MERGE_FUNCTION: config.mergeFunction.functionArn,
+				CENTRAL_ROLE_ARN: config.putObjectRoleArn,
+				CENTRAL_BUCKET_NAME: config.bucketName,
+			},
+			logs: {
+				level: LogLevel.ALL,
+				destination: logGroup
 
-    const cfnStatemachine = this.stateMachine.node.defaultChild as CfnStateMachine;
-    const buffer = fs.readFileSync(config.file.toString());
-    cfnStatemachine.definitionString = buffer.toString();
-    cfnStatemachine.definitionSubstitutions = {
-      SEARCH_FUNCTION: config.searchFunction.functionArn,
-      MERGE_FUNCTION: config.mergeFunction.functionArn,
-      CENTRAL_ROLE_ARN: config.putObjectRoleArn,
-      CENTRAL_BUCKET_NAME: config.bucketName,
-    };
-  }
+			},
+			tracingEnabled: true
+		});
+	}
 
 }
