@@ -237,25 +237,13 @@ export class CentralStack extends Stack {
     });
     tagInventoryBucket.grantPut(centralStackRole);
     reportingBucket.grantPut(centralStackRole);
-    const workGroup = new CfnWorkGroup(this, 'AthenaWorkGroup', {
-      name: 'TagInventoryAthenaWorkGroup',
-      workGroupConfiguration: {
-        resultConfiguration: {
-          outputLocation: athenaWorkGroupBucket.s3UrlForObject(''),
-          encryptionConfiguration: {
-            encryptionOption: 'SSE_S3',
-          },
-        },
-        enforceWorkGroupConfiguration: false,
-
-      },
-    });
+    const workgroupName='TagInventoryAthenaWorkGroup'
     const generateCsvReportFunction = new NodejsFunction(this, 'GenerateCsvReportFunction', {
       architecture: Architecture.ARM_64,
       runtime: Runtime.NODEJS_18_X,
       entry: path.join(__dirname, '..', 'functions', 'GenerateReportCSV.ts'),
       handler: 'index.onEvent',
-      timeout: Duration.seconds(60),
+      timeout: Duration.seconds(120),
       layers: [powerToolsLayer],
       initialPolicy: [new PolicyStatement({
         effect: Effect.ALLOW,
@@ -278,14 +266,25 @@ export class CentralStack extends Stack {
         REPORT_BUCKET: reportingBucket.bucketName,
         TAG_INVENTORY_TABLE: table.ref,
         ATHENA_BUCKET: athenaWorkGroupBucket.bucketName,
-        WORKGROUP: workGroup.name,
+        WORKGROUP: workgroupName,
       },
     });
     const role = new Role(this, 'ReportSchedulerRole', { assumedBy: new ServicePrincipal('scheduler.amazonaws.com') });
     generateCsvReportFunction.grantInvoke(role);
     reportingBucket.grantReadWrite(generateCsvReportFunction);
     athenaWorkGroupBucket.grantReadWrite(generateCsvReportFunction);
-    workGroup.addPropertyOverride('WorkGroupConfiguration.ExecutionRole', generateCsvReportFunction.role?.roleArn);
+    const workGroup = new CfnWorkGroup(this, 'AthenaWorkGroup', {
+      name: workgroupName,
+      workGroupConfiguration: {
+        executionRole: generateCsvReportFunction.role?.roleArn,
+        resultConfiguration: {
+          outputLocation: athenaWorkGroupBucket.s3UrlForObject(''),
+
+        },
+        enforceWorkGroupConfiguration: false,
+      },
+    });
+    generateCsvReportFunction.addEnvironment('WORKGROUP', workGroup.name);
     new CfnSchedule(this, 'Scheduler', {
       name: 'ReportGenerateSchedule',
       flexibleTimeWindow: {
