@@ -1,0 +1,1047 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snapshot 1`] = `
+{
+  "Mappings": {
+    "ServiceprincipalMap": {
+      "af-south-1": {
+        "states": "states.af-south-1.amazonaws.com",
+      },
+      "ap-east-1": {
+        "states": "states.ap-east-1.amazonaws.com",
+      },
+      "ap-northeast-1": {
+        "states": "states.ap-northeast-1.amazonaws.com",
+      },
+      "ap-northeast-2": {
+        "states": "states.ap-northeast-2.amazonaws.com",
+      },
+      "ap-northeast-3": {
+        "states": "states.ap-northeast-3.amazonaws.com",
+      },
+      "ap-south-1": {
+        "states": "states.ap-south-1.amazonaws.com",
+      },
+      "ap-south-2": {
+        "states": "states.ap-south-2.amazonaws.com",
+      },
+      "ap-southeast-1": {
+        "states": "states.ap-southeast-1.amazonaws.com",
+      },
+      "ap-southeast-2": {
+        "states": "states.ap-southeast-2.amazonaws.com",
+      },
+      "ap-southeast-3": {
+        "states": "states.ap-southeast-3.amazonaws.com",
+      },
+      "ca-central-1": {
+        "states": "states.ca-central-1.amazonaws.com",
+      },
+      "cn-north-1": {
+        "states": "states.cn-north-1.amazonaws.com",
+      },
+      "cn-northwest-1": {
+        "states": "states.cn-northwest-1.amazonaws.com",
+      },
+      "eu-central-1": {
+        "states": "states.eu-central-1.amazonaws.com",
+      },
+      "eu-central-2": {
+        "states": "states.eu-central-2.amazonaws.com",
+      },
+      "eu-north-1": {
+        "states": "states.eu-north-1.amazonaws.com",
+      },
+      "eu-south-1": {
+        "states": "states.eu-south-1.amazonaws.com",
+      },
+      "eu-south-2": {
+        "states": "states.eu-south-2.amazonaws.com",
+      },
+      "eu-west-1": {
+        "states": "states.eu-west-1.amazonaws.com",
+      },
+      "eu-west-2": {
+        "states": "states.eu-west-2.amazonaws.com",
+      },
+      "eu-west-3": {
+        "states": "states.eu-west-3.amazonaws.com",
+      },
+      "me-central-1": {
+        "states": "states.me-central-1.amazonaws.com",
+      },
+      "me-south-1": {
+        "states": "states.me-south-1.amazonaws.com",
+      },
+      "sa-east-1": {
+        "states": "states.sa-east-1.amazonaws.com",
+      },
+      "us-east-1": {
+        "states": "states.us-east-1.amazonaws.com",
+      },
+      "us-east-2": {
+        "states": "states.us-east-2.amazonaws.com",
+      },
+      "us-gov-east-1": {
+        "states": "states.us-gov-east-1.amazonaws.com",
+      },
+      "us-gov-west-1": {
+        "states": "states.us-gov-west-1.amazonaws.com",
+      },
+      "us-iso-east-1": {
+        "states": "states.amazonaws.com",
+      },
+      "us-iso-west-1": {
+        "states": "states.amazonaws.com",
+      },
+      "us-isob-east-1": {
+        "states": "states.amazonaws.com",
+      },
+      "us-west-1": {
+        "states": "states.us-west-1.amazonaws.com",
+      },
+      "us-west-2": {
+        "states": "states.us-west-2.amazonaws.com",
+      },
+    },
+  },
+  "Outputs": {
+    "MyIndextaginventoryallresourcesarnoutputFF1B3C48": {
+      "Description": "Arn of tag-inventory-all-resources view",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyIndexresourceexplorerindexcustomresource6FC13F1F",
+          "ViewArn",
+        ],
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "MergeResultsfnAA3E2F42": {
+      "DependsOn": [
+        "MergeResultsfnServiceRoleB265D4F0",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "cad5db76106f78c96170fed6db77715981e73770b56550374034d8fc27f0411d.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "LOG_LEVEL": "DEBUG",
+          },
+        },
+        "Handler": "index.onEvent",
+        "Layers": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:lambda:",
+                {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:11",
+              ],
+            ],
+          },
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "MergeResultsfnServiceRoleB265D4F0",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 60,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "MergeResultsfnServiceRoleB265D4F0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "MyIndexresourceexplorerindexcustomresource6FC13F1F": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "AGGREGATOR_INDEX_REGION": "us-east-2",
+        "ENABLED_REGIONS": [
+          "us-east-1",
+          "us-east-2",
+          "us-west-1",
+          "us-west-2",
+        ],
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::ResourceExplorerIndex",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "Scheduler": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "MaximumWindowInMinutes": 60,
+          "Mode": "FLEXIBLE",
+        },
+        "Name": "TagInventorySchedule",
+        "ScheduleExpression": "rate(1 days)",
+        "ScheduleExpressionTimezone": "America/New_York",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Ref": "SpokeAccountStateMachine10567581",
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRole59E73443",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "SchedulerRole59E73443": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleDefaultPolicy66F774B8": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "states:StartExecution",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SpokeAccountStateMachine10567581",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleDefaultPolicy66F774B8",
+        "Roles": [
+          {
+            "Ref": "SchedulerRole59E73443",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "Searchfn39BBF692": {
+      "DependsOn": [
+        "SearchfnServiceRoleDefaultPolicy46A0B0D1",
+        "SearchfnServiceRole3456AD27",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "78ab3a2c05beab07911e5c08c72ace5b32c72d6f907c78467736771a8677e6a9.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "LOG_LEVEL": "DEBUG",
+            "VIEW_ARN": {
+              "Fn::GetAtt": [
+                "MyIndexresourceexplorerindexcustomresource6FC13F1F",
+                "ViewArn",
+              ],
+            },
+          },
+        },
+        "Handler": "index.onEvent",
+        "Layers": [
+          {
+            "Ref": "layerslayerB10D4ECB",
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:lambda:",
+                {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:11",
+              ],
+            ],
+          },
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "SearchfnServiceRole3456AD27",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 60,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SearchfnServiceRole3456AD27": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SearchfnServiceRoleDefaultPolicy46A0B0D1": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "resource-explorer-2:Search",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SearchfnServiceRoleDefaultPolicy46A0B0D1",
+        "Roles": [
+          {
+            "Ref": "SearchfnServiceRole3456AD27",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SpokeAccountStateMachine10567581": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "SpokeAccountStateMachineRoleDefaultPolicyF9A051B5",
+        "SpokeAccountStateMachineRole9B579215",
+      ],
+      "Properties": {
+        "DefinitionString": "{
+  "StartAt": "Initialize",
+  "States": {
+    "Initialize": {
+      "Type": "Pass",
+      "Next": "Search",
+      "Result": {
+        "NextToken": null,
+        "PreviousResults": []
+      }
+    },
+    "Search": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "\${SEARCH_FUNCTION}",
+        "Payload": {
+          "NextToken.$": "$.NextToken"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "For each resource",
+      "ResultSelector": {
+        "Result.$": "States.StringToJson($.Payload)"
+      },
+      "ResultPath": "$.Payload"
+    },
+    "For each resource": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Extract tags if the exist",
+        "States": {
+          "Extract tags if the exist": {
+            "Type": "Pass",
+            "Parameters": {
+              "Arn.$": "$.Arn",
+              "OwningAccountId.$": "$.OwningAccountId",
+              "Region.$": "$.Region",
+              "ResourceType.$": "$.ResourceType",
+              "Service.$": "$.Service",
+              "Tags.$": "$.Properties[?(@.Name==tags)]",
+              "TagsLength.$": "States.ArrayLength($.Properties[?(@.Name==tags)])"
+            },
+            "Next": "Are there tags?"
+          },
+          "Are there tags?": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Variable": "$.TagsLength",
+                "NumericEquals": 1,
+                "Next": "Pull Tags up",
+                "Comment": "Yes"
+              }
+            ],
+            "Default": "Set NoTag and NoValue"
+          },
+          "Pull Tags up": {
+            "Type": "Pass",
+            "Parameters": {
+              "Arn.$": "$.Arn",
+              "OwningAccountId.$": "$.OwningAccountId",
+              "Region.$": "$.Region",
+              "ResourceType.$": "$.ResourceType",
+              "Service.$": "$.Service",
+              "Tags.$": "$.Tags[0].Data",
+              "TagsLength.$": "States.ArrayLength($.Tags[0].Data)"
+            },
+            "Next": "For each tag"
+          },
+          "For each tag": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Transform resource to Tag",
+              "States": {
+                "Transform resource to Tag": {
+                  "Type": "Pass",
+                  "End": true,
+                  "Parameters": {
+                    "Join.$": "States.StringToJson(States.Format('\\\\{\\"{}\\":\\\\{\\"{}\\":[{}]\\\\}\\\\}', $.TagKey, $.TagValue,States.JsonToString($.Resource)))"
+                  },
+                  "OutputPath": "$.Join"
+                }
+              }
+            },
+            "ItemsPath": "$.Tags",
+            "ItemSelector": {
+              "TagKey.$": "$$.Map.Item.Value.Key",
+              "TagValue.$": "$$.Map.Item.Value.Value",
+              "Resource": {
+                "Arn.$": "$.Arn",
+                "OwningAccountId.$": "$.OwningAccountId",
+                "Region.$": "$.Region",
+                "ResourceType.$": "$.ResourceType",
+                "Service.$": "$.Service"
+              }
+            },
+            "End": true
+          },
+          "Set NoTag and NoValue": {
+            "Type": "Pass",
+            "End": true,
+            "Parameters": [
+              {
+                "NoTag": {
+                  "NoValue": [
+                    {
+                      "Arn.$": "$.Arn",
+                      "OwningAccountId.$": "$.OwningAccountId",
+                      "Region.$": "$.Region",
+                      "ResourceType.$": "$.ResourceType",
+                      "Service.$": "$.Service"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "ItemsPath": "$.Payload.Result.Resources",
+      "Next": "Merge results",
+      "ResultPath": "$.Results",
+      "ResultSelector": {
+        "flatten.$": "$[*][*]"
+      }
+    },
+    "Merge results": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "\${MERGE_FUNCTION}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Loop over merged results",
+      "ResultSelector": {
+        "Payload.$": "States.StringToJson($.Payload)"
+      }
+    },
+    "Loop over merged results": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Prep Partitions",
+        "States": {
+          "Prep Partitions": {
+            "Type": "Pass",
+            "Next": "PutObject",
+            "Parameters": {
+              "TagName.$": "$.TagName",
+              "TagValue.$": "$.TagValue",
+              "Resources.$": "$.Resources",
+              "year.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),0)",
+              "month.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),1)",
+              "day.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),2)",
+              "hour.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),3)",
+              "minute.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),4)"
+            }
+          },
+          "PutObject": {
+            "Type": "Task",
+            "Parameters": {
+              "Body": {
+                "TagName.$": "$.TagName",
+                "TagValue.$": "$.TagValue",
+                "Resources.$": "$.Resources"
+              },
+              "Bucket": "\${CENTRAL_BUCKET_NAME}",
+              "Key.$": "States.Format('d={}-{}-{}/{}.json',    $.year,    $.month,    $.day,   States.UUID())"
+            },
+            "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
+            "ResultPath": null,
+            "Credentials": {
+              "RoleArn": "\${CENTRAL_ROLE_ARN}"
+            },
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrency": 10,
+      "ItemsPath": "$.Results",
+      "Next": "Are there more results?",
+      "ResultPath": null
+    },
+    "Are there more results?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.NextToken",
+          "IsPresent": true,
+          "Comment": "NextToken : Present",
+          "Next": "Drop previous Resources"
+        }
+      ],
+      "Default": "Success"
+    },
+    "Drop previous Resources": {
+      "Type": "Pass",
+      "Next": "Search",
+      "Parameters": {
+        "NextToken.$": "$.NextToken"
+      }
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  },
+  "Comment": "Runs through the resources and tags of the spoke account."
+}",
+        "DefinitionSubstitutions": {
+          "CENTRAL_BUCKET_NAME": "test-bucket",
+          "CENTRAL_ROLE_ARN": "test-role",
+          "MERGE_FUNCTION": {
+            "Fn::GetAtt": [
+              "MergeResultsfnAA3E2F42",
+              "Arn",
+            ],
+          },
+          "SEARCH_FUNCTION": {
+            "Fn::GetAtt": [
+              "Searchfn39BBF692",
+              "Arn",
+            ],
+          },
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "SpokeAccountStateMachineRole9B579215",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::StepFunctions::StateMachine",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "SpokeAccountStateMachineRole9B579215": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::FindInMap": [
+                    "ServiceprincipalMap",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    "states",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SpokeAccountStateMachineRoleDefaultPolicyF9A051B5": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:PutItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:UpdateItem",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "s3:PutObject",
+                "s3:PutObjectAcl",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:s3:::test-bucket",
+                "arn:aws:s3:::test-bucket/*",
+              ],
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "test-role",
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "MergeResultsfnAA3E2F42",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "MergeResultsfnAA3E2F42",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "Searchfn39BBF692",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Searchfn39BBF692",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SpokeAccountStateMachineRoleDefaultPolicyF9A051B5",
+        "Roles": [
+          {
+            "Ref": "SpokeAccountStateMachineRole9B579215",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB": {
+      "DependsOn": [
+        "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRoleDefaultPolicy196222C7",
+        "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRole6629EB69",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (test/com.amazonaws.cdk.custom-resources.resource-explorer-index-provider/resource-explorer-index-provider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnE4EA2129",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "Handler": "framework.onEvent",
+        "Role": {
+          "Fn::GetAtt": [
+            "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRole6629EB69",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRole6629EB69": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRoleDefaultPolicy196222C7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnE4EA2129",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnE4EA2129",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRoleDefaultPolicy196222C7",
+        "Roles": [
+          {
+            "Ref": "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRole6629EB69",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnE4EA2129": {
+      "DependsOn": [
+        "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRoleDefaultPolicy74BEE050",
+        "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRole2F22B68A",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "b8e091a77bcc50bb4224e76797cf692cbdb2669fd2e6e0a8434d54ffbd9dfeb0.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "Handler": "index.onEvent",
+        "Layers": [
+          {
+            "Ref": "layerslayerB10D4ECB",
+          },
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRole2F22B68A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 60,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRole2F22B68A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRoleDefaultPolicy74BEE050": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "resource-explorer-2:CreateView",
+                "resource-explorer-2:ListViews",
+                "resource-explorer-2:GetView",
+                "resource-explorer-2:GetIndex",
+                "resource-explorer-2:CreateIndex",
+                "resource-explorer-2:UpdateIndexType",
+                "resource-explorer-2:GetDefaultView",
+                "resource-explorer-2:AssociateDefaultView",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "iam:CreateServiceLinkedRole",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::*:role/aws-service-role/resource-explorer-2.amazonaws.com/AWSServiceRoleForResourceExplorer",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRoleDefaultPolicy74BEE050",
+        "Roles": [
+          {
+            "Ref": "comamazonawscdkcustomresourcesresourceexplorerindexproviderresourceexplorerindexfnServiceRole2F22B68A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "layerslayerB10D4ECB": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "CompatibleArchitectures": [
+          "arm64",
+          "x86_64",
+        ],
+        "Content": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "719c44c0051c8f8f5801fef6442da87b707cca0173f927e7bfb7ee96b88d3a30.zip",
+        },
+      },
+      "Type": "AWS::Lambda::LayerVersion",
+      "UpdateReplacePolicy": "Delete",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

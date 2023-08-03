@@ -1,0 +1,243 @@
+{
+  "StartAt": "Initialize",
+  "States": {
+    "Initialize": {
+      "Type": "Pass",
+      "Next": "Search",
+      "Result": {
+        "NextToken": null,
+        "PreviousResults": []
+      }
+    },
+    "Search": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${SEARCH_FUNCTION}",
+        "Payload": {
+          "NextToken.$": "$.NextToken"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "For each resource",
+      "ResultSelector": {
+        "Result.$": "States.StringToJson($.Payload)"
+      },
+      "ResultPath": "$.Payload"
+    },
+    "For each resource": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Extract tags if the exist",
+        "States": {
+          "Extract tags if the exist": {
+            "Type": "Pass",
+            "Parameters": {
+              "Arn.$": "$.Arn",
+              "OwningAccountId.$": "$.OwningAccountId",
+              "Region.$": "$.Region",
+              "ResourceType.$": "$.ResourceType",
+              "Service.$": "$.Service",
+              "Tags.$": "$.Properties[?(@.Name==tags)]",
+              "TagsLength.$": "States.ArrayLength($.Properties[?(@.Name==tags)])"
+            },
+            "Next": "Are there tags?"
+          },
+          "Are there tags?": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Variable": "$.TagsLength",
+                "NumericEquals": 1,
+                "Next": "Pull Tags up",
+                "Comment": "Yes"
+              }
+            ],
+            "Default": "Set NoTag and NoValue"
+          },
+          "Pull Tags up": {
+            "Type": "Pass",
+            "Parameters": {
+              "Arn.$": "$.Arn",
+              "OwningAccountId.$": "$.OwningAccountId",
+              "Region.$": "$.Region",
+              "ResourceType.$": "$.ResourceType",
+              "Service.$": "$.Service",
+              "Tags.$": "$.Tags[0].Data",
+              "TagsLength.$": "States.ArrayLength($.Tags[0].Data)"
+            },
+            "Next": "For each tag"
+          },
+          "For each tag": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Transform resource to Tag",
+              "States": {
+                "Transform resource to Tag": {
+                  "Type": "Pass",
+                  "End": true,
+                  "Parameters": {
+                    "Join.$": "States.StringToJson(States.Format('\\{\"{}\":\\{\"{}\":[{}]\\}\\}', $.TagKey, $.TagValue,States.JsonToString($.Resource)))"
+                  },
+                  "OutputPath": "$.Join"
+                }
+              }
+            },
+            "ItemsPath": "$.Tags",
+            "ItemSelector": {
+              "TagKey.$": "$$.Map.Item.Value.Key",
+              "TagValue.$": "$$.Map.Item.Value.Value",
+              "Resource": {
+                "Arn.$": "$.Arn",
+                "OwningAccountId.$": "$.OwningAccountId",
+                "Region.$": "$.Region",
+                "ResourceType.$": "$.ResourceType",
+                "Service.$": "$.Service"
+              }
+            },
+            "End": true
+          },
+          "Set NoTag and NoValue": {
+            "Type": "Pass",
+            "End": true,
+            "Parameters": [
+              {
+                "NoTag": {
+                  "NoValue": [
+                    {
+                      "Arn.$": "$.Arn",
+                      "OwningAccountId.$": "$.OwningAccountId",
+                      "Region.$": "$.Region",
+                      "ResourceType.$": "$.ResourceType",
+                      "Service.$": "$.Service"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "ItemsPath": "$.Payload.Result.Resources",
+      "Next": "Merge results",
+      "ResultPath": "$.Results",
+      "ResultSelector": {
+        "flatten.$": "$[*][*]"
+      }
+    },
+    "Merge results": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${MERGE_FUNCTION}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Loop over merged results",
+      "ResultSelector": {
+        "Payload.$": "States.StringToJson($.Payload)"
+      }
+    },
+    "Loop over merged results": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Prep Partitions",
+        "States": {
+          "Prep Partitions": {
+            "Type": "Pass",
+            "Next": "PutObject",
+            "Parameters": {
+              "TagName.$": "$.TagName",
+              "TagValue.$": "$.TagValue",
+              "Resources.$": "$.Resources",
+              "year.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),0)",
+              "month.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),1)",
+              "day.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),2)",
+              "hour.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),3)",
+              "minute.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),4)"
+            }
+          },
+          "PutObject": {
+            "Type": "Task",
+            "Parameters": {
+              "Body": {
+                "TagName.$": "$.TagName",
+                "TagValue.$": "$.TagValue",
+                "Resources.$": "$.Resources"
+              },
+              "Bucket": "${CENTRAL_BUCKET_NAME}",
+              "Key.$": "States.Format('d={}-{}-{}/{}.json',    $.year,    $.month,    $.day,   States.UUID())"
+            },
+            "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
+            "ResultPath": null,
+            "Credentials": {
+              "RoleArn": "${CENTRAL_ROLE_ARN}"
+            },
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrency": 10,
+      "ItemsPath": "$.Results",
+      "Next": "Are there more results?",
+      "ResultPath": null
+    },
+    "Are there more results?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.NextToken",
+          "IsPresent": true,
+          "Comment": "NextToken : Present",
+          "Next": "Drop previous Resources"
+        }
+      ],
+      "Default": "Success"
+    },
+    "Drop previous Resources": {
+      "Type": "Pass",
+      "Next": "Search",
+      "Parameters": {
+        "NextToken.$": "$.NextToken"
+      }
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  },
+  "Comment": "Runs through the resources and tags of the spoke account."
+}

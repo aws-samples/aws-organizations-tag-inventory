@@ -1,0 +1,481 @@
+{
+    "Count": {
+        "Complete": false,
+        "TotalResources": 1000
+    },
+    "NextToken": "AQICAHg3K9Lgkv25I7wJsURdLqVDtSKuwH-051JSdAF5tFxyRAHkAMpmwslo2cF0Df8hd0jtAAAAuzCBuAYJKoZIhvcNAQcGoIGqMIGnAgEAMIGhBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDGHAmnG8xurEMtTIVAIBEIB0IFwx6CCpJPNRhOJXI9pAAin38Zk7e58hhU4XVyhV-rypgnUQM5x2d28tlje_w_1uGBESj_cHSTNGnItId1PwUri6c4IVX0m8nOITvZGe_pE9ANfiDvCPY-4XTFhuvj3ydTD22-F6Z8-O0g4B7UMAqT_X49Y=",
+    "Resources": [
+        {
+            "Arn": "arn:aws:ec2:us-east-2:149451982790:security-group-rule/sgr-0a8f87d69da2125d6",
+            "LastReportedAt": "2023-06-05T05:01:09+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "ec2:security-group-rule",
+            "Service": "ec2"
+        },
+        {
+            "Arn": "arn:aws:cloudwatch:us-east-2:149451982790:alarm:TargetTracking-table/Rides/index/UnicornName-RequestTime-index-ProvisionedCapacityHigh-f929ea6b-26e7-421f-a81a-fd1340df2c0e",
+            "LastReportedAt": "2023-06-05T03:26:09+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [
+                {
+                    "Data": [],
+                    "LastReportedAt": "2022-10-07T17:15:46+00:00",
+                    "Name": "tags"
+                }
+            ],
+            "Region": "us-east-2",
+            "ResourceType": "cloudwatch:alarm",
+            "Service": "cloudwatch"
+        },
+        {
+            "Arn": "arn:aws:ssm:us-east-1:149451982790:automation-execution/b5d633cc-8829-4861-9556-c6b582963d68",
+            "LastReportedAt": "2023-06-06T01:15:25+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "ssm:automation-execution",
+            "Service": "ssm"
+        },
+        {
+            "Arn": "arn:aws:ssm:us-east-1:149451982790:automation-execution/55ed879e-cad3-44fa-985e-9ec3ed01b8a1",
+            "LastReportedAt": "2023-05-30T20:26:00+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "ssm:automation-execution",
+            "Service": "ssm"
+        },
+        {
+            "Arn": "arn:aws:elasticache:us-east-1:149451982790:subnetgroup:redis-no-internaz",
+            "LastReportedAt": "2023-06-05T07:09:46+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "elasticache:subnetgroup",
+            "Service": "elasticache"
+        },
+        {
+            "Arn": "arn:aws:ecs:us-west-1:149451982790:task-definition/aws-serverless-moodle-application-0001-Main-CPDQ7Z0YWKWJ-ECSStack-1G6W0K4FIQRAN:1",
+            "LastReportedAt": "2023-06-02T17:06:35+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-west-1",
+            "ResourceType": "ecs:task-definition",
+            "Service": "ecs"
+        },
+        {
+            "Arn": "arn:aws:logs:us-east-2:149451982790:log-group:/aws/lambda/acp-example-acp-stack-LogRetentionaae0aa3c5b4d4f87-ObMax26qnwHL",
+            "LastReportedAt": "2023-06-05T13:25:53+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:role/EC2CapacityReservationService",
+            "LastReportedAt": "2023-06-06T10:25:55+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:role",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:logs:us-west-1:149451982790:log-group:/aws/lambda/aws-serverless-moodle-platform-0001-Main-1Q-Lambda-13XOHDC50FFIX",
+            "LastReportedAt": "2023-06-03T09:00:40+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-west-1",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:logs:us-east-1:149451982790:log-group:/aws/lambda/sam-app-HelloWorldFunction-1RQWIP3177QWI",
+            "LastReportedAt": "2023-06-05T11:45:42+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:s3:::example-python-ecr-codebuild-pipe-artifactsbucket-svwubjlyojm",
+            "LastReportedAt": "2023-06-03T22:15:32+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "s3:bucket",
+            "Service": "s3"
+        },
+        {
+            "Arn": "arn:aws:lambda:us-east-1:149451982790:function:NodeTestModoCrossAccountDynamo",
+            "LastReportedAt": "2023-06-02T20:21:26+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "lambda:function",
+            "Service": "lambda"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:role/cdk-hnb659fds-file-publishing-role-149451982790-us-east-1",
+            "LastReportedAt": "2023-06-06T10:25:55+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:role",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:policy/ShadowTrooperPolicy-prod",
+            "LastReportedAt": "2023-06-06T11:43:40+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:policy",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:sns:us-east-2:149451982790:amplify_codecommit_topic",
+            "LastReportedAt": "2023-06-04T19:44:54+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "sns:topic",
+            "Service": "sns"
+        },
+        {
+            "Arn": "arn:aws:logs:us-east-2:149451982790:log-group:/aws/lambda/scrub-pii-poc-GetTextractJobStatusFunction-TKQWG2EIF93J",
+            "LastReportedAt": "2023-06-05T13:25:53+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:rds:us-east-2:149451982790:cluster-pg:default.aurora5.6",
+            "LastReportedAt": "2023-06-07T12:10:20+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "rds:cluster-pg",
+            "Service": "rds"
+        },
+        {
+            "Arn": "arn:aws:ec2:us-east-1:149451982790:security-group-rule/sgr-0c8cd1a90ed90fecb",
+            "LastReportedAt": "2023-06-03T14:43:55+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "ec2:security-group-rule",
+            "Service": "ec2"
+        },
+        {
+            "Arn": "arn:aws:ssm:us-east-1:149451982790:automation-execution/f4b23f45-0452-43e8-b17a-022eef8c057f",
+            "LastReportedAt": "2023-06-06T01:15:25+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "ssm:automation-execution",
+            "Service": "ssm"
+        },
+        {
+            "Arn": "arn:aws:s3:::rails-on-whales-artifactsbucket-qzgc237v5sac",
+            "LastReportedAt": "2023-06-03T16:53:46+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "s3:bucket",
+            "Service": "s3"
+        },
+        {
+            "Arn": "arn:aws:ec2:us-east-2:149451982790:snapshot/snap-03086d1684b408517",
+            "LastReportedAt": "2023-06-04T20:19:11+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "ec2:snapshot",
+            "Service": "ec2"
+        },
+        {
+            "Arn": "arn:aws:logs:us-west-1:149451982790:log-group:/aws/lambda/aws-serverless-moodle-platform-00005-Main-1-Lambda-OSMA1K1PW7R8",
+            "LastReportedAt": "2023-06-03T09:00:40+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-west-1",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:logs:us-east-2:149451982790:log-group:/aws/lambda/acp-example-acp-stack-AWS679f53fac002430cb0da5b798-Qpn5bUCmp40V",
+            "LastReportedAt": "2023-06-05T13:25:53+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:ssm:us-east-1:149451982790:automation-execution/642cf712-3b90-40f5-b99b-18c4c5f3ddae",
+            "LastReportedAt": "2023-06-06T01:15:25+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "ssm:automation-execution",
+            "Service": "ssm"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:instance-profile/AWSTransferLoggingAccessRole",
+            "LastReportedAt": "2023-06-04T11:24:16+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:instance-profile",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:elasticache:us-east-1:149451982790:parametergroup:default.redis6.x.cluster.on",
+            "LastReportedAt": "2023-06-06T00:30:17+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "elasticache:parametergroup",
+            "Service": "elasticache"
+        },
+        {
+            "Arn": "arn:aws:logs:us-west-1:149451982790:log-group:/aws/lambda/aws-serverless-moodle-infrastructure-NextEl-Lambda-1DK6OKC0ZVTEV",
+            "LastReportedAt": "2023-06-03T09:00:40+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-west-1",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:elasticache:us-east-2:149451982790:parametergroup:default.redis3.2.cluster.on",
+            "LastReportedAt": "2023-06-04T06:57:37+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "elasticache:parametergroup",
+            "Service": "elasticache"
+        },
+        {
+            "Arn": "arn:aws:s3:::awsgalen-ct-dev-001-dotnet-us-east-2",
+            "LastReportedAt": "2023-06-03T16:53:46+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "s3:bucket",
+            "Service": "s3"
+        },
+        {
+            "Arn": "arn:aws:s3:::example-python-ecr-codebuild-pipe-artifactsbucket-1qwank0thp8c0",
+            "LastReportedAt": "2023-06-03T22:15:32+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "s3:bucket",
+            "Service": "s3"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            "LastReportedAt": "2023-06-06T10:25:55+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:role",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:lambda:us-west-1:149451982790:function:StackSet-aws-control-tower-centralized-LogStreamer-1OG3IMJ84HWLU",
+            "LastReportedAt": "2023-06-04T01:56:22+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-west-1",
+            "ResourceType": "lambda:function",
+            "Service": "lambda"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:role/aws-service-role/devops-guru.amazonaws.com/AWSServiceRoleForDevOpsGuru",
+            "LastReportedAt": "2023-06-06T10:25:55+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:role",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:s3:::scrub-pii-poc-extracted-documents",
+            "LastReportedAt": "2023-06-03T16:53:46+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "s3:bucket",
+            "Service": "s3"
+        },
+        {
+            "Arn": "arn:aws:rds:us-east-2:149451982790:cluster-pg:default.aurora-postgresql12",
+            "LastReportedAt": "2023-06-07T12:10:20+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "rds:cluster-pg",
+            "Service": "rds"
+        },
+        {
+            "Arn": "arn:aws:ssm:us-east-2:149451982790:managed-instance/mi-0e27f8c449fae724c",
+            "LastReportedAt": "2023-06-05T14:51:03+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [
+                {
+                    "Data": [
+                        {
+                            "Key": "Type",
+                            "Value": "fargate"
+                        },
+                        {
+                            "Key": "Name",
+                            "Value": "rails-on-whales"
+                        }
+                    ],
+                    "LastReportedAt": "2022-10-07T16:33:44+00:00",
+                    "Name": "tags"
+                }
+            ],
+            "Region": "us-east-2",
+            "ResourceType": "ssm:managed-instance",
+            "Service": "ssm"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:role/EC2InstanceProfileForImageBuilder",
+            "LastReportedAt": "2023-06-06T10:25:55+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:role",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:logs:us-east-2:149451982790:log-group:/aws/lambda/scrub-pii-poc-MoveDocumentsFunction-1R50KDC032NET",
+            "LastReportedAt": "2023-06-05T13:25:53+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:logs:us-west-1:149451982790:log-group:/aws/codebuild/aws-serverless-moodle-pipeline-0001",
+            "LastReportedAt": "2023-06-03T09:00:40+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-west-1",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:logs:us-east-1:149451982790:log-group:/aws/ecs/containerinsights/Services-PetSiteD2FFC4F5-TREtqvlEtGzM/performance",
+            "LastReportedAt": "2023-06-05T11:45:42+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:policy/service-role/AWSGlueServiceSageMakerNotebookRole-acp-alb",
+            "LastReportedAt": "2023-06-06T11:43:40+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:policy",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:ssm:us-west-1:149451982790:parameter/0001/Moodle/AdminPassword",
+            "LastReportedAt": "2023-06-03T13:59:10+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-west-1",
+            "ResourceType": "ssm:parameter",
+            "Service": "ssm"
+        },
+        {
+            "Arn": "arn:aws:cloudwatch:us-east-1:149451982790:insight-rule/DynamoDBContributorInsights-PKC-Services-ddbpetadoption7B7CFEC9-1VD65UNDJA411-1597410061318",
+            "LastReportedAt": "2023-06-07T02:52:35+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "cloudwatch:insight-rule",
+            "Service": "cloudwatch"
+        },
+        {
+            "Arn": "arn:aws:logs:us-east-2:149451982790:log-group:/aws/lambda/BuildLambdaStage-BuildLam-helloworldfunction825291-1WRX463AFE0G4",
+            "LastReportedAt": "2023-06-05T13:25:53+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:role/XenaAuditorRole-DO-NOT-DELETE",
+            "LastReportedAt": "2023-06-06T10:25:55+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:role",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:ec2:us-east-2:149451982790:network-interface/eni-0a8a5a992d1d4c17b",
+            "LastReportedAt": "2023-06-05T00:49:53+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "ec2:network-interface",
+            "Service": "ec2"
+        },
+        {
+            "Arn": "arn:aws:logs:us-west-1:149451982790:log-group:/aws/rds/cluster/moodle0001-cluster/error",
+            "LastReportedAt": "2023-06-03T09:00:40+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-west-1",
+            "ResourceType": "logs:log-group",
+            "Service": "logs"
+        },
+        {
+            "Arn": "arn:aws:iam::149451982790:role/access-abc-quality-assurance",
+            "LastReportedAt": "2023-06-06T10:25:55+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "global",
+            "ResourceType": "iam:role",
+            "Service": "iam"
+        },
+        {
+            "Arn": "arn:aws:ssm:us-east-1:149451982790:automation-execution/e28a0a93-9404-445e-95ed-1ec590bd8e3a",
+            "LastReportedAt": "2023-06-06T01:15:25+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-1",
+            "ResourceType": "ssm:automation-execution",
+            "Service": "ssm"
+        },
+        {
+            "Arn": "arn:aws:ec2:us-east-2:149451982790:security-group-rule/sgr-037a27619fb6d0221",
+            "LastReportedAt": "2023-06-07T12:26:51+00:00",
+            "OwningAccountId": "149451982790",
+            "Properties": [],
+            "Region": "us-east-2",
+            "ResourceType": "ec2:security-group-rule",
+            "Service": "ec2"
+        }
+    ],
+    "ViewArn": "arn:aws:resource-explorer-2:us-east-2:149451982790:view/all-resources/400dd0c3-6955-4d2c-8277-927917989552"
+}
