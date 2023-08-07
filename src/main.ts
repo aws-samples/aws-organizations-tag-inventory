@@ -15,7 +15,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { App, Aspects } from 'aws-cdk-lib';
+import {App, Aspects, DefaultStackSynthesizer} from 'aws-cdk-lib';
 import { AwsSolutionsChecks } from 'cdk-nag';
 import { CentralStack } from './stacks/CentralStack';
 import { SpokeStack } from './stacks/SpokeStack';
@@ -34,6 +34,9 @@ if (stackToDeploy == undefined || stackToDeploy == 'central') {
   new CentralStack(app, 'aws-organizations-tag-inventory-central-stack', {
     env: env,
     organizationId: app.node.tryGetContext('organizationId'),
+    synthesizer:new DefaultStackSynthesizer({
+      generateBootstrapVersionRule: false
+    })
   });
 }
 if (stackToDeploy == undefined || stackToDeploy == 'spoke') {
@@ -43,6 +46,9 @@ if (stackToDeploy == undefined || stackToDeploy == 'spoke') {
     aggregatorRegion: 'us-east-2',
     bucketName: app.node.tryGetContext('bucketName'),
     centralRoleArn: app.node.tryGetContext('centralRoleArn'),
+    synthesizer:new DefaultStackSynthesizer({
+      generateBootstrapVersionRule: false
+    })
   });
 }
 Aspects.of(app).add(new AwsSolutionsChecks({}));
