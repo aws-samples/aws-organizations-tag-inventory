@@ -1,6 +1,6 @@
 # aws-organizations-tag-inventory
 
-This cdk project is an example of how a customer can generate a report on what tags exists and the resources they are applied to across their entire AWS organization.
+This cdk project is an example of how a customer can generate a report on what tags exist and the resources they are applied to across their entire AWS organization.
 
 
 ## Architecture

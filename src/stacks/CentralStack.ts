@@ -266,7 +266,7 @@ export class CentralStack extends Stack {
 				resources: [`arn:aws:athena:${Aws.REGION}:${Aws.ACCOUNT_ID}:workgroup/${workgroupName}`],
 			}), new PolicyStatement({
 				effect: Effect.ALLOW,
-				actions: ['glue:GetTable', 'glue:CreateTable', 'glue:GetPartition', 'glue:CreatePartition', 'glue:GetDatabase', 'glue:CreateDatabase','glue:DeleteTable'],
+				actions: ['glue:GetTable', 'glue:CreateTable','glue:GetPartitions', 'glue:GetPartition', 'glue:CreatePartition', 'glue:GetDatabase', 'glue:CreateDatabase','glue:DeleteTable'],
 				resources: [`arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog`,  `${tableArn}/*`, `${catalogArn}/*`, databaseArn, `${databaseArn}/*`, `arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/default`,`arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/default/*`],
 			})],
 			environment: {

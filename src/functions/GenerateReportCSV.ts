@@ -36,6 +36,7 @@ export const onEvent = async (
 	const yesterday = new Date(today.setDate(today.getDate() - 1));
 	const yesterdayString = yesterday.toISOString().substring(0, 10);
 	const client = new AthenaClient({});
+	await dropTable(client)
 	const loadPartitionsResponse = await loadPartitions(client);
 	if (loadPartitionsResponse != undefined && loadPartitionsResponse.QueryExecution?.Status?.State == QueryExecutionState.SUCCEEDED) {
 		const createTableResponse = await createTable(client, yesterdayString)
@@ -51,7 +52,7 @@ export const onEvent = async (
 				Key: manifestKey,
 			}));
 			const dataFileLocation = await getObjectResponse.Body?.transformToString();
-			if (dataFileLocation != undefined) {
+			if (dataFileLocation != undefined && dataFileLocation!='') {
 				logger.info(`Data file located at: '${dataFileLocation}'`);
 				const dataFileUri = new URL(dataFileLocation);
 				const dataFileBucket = dataFileUri.hostname;
@@ -68,8 +69,7 @@ export const onEvent = async (
 			} else {
 				throw new Error("Could not determine data file location: '${dataFileLocation}'");
 			}
-			logger.info('Dropping table');
-			const dropTableResponse = await executeCommand(client, `DROP TABLE \`${process.env.DATABASE}.tag_inventory_csv\`;`)
+			const dropTableResponse = await dropTable(client)
 			if (dropTableResponse != undefined && QueryExecutionState.SUCCEEDED == dropTableResponse.QueryExecution?.Status?.State) {
 				logger.info(`Deleting tables from ${manifestBucket}`);
 				await s3Client.send(new DeleteObjectCommand({
@@ -93,9 +93,14 @@ export const onEvent = async (
 
 };
 
+async function dropTable(client: AthenaClient) {
+	logger.info('Dropping table');
+	return  await executeCommand(client, `DROP TABLE IF EXISTS \`${process.env.DATABASE}.tag_inventory_csv\`;`)
+}
+
 async function loadPartitions(client: AthenaClient): Promise<GetQueryExecutionCommandOutput | undefined> {
 	logger.info('Loading partitions');
-	const loadPartitions = `MSCK REPAIR TABLE \`${process.env.TAG_INVENTORY_TABLE}\`;`;
+	const loadPartitions = `MSCK REPAIR TABLE \`${process.env.DATABASE}.${process.env.TAG_INVENTORY_TABLE}\`;`;
 	return await executeCommand(client, loadPartitions)
 }
 
@@ -108,7 +113,7 @@ async function createTable(client: AthenaClient, yesterdayString: string): Promi
 		`      external_location = 's3://${process.env.REPORT_BUCKET}/${yesterdayString}',\n` +
 		"      bucketed_by = ARRAY['d'],\n" +
 		'      bucket_count = 1)\n' +
-		`AS (\n SELECT d,tagname,tagvalue,r.owningAccountId,r.region,r.service,r.resourceType,r.arn FROM \"${process.env.DATABASE}\".\"${process.env.TAG_INVENTORY_TABLE}\", unnest(\"resources\") as t (\"r\") where d='${yesterdayString}'\n);`;
+		`AS (\n SELECT d,tagname,tagvalue,r.owningAccountId,r.region,r.service,r.resourceType,r.arn FROM \"${process.env.DATABASE}\".\"${process.env.TAG_INVENTORY_TABLE}\", unnest(\"resources\") as t (\"r\") where d=(select max(d) from \"${process.env.DATABASE}\".\"${process.env.TAG_INVENTORY_TABLE}\")\n);`;
 
 	return await executeCommand(client, createTable)
 }
