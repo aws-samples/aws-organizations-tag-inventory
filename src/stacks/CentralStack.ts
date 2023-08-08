@@ -16,7 +16,7 @@
  */
 
 import path from 'path';
-import {Aws, CfnOutput, Duration, RemovalPolicy, Stack, StackProps} from 'aws-cdk-lib';
+import {Aws, CfnOutput, CfnParameter, Duration, RemovalPolicy, Stack, StackProps} from 'aws-cdk-lib';
 import {CfnWorkGroup} from 'aws-cdk-lib/aws-athena';
 import {CfnCrawler, CfnDatabase, CfnSecurityConfiguration, CfnTable} from 'aws-cdk-lib/aws-glue';
 import {Effect, ManagedPolicy, OrganizationPrincipal, PolicyDocument, PolicyStatement, Role, ServicePrincipal} from 'aws-cdk-lib/aws-iam';
@@ -41,6 +41,11 @@ export class CentralStack extends Stack {
 		if (!props.organizationId) {
 			throw new Error('Organization Id is required');
 		}
+		const organizationIdParameter=new CfnParameter(this,"OrganizationIdParameter",{
+			default: props.organizationId,
+			type: "String",
+			description: "The AWS organization ID"
+		})
 		const powerToolsLayer = LayerVersion.fromLayerVersionArn(this, 'powertools', `arn:aws:lambda:${Aws.REGION}:094274105915:layer:AWSLambdaPowertoolsTypeScript:11`);
 		const serverAccessLogBucket = new Bucket(this, 'S3ServerAccessLogBucket', {
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
@@ -49,7 +54,7 @@ export class CentralStack extends Stack {
 			autoDeleteObjects: true,
 		});
 		const reportingBucket = new Bucket(this, 'ReportBucket', {
-			bucketName: `tag-inventory-reports-${props.organizationId}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
+			bucketName: `tag-inventory-reports-${organizationIdParameter.valueAsString}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 			cors: [
 				{
@@ -67,7 +72,7 @@ export class CentralStack extends Stack {
 		});
 
 		const tagInventoryBucket = new Bucket(this, 'TagBucket', {
-			bucketName: `tag-inventory-${props.organizationId}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
+			bucketName: `tag-inventory-${organizationIdParameter.valueAsString}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 			cors: [
 				{
@@ -85,7 +90,7 @@ export class CentralStack extends Stack {
 		});
 
 		const athenaWorkGroupBucket = new Bucket(this, 'AthenaWorkGroupBucket', {
-			bucketName: `tag-inventory-athena-wg-${props.organizationId}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
+			bucketName: `tag-inventory-athena-wg-${organizationIdParameter.valueAsString}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 			cors: [
 				{
@@ -151,7 +156,7 @@ export class CentralStack extends Stack {
 		const database = new CfnDatabase(this, 'OrganizationalTagInventoryDatabase', {
 			catalogId: Aws.ACCOUNT_ID,
 			databaseInput: {
-				name: `${props.organizationId}-tag-inventory-database`,
+				name: `${organizationIdParameter.valueAsString}-tag-inventory-database`,
 				description: 'Organizational tag inventory database',
 
 			},
@@ -161,7 +166,7 @@ export class CentralStack extends Stack {
 			catalogId: Aws.ACCOUNT_ID,
 			databaseName: database.ref,
 			tableInput: {
-				name: `${props.organizationId}-tag-inventory-table`,
+				name: `${organizationIdParameter.valueAsString}-tag-inventory-table`,
 				storageDescriptor: {
 					location: tagInventoryBucket.s3UrlForObject('/'),
 					inputFormat: 'org.apache.hadoop.mapred.TextInputFormat',
@@ -224,7 +229,7 @@ export class CentralStack extends Stack {
 		const databaseArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:database/${database.ref}`;
 		const catalogArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog/${table.catalogId}`;
 		new CfnCrawler(this, 'OrganizationalTagInventoryCrawler', {
-			name: `${props.organizationId}-tag-inventory-crawler`,
+			name: `${organizationIdParameter.valueAsString}-tag-inventory-crawler`,
 			description: 'Organizational tag inventory crawler',
 			databaseName: database.ref,
 			role: athenaRole.roleArn,
@@ -247,7 +252,7 @@ export class CentralStack extends Stack {
 			},
 		});
 		const centralStackRole = new Role(this, 'CentralStackPutTagInventoryRole', {
-			assumedBy: new OrganizationPrincipal(props.organizationId),
+			assumedBy: new OrganizationPrincipal(organizationIdParameter.valueAsString),
 			description: "Role with access to write to the central stack's OrganizationsTagInventory bucket",
 		});
 		tagInventoryBucket.grantPut(centralStackRole);

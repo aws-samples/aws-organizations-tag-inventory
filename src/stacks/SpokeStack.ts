@@ -16,7 +16,7 @@
  */
 
 import path from 'path';
-import { Aws, Duration, Stack, StackProps } from 'aws-cdk-lib';
+import {Aws, CfnParameter, Duration, Stack, StackProps} from 'aws-cdk-lib';
 import { Effect, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Architecture, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -26,12 +26,14 @@ import { Layers } from '../constructs/Layers';
 import { ResourceExplorerIndex } from '../constructs/ResourceExplorerIndex';
 import { StateMachineFromFile } from '../constructs/StateMachineFromFile';
 import {NagSuppressions} from "cdk-nag";
+import {RegionInfo} from "aws-cdk-lib/region-info";
+
 
 export interface SpokeStackProps extends StackProps {
-  enabledRegions: string[];
-  aggregatorRegion: string;
-  bucketName: string | undefined;
-  centralRoleArn: string | undefined;
+  enabledRegions?: string[];
+  aggregatorRegion?: string;
+  bucketName?: string | undefined;
+  centralRoleArn?: string | undefined;
 
 }
 
@@ -39,22 +41,39 @@ export class SpokeStack extends Stack {
 
   constructor(scope: Construct, id: string, props: SpokeStackProps) {
     super(scope, id, props);
-    if (!props.bucketName) {
-      throw new Error('Bucket name is required');
 
-    }
-    if (!props.centralRoleArn) {
-      throw new Error('Central role ARN is required');
+    const bucketNameParameter=new CfnParameter(this,"BucketNameParameter",{
+      default: props.bucketName,
+      type: "String",
+      description: "Name of the central account bucket where tag inventory data is stored"
+    })
+    const centralRoleArnParameter=new CfnParameter(this,"centralRoleArnParameter",{
+      default: props.centralRoleArn,
+      type: "String",
+      description: "ARN of the central account's cross account role with permissions to write to the centralized bucket where tag inventory data is stored"
+    })
+    const enabledRegionsParameter=new CfnParameter(this,"EnabledRegionsParameter",{
 
-    }
+      default: props.enabledRegions?.join(","),
+      type: "CommaDelimitedList",
+      description: "Regions to enable Resource Explorer Indexing"
+    })
+    const aggregatorRegionParameter=new CfnParameter(this,"AggregatorRegionParameter",{
+      allowedValues: RegionInfo.regions.map(value => {
+        return value.name
+      }),
+      default: props.aggregatorRegion,
+      type: "String",
+      description: "The region that contains teh Resource Explorer aggregator"
+    })
     const powerToolsLayer = LayerVersion.fromLayerVersionArn(this, 'powertools', `arn:aws:lambda:${Aws.REGION}:094274105915:layer:AWSLambdaPowertoolsTypeScript:11`);
 
     const layers = new Layers(this, 'layers');
     //put resources here
     const resourceExplorerIndex = new ResourceExplorerIndex(this, 'MyIndex', {
       layers: layers,
-      enabledRegions: props.enabledRegions,
-      aggregatorRegion: props.aggregatorRegion,
+      enabledRegions: enabledRegionsParameter.valueAsList,
+      aggregatorRegion: aggregatorRegionParameter.valueAsString,
 
     });
 
@@ -90,7 +109,7 @@ export class SpokeStack extends Stack {
     });
 
     const stateMachine = new StateMachineFromFile(this, 'SpokeAccountStateMachine',
-      { name: 'SpokeAccountStateMachine', file: path.join(__dirname, '..', 'stateMachines', 'SpokeAccountStateMachine.json'), searchFunction: searchFunction, mergeFunction: mergeFunction, putObjectRoleArn: props.centralRoleArn, bucketName: props.bucketName });
+      { name: 'SpokeAccountStateMachine', file: path.join(__dirname, '..', 'stateMachines', 'SpokeAccountStateMachine.json'), searchFunction: searchFunction, mergeFunction: mergeFunction, putObjectRoleArn: centralRoleArnParameter.valueAsString, bucketName: bucketNameParameter.valueAsString});
     stateMachine.stateMachine.addToRolePolicy(new PolicyStatement({
       effect: Effect.ALLOW,
       actions: ['dynamodb:PutItem', 'dynamodb:BatchWriteItem', 'dynamodb:UpdateItem'],
@@ -101,12 +120,12 @@ export class SpokeStack extends Stack {
     stateMachine.stateMachine.addToRolePolicy(new PolicyStatement({
       effect: Effect.ALLOW,
       actions: ['s3:PutObject', 's3:PutObjectAcl'],
-      resources: [`arn:aws:s3:::${props.bucketName}`, `arn:aws:s3:::${props.bucketName}/*`],
+      resources: [`arn:aws:s3:::${bucketNameParameter.valueAsString}`, `arn:aws:s3:::${bucketNameParameter.valueAsString}/*`],
     }));
     stateMachine.stateMachine.addToRolePolicy(new PolicyStatement({
       effect: Effect.ALLOW,
       actions: ['sts:AssumeRole'],
-      resources: [props.centralRoleArn],
+      resources: [centralRoleArnParameter.valueAsString],
     }));
     mergeFunction.grantInvoke(stateMachine.stateMachine);
     searchFunction.grantInvoke(stateMachine.stateMachine);
