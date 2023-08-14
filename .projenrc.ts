@@ -104,6 +104,9 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
 
 app().then(project => {
   project.tasks.tryFind('post-compile')?.reset();
+  project.tasks.tryFind('synth')?.reset('cdk synth', {
+    receiveArgs: true,
+  });
   project.tasks.tryFind('synth:silent')?.reset('cdk synth -q', {
     receiveArgs: true,
   });

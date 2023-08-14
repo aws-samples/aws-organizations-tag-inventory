@@ -19,7 +19,7 @@ import path from 'path';
 import {Aws, CfnOutput, CfnParameter, Duration, RemovalPolicy, Stack, StackProps} from 'aws-cdk-lib';
 import {CfnWorkGroup} from 'aws-cdk-lib/aws-athena';
 import {CfnCrawler, CfnDatabase, CfnSecurityConfiguration, CfnTable} from 'aws-cdk-lib/aws-glue';
-import {Effect, ManagedPolicy, OrganizationPrincipal, PolicyDocument, PolicyStatement, Role, ServicePrincipal} from 'aws-cdk-lib/aws-iam';
+import {Effect, ManagedPolicy, OrganizationPrincipal, PolicyStatement, Role, ServicePrincipal} from 'aws-cdk-lib/aws-iam';
 import {Architecture, LayerVersion, Runtime} from 'aws-cdk-lib/aws-lambda';
 import {NodejsFunction} from 'aws-cdk-lib/aws-lambda-nodejs';
 import {BlockPublicAccess, Bucket, BucketEncryption, HttpMethods} from 'aws-cdk-lib/aws-s3';
@@ -28,6 +28,7 @@ import {CfnSchedule} from 'aws-cdk-lib/aws-scheduler';
 import {Queue, QueueEncryption} from 'aws-cdk-lib/aws-sqs';
 import {NagSuppressions} from 'cdk-nag';
 import {Construct} from 'constructs';
+import {Key} from "aws-cdk-lib/aws-kms";
 
 
 export interface CentralStackProps extends StackProps {
@@ -41,7 +42,7 @@ export class CentralStack extends Stack {
 		if (!props.organizationId) {
 			throw new Error('Organization Id is required');
 		}
-		const organizationIdParameter=new CfnParameter(this,"OrganizationIdParameter",{
+		const organizationIdParameter = new CfnParameter(this, "OrganizationIdParameter", {
 			default: props.organizationId,
 			type: "String",
 			description: "The AWS organization ID"
@@ -56,14 +57,7 @@ export class CentralStack extends Stack {
 		const reportingBucket = new Bucket(this, 'ReportBucket', {
 			bucketName: `tag-inventory-reports-${organizationIdParameter.valueAsString}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-			cors: [
-				{
-					allowedHeaders: ['*'],
-					allowedMethods: [HttpMethods.PUT, HttpMethods.GET, HttpMethods.POST, HttpMethods.HEAD],
-					allowedOrigins: ['*'],
-					exposedHeaders: ['ETag'],
-				},
-			],
+
 			eventBridgeEnabled: true,
 			removalPolicy: RemovalPolicy.DESTROY,
 			serverAccessLogsBucket: serverAccessLogBucket,
@@ -92,14 +86,6 @@ export class CentralStack extends Stack {
 		const athenaWorkGroupBucket = new Bucket(this, 'AthenaWorkGroupBucket', {
 			bucketName: `tag-inventory-athena-wg-${organizationIdParameter.valueAsString}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-			cors: [
-				{
-					allowedHeaders: ['*'],
-					allowedMethods: [HttpMethods.PUT, HttpMethods.GET, HttpMethods.POST, HttpMethods.HEAD],
-					allowedOrigins: ['*'],
-					exposedHeaders: ['ETag'],
-				},
-			],
 			eventBridgeEnabled: true,
 			removalPolicy: RemovalPolicy.DESTROY,
 			serverAccessLogsBucket: serverAccessLogBucket,
@@ -117,18 +103,7 @@ export class CentralStack extends Stack {
 				ManagedPolicy.fromManagedPolicyArn(this, 'AmazonKinesisFullAccess', 'arn:aws:iam::aws:policy/AmazonKinesisFullAccess'),
 				ManagedPolicy.fromManagedPolicyArn(this, 'AmazonSNSFullAccess', 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'),
 				ManagedPolicy.fromManagedPolicyArn(this, 'AmazonSQSFullAccess', 'arn:aws:iam::aws:policy/AmazonSQSFullAccess'),
-			],
-			inlinePolicies: {
-				'passRole-glue': new PolicyDocument({
-					statements: [
-						new PolicyStatement({
-							effect: Effect.ALLOW,
-							actions: ['iam:PassRole'],
-							resources: ['*'],
-						}),
-					],
-				}),
-			},
+			]
 		});
 		const tagInventoryEventDLQ = new Queue(this, 'TagInventoryEventDLQ', {
 			removalPolicy: RemovalPolicy.DESTROY,
@@ -213,15 +188,19 @@ export class CentralStack extends Stack {
 			},
 
 		});
-
-		const securityConfiguration=new CfnSecurityConfiguration(this,"SecurityConfiguration",{
-			name:"TagInventorySecurityConfiguration",
-			encryptionConfiguration:{
+		const cloudWatchKmsKey = new Key(this, "CloudwatchEncryptionKey", {
+			removalPolicy: RemovalPolicy.DESTROY,
+			enableKeyRotation: true
+		})
+		const securityConfiguration = new CfnSecurityConfiguration(this, "SecurityConfiguration", {
+			name: "TagInventorySecurityConfiguration",
+			encryptionConfiguration: {
 				s3Encryptions: [{
-					s3EncryptionMode:"SSE-S3"
+					s3EncryptionMode: "SSE-S3"
 				}],
-				cloudWatchEncryption:{
-					cloudWatchEncryptionMode: "DISABLED"
+				cloudWatchEncryption: {
+					cloudWatchEncryptionMode: "SSE-KMS",
+					kmsKeyArn: cloudWatchKmsKey.keyArn
 				}
 			}
 		})
@@ -244,6 +223,10 @@ export class CentralStack extends Stack {
 				}],
 			},
 			crawlerSecurityConfiguration: securityConfiguration.name,
+			schemaChangePolicy:{
+				deleteBehavior:"LOG",
+				updateBehavior: "UPDATE_IN_DATABASE"
+			},
 			recrawlPolicy: {
 				recrawlBehavior: 'CRAWL_EVENT_MODE',
 			},
@@ -271,8 +254,8 @@ export class CentralStack extends Stack {
 				resources: [`arn:aws:athena:${Aws.REGION}:${Aws.ACCOUNT_ID}:workgroup/${workgroupName}`],
 			}), new PolicyStatement({
 				effect: Effect.ALLOW,
-				actions: ['glue:GetTable', 'glue:CreateTable','glue:GetPartitions', 'glue:GetPartition', 'glue:CreatePartition', 'glue:GetDatabase', 'glue:CreateDatabase','glue:DeleteTable'],
-				resources: [`arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog`,  `${tableArn}/*`, `${catalogArn}/*`, databaseArn, `${databaseArn}/*`, `arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/default`,`arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/default/*`],
+				actions: ['glue:GetTable', 'glue:CreateTable', 'glue:GetPartitions', 'glue:GetPartition', 'glue:CreatePartition', 'glue:GetDatabase', 'glue:CreateDatabase', 'glue:DeleteTable'],
+				resources: [`arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog`, `${tableArn}/*`, `${catalogArn}/*`, databaseArn, `${databaseArn}/*`, `arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/default`, `arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/default/*`],
 			})],
 			environment: {
 				LOG_LEVEL: 'DEBUG',
@@ -295,7 +278,9 @@ export class CentralStack extends Stack {
 			workGroupConfiguration: {
 				resultConfiguration: {
 					outputLocation: athenaWorkGroupBucket.s3UrlForObject(''),
-
+					encryptionConfiguration:{
+						encryptionOption:"SSE_S3"
+					}
 				},
 				enforceWorkGroupConfiguration: false,
 			},

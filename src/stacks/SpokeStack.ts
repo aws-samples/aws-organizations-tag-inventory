@@ -30,7 +30,7 @@ import {RegionInfo} from "aws-cdk-lib/region-info";
 
 
 export interface SpokeStackProps extends StackProps {
-  enabledRegions?: string[];
+  enabledRegions?: string;
   aggregatorRegion?: string;
   bucketName?: string | undefined;
   centralRoleArn?: string | undefined;
@@ -54,7 +54,7 @@ export class SpokeStack extends Stack {
     })
     const enabledRegionsParameter=new CfnParameter(this,"EnabledRegionsParameter",{
 
-      default: props.enabledRegions?.join(","),
+      default: props.enabledRegions,
       type: "CommaDelimitedList",
       description: "Regions to enable Resource Explorer Indexing"
     })
@@ -110,13 +110,7 @@ export class SpokeStack extends Stack {
 
     const stateMachine = new StateMachineFromFile(this, 'SpokeAccountStateMachine',
       { name: 'SpokeAccountStateMachine', file: path.join(__dirname, '..', 'stateMachines', 'SpokeAccountStateMachine.json'), searchFunction: searchFunction, mergeFunction: mergeFunction, putObjectRoleArn: centralRoleArnParameter.valueAsString, bucketName: bucketNameParameter.valueAsString});
-    stateMachine.stateMachine.addToRolePolicy(new PolicyStatement({
-      effect: Effect.ALLOW,
-      actions: ['dynamodb:PutItem', 'dynamodb:BatchWriteItem', 'dynamodb:UpdateItem'],
-      resources: ['*'],
 
-
-    }));
     stateMachine.stateMachine.addToRolePolicy(new PolicyStatement({
       effect: Effect.ALLOW,
       actions: ['s3:PutObject', 's3:PutObjectAcl'],
@@ -149,19 +143,11 @@ export class SpokeStack extends Stack {
   }
 
   private cdkNagSuppressions() {
-    // NagSuppressions.addResourceSuppressionsByPath(this, `/${this.stackName}/S3ServerAccessLogBucket/Resource`, [
-    //   {
-    //     id: 'AwsSolutions-S1',
-    //     reason: 'This is the S3 server access log bucket',
-    //   },
-    // ]);
+
     NagSuppressions.addStackSuppressions(this, [
       {
         id: 'AwsSolutions-IAM4',
         reason: 'AWS managed policies acceptable for sample',
-      }, {
-        id: 'AwsSolutions-ATH1',
-        reason: 'Because the lambda is writing to an external table it needs to use client configuration',
       },
       {
         id: 'AwsSolutions-IAM5',
