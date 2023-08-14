@@ -23,7 +23,8 @@ const logger = new Logger({
 	serviceName: 'GenerateReportCSV',
 });
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-
+const athenaClient = new AthenaClient({});
+const s3Client = new S3Client({});
 export const onEvent = async (
 	event?: any,
 	//@ts-ignore
@@ -35,17 +36,17 @@ export const onEvent = async (
 	const today = new Date();
 	const yesterday = new Date(today.setDate(today.getDate() - 1));
 	const yesterdayString = yesterday.toISOString().substring(0, 10);
-	const client = new AthenaClient({});
-	await dropTable(client)
-	const loadPartitionsResponse = await loadPartitions(client);
+
+	await dropTable(athenaClient)
+	const loadPartitionsResponse = await loadPartitions(athenaClient);
 	if (loadPartitionsResponse != undefined && loadPartitionsResponse.QueryExecution?.Status?.State == QueryExecutionState.SUCCEEDED) {
-		const createTableResponse = await createTable(client, yesterdayString)
+		const createTableResponse = await createTable(athenaClient, yesterdayString)
 		if (createTableResponse != undefined && QueryExecutionState.SUCCEEDED == createTableResponse.QueryExecution?.Status?.State) {
 			logger.info(`Create table succeeded: ${JSON.stringify(createTableResponse)}`);
 			const manifestUri = new URL(createTableResponse.QueryExecution.Statistics?.DataManifestLocation!);
 			const manifestBucket = manifestUri.hostname;
 			const manifestKey = manifestUri.pathname.substring(1);
-			const s3Client = new S3Client({});
+
 			logger.info(`Retrieving manifest from : ${manifestBucket}/${manifestKey}`);
 			const getObjectResponse = await s3Client.send(new GetObjectCommand({
 				Bucket: manifestBucket,
@@ -69,7 +70,7 @@ export const onEvent = async (
 			} else {
 				throw new Error("Could not determine data file location: '${dataFileLocation}'");
 			}
-			const dropTableResponse = await dropTable(client)
+			const dropTableResponse = await dropTable(athenaClient)
 			if (dropTableResponse != undefined && QueryExecutionState.SUCCEEDED == dropTableResponse.QueryExecution?.Status?.State) {
 				logger.info(`Deleting tables from ${manifestBucket}`);
 				await s3Client.send(new DeleteObjectCommand({

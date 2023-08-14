@@ -27,7 +27,10 @@ import {
   CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
 import { v4 } from 'uuid';
-
+import {Logger} from '@aws-lambda-powertools/logger';
+const logger = new Logger({
+  serviceName: 'ResourceExploreIndexHandler',
+});
 
 export const onEvent = async (
   event: CloudFormationCustomResourceEvent,
@@ -36,7 +39,7 @@ export const onEvent = async (
   //@ts-ignore
   callback: Callback,
 ): Promise<CloudFormationCustomResourceResponse | undefined> => {
-  console.log(`Event: ${JSON.stringify(event)}`);
+  logger.info(`Event: ${JSON.stringify(event)}`);
 
   let data: {
     [Key: string]: any;
@@ -47,7 +50,7 @@ export const onEvent = async (
     if (event.RequestType == 'Update') {
       physicalResourceId = event.PhysicalResourceId;
     }
-    console.debug('Attempting to create resource explorer index');
+    logger.debug('Attempting to create resource explorer index');
 
     const enabledRegions: string[] = event.ResourceProperties.ENABLED_REGIONS;
     for (const region of enabledRegions) {
@@ -98,17 +101,17 @@ async function turnOnIndexForRegion(region: string, client: ResourceExplorer2Cli
   });
   try {
     const response = await client.send(command);
-    console.debug(`Successfully turned on resource explorer index in region ${region}`);
+    logger.debug(`Successfully turned on resource explorer index in region ${region}`);
     return response.Arn;
   } catch (e) {
     const error = e as Error;
     let message = error.message;
-    console.warn(message);
+    logger.warn(message);
     if (error.name == 'ConflictException') {
       const response = await client.send(new GetIndexCommand({
         region: region,
       }));
-      console.debug(`Resource explorer index ${response.Arn} already exists in region ${region}`);
+      logger.debug(`Resource explorer index ${response.Arn} already exists in region ${region}`);
       return response.Arn;
     } else {
       throw Error(`Problem calling enabling index in region ${region}: ${message}`);
@@ -126,13 +129,13 @@ async function createAggregatorIndexForRegion(region: string): Promise<void> {
       Arn: indexArn,
       Type: 'AGGREGATOR',
     }));
-    console.debug(`Successfully created aggregator index ${response.Arn} in region ${region}`);
+    logger.debug(`Successfully created aggregator index ${response.Arn} in region ${region}`);
   } catch (e) {
     const error = e as Error;
     let message = error.message;
-    console.warn(message);
+    logger.warn(message);
     if (error.name == 'ConflictException') {
-      console.debug(`Resource explorer index in region ${region} is already set to type AGGREGATOR`);
+      logger.debug(`Resource explorer index in region ${region} is already set to type AGGREGATOR`);
     } else {
       throw Error(`Problem calling enabling index in region ${region}: ${message}`);
     }
@@ -154,14 +157,14 @@ async function createView(region: string, client: ResourceExplorer2Client = new 
         Name: 'tags',
       }],
     }));
-    console.debug(`Successfully created resource explorer view ${tagInventorResourcesView.View?.ViewArn}`);
+    logger.debug(`Successfully created resource explorer view ${tagInventorResourcesView.View?.ViewArn}`);
 
   } catch (e) {
     const error = e as Error;
     let message = error.message;
-    console.warn(message);
+    logger.warn(message);
     if (error.name == 'ConflictException') {
-      console.debug('View  \'tag-inventory-all-resources\' already exists');
+      logger.debug('View  \'tag-inventory-all-resources\' already exists');
     } else {
       throw new Error(`Problem creating view  'tag-inventory-all-resources': ${message}`);
     }
@@ -171,16 +174,16 @@ async function createView(region: string, client: ResourceExplorer2Client = new 
     return viewArn;
   } else {
     const associateDefaultView = async () => {
-      console.debug(`No default view specified, setting default view to ${viewArn}`);
+      logger.debug(`No default view specified, setting default view to ${viewArn}`);
       try {
         const associateDefaultViewResponse = await client.send(new AssociateDefaultViewCommand({
           ViewArn: viewArn!,
         }));
-        console.debug(`${associateDefaultViewResponse.ViewArn} has successfully been associated as the default view`);
+        logger.debug(`${associateDefaultViewResponse.ViewArn} has successfully been associated as the default view`);
       } catch (e1) {
         const error1 = e1 as Error;
         let message1 = error1.message;
-        console.warn(`Problem associating view ${viewArn} as default view: ${message1}`);
+        logger.warn(`Problem associating view ${viewArn} as default view: ${message1}`);
       }
     };
     //check to see if we have a default view, if not make this the default view
@@ -189,12 +192,12 @@ async function createView(region: string, client: ResourceExplorer2Client = new 
       if (getDefaultViewResponse.ViewArn == undefined) {
         await associateDefaultView();
       } else {
-        console.debug(`${getDefaultViewResponse.ViewArn} is already associated as the default view`);
+        logger.debug(`${getDefaultViewResponse.ViewArn} is already associated as the default view`);
       }
     } catch (e) {
       const error = e as Error;
       let message = error.message;
-      console.warn(message);
+      logger.warn(message);
       if (error.name == 'ResourceNotFoundException') {
         await associateDefaultView();
       } else {
@@ -235,7 +238,7 @@ async function findViewByName(region: string, viewName: string, client: Resource
       ViewArn: viewArn,
     }));
 
-    console.debug(`Found view ${getViewResponse.View?.ViewArn} with name ${viewName}`);
+    logger.debug(`Found view ${getViewResponse.View?.ViewArn} with name ${viewName}`);
     return getViewResponse.View?.ViewArn;
   } else {
     throw new Error("Could not find view with name 'tag-inventory-all-resources'");

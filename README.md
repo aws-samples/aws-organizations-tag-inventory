@@ -17,15 +17,30 @@ which periodically triggers an [AWS Step Functions](https://docs.aws.amazon.com/
 5. There is another Amazon EventBridge Scheduler in the central account which periodically triggers the [GenerateCsvReportFunction](./src/functions/GenerateReportCSV.ts) [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html) function. 
 6. Using Athena, this function executes the following statement.
 
-```sql 
-CREATE TABLE "<DATABASE>"."tag_inventory_csv"
-		WITH (
-		      format = 'TEXTFILE',
-		      field_delimiter = ',',
-		      external_location = 's3://<REPORT_BUCKET>/<YESTERDAYS_DATE>',
-		      bucketed_by = ARRAY['d'],
-		      bucket_count = 1)
-		AS ( SELECT d,tagname,tagvalue,r.owningAccountId,r.region,r.service,r.resourceType,r.arn FROM "<DATABASE>"."<TAG_INVENTORY_TABLE>", unnest("resources") as t ("r") where d='<YESTERDAYS_DATE>');
+```sql
+CREATE TABLE "<DATABASE>"."tag_inventory_csv" WITH (
+    format = 'TEXTFILE',
+    field_delimiter = ',',
+    external_location = 's3://<REPORT_BUCKET>/<YESTERDAYS_DATE>',
+    bucketed_by = ARRAY [ 'd' ],
+    bucket_count = 1
+) AS 
+(
+    SELECT 
+        d,
+        tagname,
+        tagvalue,
+        r.owningAccountId,
+        r.region,
+        r.service,
+        r.resourceType,
+        r.arn
+    FROM 
+        "<DATABASE>"."<TAG_INVENTORY_TABLE>",
+        unnest("resources") as t ("r")
+    where 
+        d = (select max(d) from "<DATABASE>"."<TAG_INVENTORY_TABLE>")
+);
 ```  
 7. Athena creates the table in the Glue data catalog which generates a file in the reporting bucket in S3
 8. Once complete the GenerateCsvReportFunction will rename the report file and delete the table from the Glue data catalog.
@@ -45,7 +60,8 @@ Below is the state machine diagram that is run in each spoke account to gather a
 
 ### Deploy central stack
 1. Put credentials on the terminal for the central account you want to send the tag inventory to and generate reports in.
-2. `npm run deploy -- -c stack=central -c organizationId=<YOUR_AWS_ORGANIZATION_ID>`
+2. `npm run deploy -- -c stack=central -c organizationId=?`
+   * **organizationId** - Your [AWS organization id](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_details.html)
 3. Copy the output values for  "**CentralStackPutTagInventoryRoleOutput**" and "**OrganizationsTagInventoryBucketNameOutput**"
 
 
@@ -53,4 +69,13 @@ Below is the state machine diagram that is run in each spoke account to gather a
 For each account you want to gather tag inventory from do the following
 
 1. Put credentials on the terminal for the spoke account.
-2. `npm run deploy -- -c stack=spoke -c bucketName=<VALUE_FROM_OrganizationsTagInventoryBucketNameOutput> -c centralRoleArn=<VALUE_FROM_CentralStackPutTagInventoryRoleOutput>`
+2. `npm run deploy -- -c stack=spoke -c bucketName=? -c centralRoleArn=? -c enabledRegions=? -c aggregatorRegion=?`
+    * **bucketName** - Value from the central stack's OrganizationsTagInventoryBucketNameOutput
+    * **centralRoleArn** - Value from the central stack's CentralStackPutTagInventoryRoleOutput
+    * **enabledRegions** - Regions to create [Resource Explorer indexes](https://docs.aws.amazon.com/resource-explorer/latest/userguide/manage-service-turn-on-region.html#manage-service-turn-on-region-region)
+    * **aggregatorRegion** - Region to create a [Resource Explorer aggregator index](https://docs.aws.amazon.com/resource-explorer/latest/userguide/manage-aggregator-region.html)
+
+### Removal Policies
+
+For the purpose of this example the removal policy for all S3 buckets has been configured as **DESTROY**.  This means that when the resource is removed from the app, 
+it will be physically destroyed.

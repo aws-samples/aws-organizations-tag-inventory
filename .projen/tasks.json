@@ -171,7 +171,8 @@
       "description": "Synthesizes your cdk app into cdk.out",
       "steps": [
         {
-          "exec": "cdk synth"
+          "exec": "cdk synth",
+          "receiveArgs": true
         }
       ]
     },

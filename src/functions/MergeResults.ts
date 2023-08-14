@@ -15,6 +15,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import {Logger} from '@aws-lambda-powertools/logger';
+const logger = new Logger({
+  serviceName: 'MergeResults',
+});
 export const onEvent = async (
   event?: any,
   //@ts-ignore
@@ -22,7 +26,7 @@ export const onEvent = async (
   //@ts-ignore
   callback: Callback,
 ): Promise<string> => {
-  console.log(`Event: ${JSON.stringify(event)}`);
+  logger.info(`Event: ${JSON.stringify(event)}`);
   const flatten: Object[] = event.Results.flatten;
   let result: { [key: string]: any } = event.PreviousResults!=undefined ? event.PreviousResults : {};
   flatten.forEach((value: { [key: string]: any }) => {
