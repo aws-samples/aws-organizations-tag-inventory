@@ -21,7 +21,7 @@ which periodically triggers an [AWS Step Functions](https://docs.aws.amazon.com/
 CREATE TABLE "<DATABASE>"."tag_inventory_csv" WITH (
     format = 'TEXTFILE',
     field_delimiter = ',',
-    external_location = 's3://<REPORT_BUCKET>/<YESTERDAYS_DATE>',
+    external_location = 's3://<REPORT_BUCKET>/<LATEST_DATE>',
     bucketed_by = ARRAY [ 'd' ],
     bucket_count = 1
 ) AS 
