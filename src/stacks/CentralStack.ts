@@ -16,7 +16,7 @@
  */
 
 import path from 'path';
-import {Aws, CfnOutput, CfnParameter, Duration, RemovalPolicy, Stack, StackProps} from 'aws-cdk-lib';
+import {Aws, CfnOutput, CfnParameter, Duration, RemovalPolicy, Stack, StackProps, Tags} from 'aws-cdk-lib';
 import {CfnWorkGroup} from 'aws-cdk-lib/aws-athena';
 import {CfnCrawler, CfnDatabase, CfnSecurityConfiguration, CfnTable} from 'aws-cdk-lib/aws-glue';
 import {Effect, ManagedPolicy, OrganizationPrincipal, PolicyStatement, Role, ServicePrincipal} from 'aws-cdk-lib/aws-iam';
@@ -250,7 +250,7 @@ export class CentralStack extends Stack {
 			layers: [powerToolsLayer],
 			initialPolicy: [new PolicyStatement({
 				effect: Effect.ALLOW,
-				actions: ['athena:StartQueryExecution', 'athena:GetQueryExecution'],
+				actions: ['athena:StartQueryExecution', 'athena:GetQueryExecution','athena:GetQueryResults'],
 				resources: [`arn:aws:athena:${Aws.REGION}:${Aws.ACCOUNT_ID}:workgroup/${workgroupName}`],
 			}), new PolicyStatement({
 				effect: Effect.ALLOW,
@@ -316,6 +316,8 @@ export class CentralStack extends Stack {
 			},
 		);
 		this.cdkNagSuppressions();
+		Tags.of(this).add("Solution","aws-organizations-tag-inventory")
+		Tags.of(this).add("Url","https://github.com/aws-samples/aws-organizations-tag-inventory")
 	}
 
 	private cdkNagSuppressions() {

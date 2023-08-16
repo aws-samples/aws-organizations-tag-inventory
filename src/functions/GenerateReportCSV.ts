@@ -16,7 +16,7 @@
  */
 
 import {Logger} from '@aws-lambda-powertools/logger';
-import {AthenaClient, GetQueryExecutionCommand, GetQueryExecutionCommandOutput, QueryExecutionState, StartQueryExecutionCommand, StartQueryExecutionCommandInput} from '@aws-sdk/client-athena';
+import {AthenaClient, GetQueryExecutionCommand, GetQueryExecutionCommandOutput, GetQueryResultsCommand, QueryExecutionState, StartQueryExecutionCommand, StartQueryExecutionCommandInput} from '@aws-sdk/client-athena';
 import {CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, S3Client} from '@aws-sdk/client-s3';
 
 const logger = new Logger({
@@ -33,14 +33,13 @@ export const onEvent = async (
 	callback: Callback,
 ): Promise<boolean> => {
 	logger.info(`Event: ${JSON.stringify(event)}`);
-	const today = new Date();
-	const yesterday = new Date(today.setDate(today.getDate() - 1));
-	const yesterdayString = yesterday.toISOString().substring(0, 10);
+
+	const dateString = await getMaxDateString(athenaClient)
 
 	await dropTable(athenaClient)
 	const loadPartitionsResponse = await loadPartitions(athenaClient);
 	if (loadPartitionsResponse != undefined && loadPartitionsResponse.QueryExecution?.Status?.State == QueryExecutionState.SUCCEEDED) {
-		const createTableResponse = await createTable(athenaClient, yesterdayString)
+		const createTableResponse = await createTable(athenaClient, dateString)
 		if (createTableResponse != undefined && QueryExecutionState.SUCCEEDED == createTableResponse.QueryExecution?.Status?.State) {
 			logger.info(`Create table succeeded: ${JSON.stringify(createTableResponse)}`);
 			const manifestUri = new URL(createTableResponse.QueryExecution.Statistics?.DataManifestLocation!);
@@ -60,7 +59,7 @@ export const onEvent = async (
 				const dataFileKey = dataFileUri.pathname.substring(1);
 				await s3Client.send(new CopyObjectCommand({
 					CopySource: `${dataFileBucket}/${dataFileKey}`,
-					Key: `tag-inventory-${yesterdayString}.csv.gz`,
+					Key: `tag-inventory-${dateString}.csv.gz`,
 					Bucket: process.env.REPORT_BUCKET,
 				}));
 				await s3Client.send(new DeleteObjectCommand({
@@ -68,7 +67,7 @@ export const onEvent = async (
 					Key: dataFileKey,
 				}));
 			} else {
-				throw new Error("Could not determine data file location: '${dataFileLocation}'");
+				throw new Error(`Could not determine data file location: '${dataFileLocation}'`);
 			}
 			const dropTableResponse = await dropTable(athenaClient)
 			if (dropTableResponse != undefined && QueryExecutionState.SUCCEEDED == dropTableResponse.QueryExecution?.Status?.State) {
@@ -105,18 +104,37 @@ async function loadPartitions(client: AthenaClient): Promise<GetQueryExecutionCo
 	return await executeCommand(client, loadPartitions)
 }
 
-async function createTable(client: AthenaClient, yesterdayString: string): Promise<GetQueryExecutionCommandOutput | undefined> {
+async function createTable(client: AthenaClient, dateString: string): Promise<GetQueryExecutionCommandOutput | undefined> {
 	logger.info('Creating table');
 	const createTable = `CREATE TABLE \"${process.env.DATABASE}\".\"tag_inventory_csv\"\n` +
 		'WITH (\n' +
 		"      format = 'TEXTFILE',\n" +
 		"      field_delimiter = ',',\n" +
-		`      external_location = 's3://${process.env.REPORT_BUCKET}/${yesterdayString}',\n` +
+		`      external_location = 's3://${process.env.REPORT_BUCKET}/${dateString}',\n` +
 		"      bucketed_by = ARRAY['d'],\n" +
 		'      bucket_count = 1)\n' +
 		`AS (\n SELECT d,tagname,tagvalue,r.owningAccountId,r.region,r.service,r.resourceType,r.arn FROM \"${process.env.DATABASE}\".\"${process.env.TAG_INVENTORY_TABLE}\", unnest(\"resources\") as t (\"r\") where d=(select max(d) from \"${process.env.DATABASE}\".\"${process.env.TAG_INVENTORY_TABLE}\")\n);`;
 
 	return await executeCommand(client, createTable)
+}
+
+async function getMaxDateString(client: AthenaClient): Promise<string> {
+	logger.info('Getting max date');
+	let dateString = new Date().toISOString().substring(0, 10);
+	const maxDate = `SELECT max(d) from \"${process.env.DATABASE}\".\"${process.env.TAG_INVENTORY_TABLE}\";`;
+	const response = await executeCommand(client, maxDate)
+	if (response != undefined && response.QueryExecution?.Status?.State == QueryExecutionState.SUCCEEDED) {
+		const queryResultsResponse= await client.send(new GetQueryResultsCommand({
+			QueryExecutionId: response.QueryExecution.QueryExecutionId
+		}))
+		//get the result from queryResultsResponse
+		if(queryResultsResponse.ResultSet!=undefined && queryResultsResponse.ResultSet.Rows!=undefined && queryResultsResponse.ResultSet.Rows[1].Data!=undefined && queryResultsResponse.ResultSet.Rows[1].Data[0].VarCharValue!=undefined){
+			dateString = queryResultsResponse.ResultSet.Rows[1].Data[0].VarCharValue;
+		}
+
+	}
+	logger.info(`Date string: ${dateString}`)
+	return dateString
 }
 
 async function executeCommand(client: AthenaClient, command: string): Promise<GetQueryExecutionCommandOutput | undefined> {

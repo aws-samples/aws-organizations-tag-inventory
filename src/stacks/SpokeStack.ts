@@ -16,7 +16,7 @@
  */
 
 import path from 'path';
-import {Aws, CfnParameter, Duration, Stack, StackProps} from 'aws-cdk-lib';
+import {Aws, CfnParameter, Duration, Stack, StackProps, Tags} from 'aws-cdk-lib';
 import { Effect, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Architecture, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -140,6 +140,8 @@ export class SpokeStack extends Stack {
       scheduleExpressionTimezone: 'America/New_York',
     });
     this.cdkNagSuppressions()
+    Tags.of(this).add("Solution","aws-organizations-tag-inventory")
+    Tags.of(this).add("Url","https://github.com/aws-samples/aws-organizations-tag-inventory")
   }
 
   private cdkNagSuppressions() {
