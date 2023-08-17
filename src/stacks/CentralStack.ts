@@ -68,14 +68,6 @@ export class CentralStack extends Stack {
     const tagInventoryBucket = new Bucket(this, 'TagBucket', {
       bucketName: `tag-inventory-${organizationIdParameter.valueAsString}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-      cors: [
-        {
-          allowedHeaders: ['*'],
-          allowedMethods: [HttpMethods.PUT, HttpMethods.GET, HttpMethods.POST, HttpMethods.HEAD],
-          allowedOrigins: ['*'],
-          exposedHeaders: ['ETag'],
-        },
-      ],
       eventBridgeEnabled: true,
       removalPolicy: RemovalPolicy.DESTROY,
       serverAccessLogsBucket: serverAccessLogBucket,

@@ -58,6 +58,10 @@ Below is the state machine diagram that is run in each spoke account to gather a
 * `npm install`
 * `npm run build`
 
+You'll also need to [CDK bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) the accounts/regions you'll be deploying to
+
+`cdk bootstrap aws://<ACCOUNT_NUMBER>/<REGION>`
+
 ### Deploy central stack
 1. Put credentials on the terminal for the central account you want to send the tag inventory to and generate reports in.
 2. `npm run deploy -- -c stack=central -c organizationId=?`
