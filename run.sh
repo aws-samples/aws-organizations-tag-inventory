@@ -64,7 +64,11 @@ deploy(){
       echo "Please select either central or spoke"
       select stack in central spoke; do
           if [ "$stack" == "central" ]; then
-            read -p "Enter your organization id: " organizationId
+            organizationId=`aws organizations describe-organization | jq -r .Organization.Id`
+            if [ -z "$organizationId" ]; then
+              read -p "Enter your organization id: " organizationId
+            fi
+            echo "Using organization id $organizationId"
             deploy $stack $organizationId
             break
           elif [ "$stack" == "spoke" ]; then
