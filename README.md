@@ -50,17 +50,25 @@ CREATE TABLE "<DATABASE>"."tag_inventory_csv" WITH (
 Below is the state machine diagram that is run in each spoke account to gather and process tag inventory 
 
 ![](./images/SpokeAccountStateMachine.png)
+## Deployment
+### Prerequisites
 
-## Deploy
 
-### Prerequsites
+* Install [nodejs](https://nodejs.org/en/download)
+* Install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+* `npm install -g aws-cdk` - Install the [AWS CDK Tooklkit](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
+* Be sure to have [AWS credentials available on your terminal](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html)
 
-* `npm install`
-* `npm run build`
+ℹ️ **Note**: If you are running from the AWS CloudShell you can skip the prerequisites section
+## Quick start
+`run.sh` - Follow the prompts
 
-You'll also need to [CDK bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) the accounts/regions you'll be deploying to
+## Step by step deployment
 
-`cdk bootstrap aws://<ACCOUNT_NUMBER>/<REGION>`
+* `cdk bootstrap aws://<ACCOUNT_NUMBER>/<REGION>` - Ensure you have run [CDK bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) the accounts/regions you'll be deploying to
+* `npm install` - Installs required dependencies 
+* `npm run build` - Build the project assets
+
 
 ### Deploy central stack
 1. Put credentials on the terminal for the central account you want to send the tag inventory to and generate reports in.
