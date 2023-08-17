@@ -16,47 +16,47 @@
  */
 
 
-import {IFunction} from 'aws-cdk-lib/aws-lambda';
-import {DefinitionBody, LogLevel, StateMachine} from 'aws-cdk-lib/aws-stepfunctions';
-import {Construct} from 'constructs';
-import {LogGroup, RetentionDays} from "aws-cdk-lib/aws-logs";
-import {RemovalPolicy} from "aws-cdk-lib";
+import { RemovalPolicy } from 'aws-cdk-lib';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { DefinitionBody, LogLevel, StateMachine } from 'aws-cdk-lib/aws-stepfunctions';
+import { Construct } from 'constructs';
 
 export interface StateMachineFromFileConfig {
-	name: string;
-	file: string;
-	searchFunction: IFunction;
-	mergeFunction: IFunction;
-	putObjectRoleArn: string;
-	bucketName: string;
+  name: string;
+  file: string;
+  searchFunction: IFunction;
+  mergeFunction: IFunction;
+  putObjectRoleArn: string;
+  bucketName: string;
 }
 
 export class StateMachineFromFile extends Construct {
 
-	readonly stateMachine: StateMachine;
+  readonly stateMachine: StateMachine;
 
-	constructor(scope: Construct, id: string, config: StateMachineFromFileConfig) {
-		super(scope, id);
-		const logGroup = new LogGroup(this, `${config.name}LogGroup`, {
-			logGroupName: `/aws/statemachine/${config.name}`,
-			removalPolicy: RemovalPolicy.DESTROY,
-			retention: RetentionDays.ONE_MONTH,
-		})
-		this.stateMachine = new StateMachine(this, config.name, {
-			definitionBody: DefinitionBody.fromFile(config.file),
-			definitionSubstitutions: {
-				SEARCH_FUNCTION: config.searchFunction.functionArn,
-				MERGE_FUNCTION: config.mergeFunction.functionArn,
-				CENTRAL_ROLE_ARN: config.putObjectRoleArn,
-				CENTRAL_BUCKET_NAME: config.bucketName,
-			},
-			logs: {
-				level: LogLevel.ALL,
-				destination: logGroup
+  constructor(scope: Construct, id: string, config: StateMachineFromFileConfig) {
+    super(scope, id);
+    const logGroup = new LogGroup(this, `${config.name}LogGroup`, {
+      logGroupName: `/aws/statemachine/${config.name}`,
+      removalPolicy: RemovalPolicy.DESTROY,
+      retention: RetentionDays.ONE_MONTH,
+    });
+    this.stateMachine = new StateMachine(this, config.name, {
+      definitionBody: DefinitionBody.fromFile(config.file),
+      definitionSubstitutions: {
+        SEARCH_FUNCTION: config.searchFunction.functionArn,
+        MERGE_FUNCTION: config.mergeFunction.functionArn,
+        CENTRAL_ROLE_ARN: config.putObjectRoleArn,
+        CENTRAL_BUCKET_NAME: config.bucketName,
+      },
+      logs: {
+        level: LogLevel.ALL,
+        destination: logGroup,
 
-			},
-			tracingEnabled: true
-		});
-	}
+      },
+      tracingEnabled: true,
+    });
+  }
 
 }

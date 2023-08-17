@@ -105,6 +105,20 @@ exports[`Snapshot 1`] = `
       },
     },
   },
+  "Metadata": {
+    "cdk_nag": {
+      "rules_to_suppress": [
+        {
+          "id": "AwsSolutions-IAM4",
+          "reason": "AWS managed policies acceptable for sample",
+        },
+        {
+          "id": "AwsSolutions-IAM5",
+          "reason": "Wildcard permissions have been scoped down",
+        },
+      ],
+    },
+  },
   "Outputs": {
     "MyIndextaginventoryallresourcesarnoutputFF1B3C48": {
       "Description": "Arn of tag-inventory-all-resources view",
@@ -117,10 +131,65 @@ exports[`Snapshot 1`] = `
     },
   },
   "Parameters": {
+    "AggregatorRegionParameter": {
+      "AllowedValues": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "cn-north-1",
+        "cn-northwest-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-gov-east-1",
+        "us-gov-west-1",
+        "us-iso-east-1",
+        "us-iso-west-1",
+        "us-isob-east-1",
+        "us-west-1",
+        "us-west-2",
+      ],
+      "Default": "us-east-2",
+      "Description": "The region that contains teh Resource Explorer aggregator",
+      "Type": "String",
+    },
     "BootstrapVersion": {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "BucketNameParameter": {
+      "Default": "test-bucket",
+      "Description": "Name of the central account bucket where tag inventory data is stored",
+      "Type": "String",
+    },
+    "EnabledRegionsParameter": {
+      "Default": "us-east-1,us-east-2,us-west-1,us-west-2",
+      "Description": "Regions to enable Resource Explorer Indexing",
+      "Type": "CommaDelimitedList",
+    },
+    "centralRoleArnParameter": {
+      "Default": "test-role",
+      "Description": "ARN of the central account's cross account role with permissions to write to the centralized bucket where tag inventory data is stored",
+      "Type": "String",
     },
   },
   "Resources": {
@@ -136,7 +205,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "cad5db76106f78c96170fed6db77715981e73770b56550374034d8fc27f0411d.zip",
+          "S3Key": "bd0ba193507f68e8219f006f6347811b4f250f2ffa70233bc32a80e6a31681d8.zip",
         },
         "Environment": {
           "Variables": {
@@ -166,6 +235,16 @@ exports[`Snapshot 1`] = `
           ],
         },
         "Runtime": "nodejs18.x",
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
         "Timeout": 60,
       },
       "Type": "AWS::Lambda::Function",
@@ -198,19 +277,28 @@ exports[`Snapshot 1`] = `
             ],
           },
         ],
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
     "MyIndexresourceexplorerindexcustomresource6FC13F1F": {
       "DeletionPolicy": "Delete",
       "Properties": {
-        "AGGREGATOR_INDEX_REGION": "us-east-2",
-        "ENABLED_REGIONS": [
-          "us-east-1",
-          "us-east-2",
-          "us-west-1",
-          "us-west-2",
-        ],
+        "AGGREGATOR_INDEX_REGION": {
+          "Ref": "AggregatorRegionParameter",
+        },
+        "ENABLED_REGIONS": {
+          "Ref": "EnabledRegionsParameter",
+        },
         "ServiceToken": {
           "Fn::GetAtt": [
             "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB",
@@ -259,6 +347,16 @@ exports[`Snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
@@ -298,7 +396,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "78ab3a2c05beab07911e5c08c72ace5b32c72d6f907c78467736771a8677e6a9.zip",
+          "S3Key": "690d1d6c714585d76fd82772ffc9a73f6de1be70c40709f32297ba2a2a7eb8d6.zip",
         },
         "Environment": {
           "Variables": {
@@ -337,6 +435,16 @@ exports[`Snapshot 1`] = `
           ],
         },
         "Runtime": "nodejs18.x",
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
         "Timeout": 60,
       },
       "Type": "AWS::Lambda::Function",
@@ -367,6 +475,16 @@ exports[`Snapshot 1`] = `
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
               ],
             ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
           },
         ],
       },
@@ -400,252 +518,19 @@ exports[`Snapshot 1`] = `
         "SpokeAccountStateMachineRole9B579215",
       ],
       "Properties": {
-        "DefinitionString": "{
-  "StartAt": "Initialize",
-  "States": {
-    "Initialize": {
-      "Type": "Pass",
-      "Next": "Search",
-      "Result": {
-        "NextToken": null,
-        "PreviousResults": []
-      }
-    },
-    "Search": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "Parameters": {
-        "FunctionName": "\${SEARCH_FUNCTION}",
-        "Payload": {
-          "NextToken.$": "$.NextToken"
-        }
-      },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 2,
-          "MaxAttempts": 6,
-          "BackoffRate": 2
-        }
-      ],
-      "Next": "For each resource",
-      "ResultSelector": {
-        "Result.$": "States.StringToJson($.Payload)"
-      },
-      "ResultPath": "$.Payload"
-    },
-    "For each resource": {
-      "Type": "Map",
-      "ItemProcessor": {
-        "ProcessorConfig": {
-          "Mode": "INLINE"
+        "DefinitionS3Location": {
+          "Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "Key": "545dc56330a59415542eb272e0b9aec36d53d07f5c77ab02fff93d7e3a0b0699.json",
         },
-        "StartAt": "Extract tags if the exist",
-        "States": {
-          "Extract tags if the exist": {
-            "Type": "Pass",
-            "Parameters": {
-              "Arn.$": "$.Arn",
-              "OwningAccountId.$": "$.OwningAccountId",
-              "Region.$": "$.Region",
-              "ResourceType.$": "$.ResourceType",
-              "Service.$": "$.Service",
-              "Tags.$": "$.Properties[?(@.Name==tags)]",
-              "TagsLength.$": "States.ArrayLength($.Properties[?(@.Name==tags)])"
-            },
-            "Next": "Are there tags?"
-          },
-          "Are there tags?": {
-            "Type": "Choice",
-            "Choices": [
-              {
-                "Variable": "$.TagsLength",
-                "NumericEquals": 1,
-                "Next": "Pull Tags up",
-                "Comment": "Yes"
-              }
-            ],
-            "Default": "Set NoTag and NoValue"
-          },
-          "Pull Tags up": {
-            "Type": "Pass",
-            "Parameters": {
-              "Arn.$": "$.Arn",
-              "OwningAccountId.$": "$.OwningAccountId",
-              "Region.$": "$.Region",
-              "ResourceType.$": "$.ResourceType",
-              "Service.$": "$.Service",
-              "Tags.$": "$.Tags[0].Data",
-              "TagsLength.$": "States.ArrayLength($.Tags[0].Data)"
-            },
-            "Next": "For each tag"
-          },
-          "For each tag": {
-            "Type": "Map",
-            "ItemProcessor": {
-              "ProcessorConfig": {
-                "Mode": "INLINE"
-              },
-              "StartAt": "Transform resource to Tag",
-              "States": {
-                "Transform resource to Tag": {
-                  "Type": "Pass",
-                  "End": true,
-                  "Parameters": {
-                    "Join.$": "States.StringToJson(States.Format('\\\\{\\"{}\\":\\\\{\\"{}\\":[{}]\\\\}\\\\}', $.TagKey, $.TagValue,States.JsonToString($.Resource)))"
-                  },
-                  "OutputPath": "$.Join"
-                }
-              }
-            },
-            "ItemsPath": "$.Tags",
-            "ItemSelector": {
-              "TagKey.$": "$$.Map.Item.Value.Key",
-              "TagValue.$": "$$.Map.Item.Value.Value",
-              "Resource": {
-                "Arn.$": "$.Arn",
-                "OwningAccountId.$": "$.OwningAccountId",
-                "Region.$": "$.Region",
-                "ResourceType.$": "$.ResourceType",
-                "Service.$": "$.Service"
-              }
-            },
-            "End": true
-          },
-          "Set NoTag and NoValue": {
-            "Type": "Pass",
-            "End": true,
-            "Parameters": [
-              {
-                "NoTag": {
-                  "NoValue": [
-                    {
-                      "Arn.$": "$.Arn",
-                      "OwningAccountId.$": "$.OwningAccountId",
-                      "Region.$": "$.Region",
-                      "ResourceType.$": "$.ResourceType",
-                      "Service.$": "$.Service"
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      },
-      "ItemsPath": "$.Payload.Result.Resources",
-      "Next": "Merge results",
-      "ResultPath": "$.Results",
-      "ResultSelector": {
-        "flatten.$": "$[*][*]"
-      }
-    },
-    "Merge results": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "OutputPath": "$.Payload",
-      "Parameters": {
-        "Payload.$": "$",
-        "FunctionName": "\${MERGE_FUNCTION}"
-      },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 2,
-          "MaxAttempts": 6,
-          "BackoffRate": 2
-        }
-      ],
-      "Next": "Loop over merged results",
-      "ResultSelector": {
-        "Payload.$": "States.StringToJson($.Payload)"
-      }
-    },
-    "Loop over merged results": {
-      "Type": "Map",
-      "ItemProcessor": {
-        "ProcessorConfig": {
-          "Mode": "INLINE"
-        },
-        "StartAt": "Prep Partitions",
-        "States": {
-          "Prep Partitions": {
-            "Type": "Pass",
-            "Next": "PutObject",
-            "Parameters": {
-              "TagName.$": "$.TagName",
-              "TagValue.$": "$.TagValue",
-              "Resources.$": "$.Resources",
-              "year.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),0)",
-              "month.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),1)",
-              "day.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),2)",
-              "hour.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),3)",
-              "minute.$": "States.ArrayGetItem(States.StringSplit($$.Execution.StartTime,'-T:.'),4)"
-            }
-          },
-          "PutObject": {
-            "Type": "Task",
-            "Parameters": {
-              "Body": {
-                "TagName.$": "$.TagName",
-                "TagValue.$": "$.TagValue",
-                "Resources.$": "$.Resources"
-              },
-              "Bucket": "\${CENTRAL_BUCKET_NAME}",
-              "Key.$": "States.Format('d={}-{}-{}/{}.json',    $.year,    $.month,    $.day,   States.UUID())"
-            },
-            "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
-            "ResultPath": null,
-            "Credentials": {
-              "RoleArn": "\${CENTRAL_ROLE_ARN}"
-            },
-            "End": true
-          }
-        }
-      },
-      "MaxConcurrency": 10,
-      "ItemsPath": "$.Results",
-      "Next": "Are there more results?",
-      "ResultPath": null
-    },
-    "Are there more results?": {
-      "Type": "Choice",
-      "Choices": [
-        {
-          "Variable": "$.NextToken",
-          "IsPresent": true,
-          "Comment": "NextToken : Present",
-          "Next": "Drop previous Resources"
-        }
-      ],
-      "Default": "Success"
-    },
-    "Drop previous Resources": {
-      "Type": "Pass",
-      "Next": "Search",
-      "Parameters": {
-        "NextToken.$": "$.NextToken"
-      }
-    },
-    "Success": {
-      "Type": "Succeed"
-    }
-  },
-  "Comment": "Runs through the resources and tags of the spoke account."
-}",
         "DefinitionSubstitutions": {
-          "CENTRAL_BUCKET_NAME": "test-bucket",
-          "CENTRAL_ROLE_ARN": "test-role",
+          "CENTRAL_BUCKET_NAME": {
+            "Ref": "BucketNameParameter",
+          },
+          "CENTRAL_ROLE_ARN": {
+            "Ref": "centralRoleArnParameter",
+          },
           "MERGE_FUNCTION": {
             "Fn::GetAtt": [
               "MergeResultsfnAA3E2F42",
@@ -659,11 +544,39 @@ exports[`Snapshot 1`] = `
             ],
           },
         },
+        "LoggingConfiguration": {
+          "Destinations": [
+            {
+              "CloudWatchLogsLogGroup": {
+                "LogGroupArn": {
+                  "Fn::GetAtt": [
+                    "SpokeAccountStateMachineSpokeAccountStateMachineLogGroup6C75AE39",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Level": "ALL",
+        },
         "RoleArn": {
           "Fn::GetAtt": [
             "SpokeAccountStateMachineRole9B579215",
             "Arn",
           ],
+        },
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+        "TracingConfiguration": {
+          "Enabled": true,
         },
       },
       "Type": "AWS::StepFunctions::StateMachine",
@@ -691,6 +604,16 @@ exports[`Snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
@@ -700,9 +623,24 @@ exports[`Snapshot 1`] = `
           "Statement": [
             {
               "Action": [
-                "dynamodb:PutItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:UpdateItem",
+                "logs:CreateLogDelivery",
+                "logs:GetLogDelivery",
+                "logs:UpdateLogDelivery",
+                "logs:DeleteLogDelivery",
+                "logs:ListLogDeliveries",
+                "logs:PutResourcePolicy",
+                "logs:DescribeResourcePolicies",
+                "logs:DescribeLogGroups",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+                "xray:GetSamplingRules",
+                "xray:GetSamplingTargets",
               ],
               "Effect": "Allow",
               "Resource": "*",
@@ -714,14 +652,37 @@ exports[`Snapshot 1`] = `
               ],
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:s3:::test-bucket",
-                "arn:aws:s3:::test-bucket/*",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "BucketNameParameter",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "BucketNameParameter",
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
               ],
             },
             {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Resource": "test-role",
+              "Resource": {
+                "Ref": "centralRoleArnParameter",
+              },
             },
             {
               "Action": "lambda:InvokeFunction",
@@ -787,6 +748,25 @@ exports[`Snapshot 1`] = `
       },
       "Type": "AWS::IAM::Policy",
     },
+    "SpokeAccountStateMachineSpokeAccountStateMachineLogGroup6C75AE39": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LogGroupName": "/aws/statemachine/SpokeAccountStateMachine",
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
     "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB": {
       "DependsOn": [
         "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRoleDefaultPolicy196222C7",
@@ -818,6 +798,16 @@ exports[`Snapshot 1`] = `
           ],
         },
         "Runtime": "nodejs18.x",
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -848,6 +838,16 @@ exports[`Snapshot 1`] = `
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
               ],
             ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
           },
         ],
       },
@@ -908,7 +908,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "b8e091a77bcc50bb4224e76797cf692cbdb2669fd2e6e0a8434d54ffbd9dfeb0.zip",
+          "S3Key": "e2bb314167db21058636d01cd1151e9c7c0388f615fb9380ed80618e75169a9a.zip",
         },
         "Environment": {
           "Variables": {
@@ -928,6 +928,16 @@ exports[`Snapshot 1`] = `
           ],
         },
         "Runtime": "nodejs18.x",
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
         "Timeout": 60,
       },
       "Type": "AWS::Lambda::Function",
@@ -958,6 +968,16 @@ exports[`Snapshot 1`] = `
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
               ],
             ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
           },
         ],
       },
@@ -1009,7 +1029,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "719c44c0051c8f8f5801fef6442da87b707cca0173f927e7bfb7ee96b88d3a30.zip",
+          "S3Key": "bd1a57bc60e8a1ce9dd9c89916beecd63195b150a336011b9c4ccfef20151462.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

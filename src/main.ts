@@ -15,7 +15,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import {App, Aspects, DefaultStackSynthesizer} from 'aws-cdk-lib';
+import { App, Aspects, DefaultStackSynthesizer } from 'aws-cdk-lib';
 import { AwsSolutionsChecks } from 'cdk-nag';
 import { CentralStack } from './stacks/CentralStack';
 import { SpokeStack } from './stacks/SpokeStack';
@@ -34,21 +34,21 @@ if (stackToDeploy == undefined || stackToDeploy == 'central') {
   new CentralStack(app, 'aws-organizations-tag-inventory-central-stack', {
     env: env,
     organizationId: app.node.tryGetContext('organizationId'),
-    synthesizer:new DefaultStackSynthesizer({
-      generateBootstrapVersionRule: false
-    })
+    synthesizer: new DefaultStackSynthesizer({
+      generateBootstrapVersionRule: false,
+    }),
   });
 }
 if (stackToDeploy == undefined || stackToDeploy == 'spoke') {
   new SpokeStack(app, 'aws-organizations-tag-inventory-spoke-stack', {
     env: env,
-    enabledRegions:  app.node.tryGetContext('enabledRegions'),
-    aggregatorRegion:  app.node.tryGetContext('aggregatorRegion'),
+    enabledRegions: app.node.tryGetContext('enabledRegions'),
+    aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
     bucketName: app.node.tryGetContext('bucketName'),
     centralRoleArn: app.node.tryGetContext('centralRoleArn'),
-    synthesizer:new DefaultStackSynthesizer({
-      generateBootstrapVersionRule: false
-    })
+    synthesizer: new DefaultStackSynthesizer({
+      generateBootstrapVersionRule: false,
+    }),
   });
 }
 Aspects.of(app).add(new AwsSolutionsChecks({}));

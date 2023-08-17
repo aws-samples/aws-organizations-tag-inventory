@@ -15,6 +15,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { Logger } from '@aws-lambda-powertools/logger';
 import {
   AssociateDefaultViewCommand,
 
@@ -27,7 +28,6 @@ import {
   CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
 import { v4 } from 'uuid';
-import {Logger} from '@aws-lambda-powertools/logger';
 const logger = new Logger({
   serviceName: 'ResourceExploreIndexHandler',
 });

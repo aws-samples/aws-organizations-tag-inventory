@@ -16,17 +16,17 @@
  */
 
 import path from 'path';
-import {Aws, CfnParameter, Duration, Stack, StackProps, Tags} from 'aws-cdk-lib';
+import { Aws, CfnParameter, Duration, Stack, StackProps, Tags } from 'aws-cdk-lib';
 import { Effect, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Architecture, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { CfnSchedule } from 'aws-cdk-lib/aws-scheduler';
+import { RegionInfo } from 'aws-cdk-lib/region-info';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { Layers } from '../constructs/Layers';
 import { ResourceExplorerIndex } from '../constructs/ResourceExplorerIndex';
 import { StateMachineFromFile } from '../constructs/StateMachineFromFile';
-import {NagSuppressions} from "cdk-nag";
-import {RegionInfo} from "aws-cdk-lib/region-info";
 
 
 export interface SpokeStackProps extends StackProps {
@@ -42,30 +42,30 @@ export class SpokeStack extends Stack {
   constructor(scope: Construct, id: string, props: SpokeStackProps) {
     super(scope, id, props);
 
-    const bucketNameParameter=new CfnParameter(this,"BucketNameParameter",{
+    const bucketNameParameter=new CfnParameter(this, 'BucketNameParameter', {
       default: props.bucketName,
-      type: "String",
-      description: "Name of the central account bucket where tag inventory data is stored"
-    })
-    const centralRoleArnParameter=new CfnParameter(this,"centralRoleArnParameter",{
+      type: 'String',
+      description: 'Name of the central account bucket where tag inventory data is stored',
+    });
+    const centralRoleArnParameter=new CfnParameter(this, 'centralRoleArnParameter', {
       default: props.centralRoleArn,
-      type: "String",
-      description: "ARN of the central account's cross account role with permissions to write to the centralized bucket where tag inventory data is stored"
-    })
-    const enabledRegionsParameter=new CfnParameter(this,"EnabledRegionsParameter",{
+      type: 'String',
+      description: "ARN of the central account's cross account role with permissions to write to the centralized bucket where tag inventory data is stored",
+    });
+    const enabledRegionsParameter=new CfnParameter(this, 'EnabledRegionsParameter', {
 
       default: props.enabledRegions,
-      type: "CommaDelimitedList",
-      description: "Regions to enable Resource Explorer Indexing"
-    })
-    const aggregatorRegionParameter=new CfnParameter(this,"AggregatorRegionParameter",{
+      type: 'CommaDelimitedList',
+      description: 'Regions to enable Resource Explorer Indexing',
+    });
+    const aggregatorRegionParameter=new CfnParameter(this, 'AggregatorRegionParameter', {
       allowedValues: RegionInfo.regions.map(value => {
-        return value.name
+        return value.name;
       }),
       default: props.aggregatorRegion,
-      type: "String",
-      description: "The region that contains teh Resource Explorer aggregator"
-    })
+      type: 'String',
+      description: 'The region that contains teh Resource Explorer aggregator',
+    });
     const powerToolsLayer = LayerVersion.fromLayerVersionArn(this, 'powertools', `arn:aws:lambda:${Aws.REGION}:094274105915:layer:AWSLambdaPowertoolsTypeScript:11`);
 
     const layers = new Layers(this, 'layers');
@@ -109,7 +109,7 @@ export class SpokeStack extends Stack {
     });
 
     const stateMachine = new StateMachineFromFile(this, 'SpokeAccountStateMachine',
-      { name: 'SpokeAccountStateMachine', file: path.join(__dirname, '..', 'stateMachines', 'SpokeAccountStateMachine.json'), searchFunction: searchFunction, mergeFunction: mergeFunction, putObjectRoleArn: centralRoleArnParameter.valueAsString, bucketName: bucketNameParameter.valueAsString});
+      { name: 'SpokeAccountStateMachine', file: path.join(__dirname, '..', 'stateMachines', 'SpokeAccountStateMachine.json'), searchFunction: searchFunction, mergeFunction: mergeFunction, putObjectRoleArn: centralRoleArnParameter.valueAsString, bucketName: bucketNameParameter.valueAsString });
 
     stateMachine.stateMachine.addToRolePolicy(new PolicyStatement({
       effect: Effect.ALLOW,
@@ -139,9 +139,9 @@ export class SpokeStack extends Stack {
       },
       scheduleExpressionTimezone: 'America/New_York',
     });
-    this.cdkNagSuppressions()
-    Tags.of(this).add("Solution","aws-organizations-tag-inventory")
-    Tags.of(this).add("Url","https://github.com/aws-samples/aws-organizations-tag-inventory")
+    this.cdkNagSuppressions();
+    Tags.of(this).add('Solution', 'aws-organizations-tag-inventory');
+    Tags.of(this).add('Url', 'https://github.com/aws-samples/aws-organizations-tag-inventory');
   }
 
   private cdkNagSuppressions() {
