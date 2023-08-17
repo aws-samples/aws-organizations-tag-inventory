@@ -23,7 +23,7 @@ import { Effect, ManagedPolicy, OrganizationPrincipal, PolicyStatement, Role, Se
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { Architecture, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods } from 'aws-cdk-lib/aws-s3';
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { SqsDestination } from 'aws-cdk-lib/aws-s3-notifications';
 import { CfnSchedule } from 'aws-cdk-lib/aws-scheduler';
 import { Queue, QueueEncryption } from 'aws-cdk-lib/aws-sqs';

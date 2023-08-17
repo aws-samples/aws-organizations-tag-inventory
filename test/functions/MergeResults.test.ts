@@ -15,6 +15,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// @ts-ignore
 import { onEvent } from '../../src/functions/MergeResults';
 
 test.skip('Test merge results', async () => {

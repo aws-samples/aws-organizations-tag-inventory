@@ -17,6 +17,7 @@
 
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
+// @ts-ignore
 import { SpokeStack } from '../src/stacks/SpokeStack';
 
 test('Snapshot', () => {
