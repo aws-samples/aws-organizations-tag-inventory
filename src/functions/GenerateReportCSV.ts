@@ -34,11 +34,12 @@ export const onEvent = async (
 ): Promise<boolean> => {
   logger.info(`Event: ${JSON.stringify(event)}`);
 
-  const dateString = await getMaxDateString(athenaClient);
+
 
   await dropTable(athenaClient);
   const loadPartitionsResponse = await loadPartitions(athenaClient);
   if (loadPartitionsResponse != undefined && loadPartitionsResponse.QueryExecution?.Status?.State == QueryExecutionState.SUCCEEDED) {
+    const dateString = await getMaxDateString(athenaClient);
     const createTableResponse = await createTable(athenaClient, dateString);
     if (createTableResponse != undefined && QueryExecutionState.SUCCEEDED == createTableResponse.QueryExecution?.Status?.State) {
       logger.info(`Create table succeeded: ${JSON.stringify(createTableResponse)}`);
