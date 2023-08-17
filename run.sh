@@ -21,7 +21,8 @@
 #if the user selects the central stack, then prompt for organization id
 #if the user selects the spoke stack, then prompt bucketName, centralRoleArn, enabledRegions, and aggregatorRegion
 #if the user selects neither, then print help message
-
+export JSII_SILENCE_WARNING_DEPRECATED_NODE_VERION=1
+export NODE_NO_WARNINGS=1
 current_account=`aws sts get-caller-identity | jq -r '.Account'`
 current_region=$AWS_DEFAULT_REGION
 
@@ -41,8 +42,9 @@ deploy(){
           echo "Please provide an organization id"
           exit 1
       else
-        echo "Deploying Central Stack"
         prerequisites
+        echo "Deploying Central Stack"
+        echo "npm run deploy -- -c stack=$1 -c organizationId=$2"
         npm run deploy -- -c stack=central -c organizationId=$2
         exit 0;
       fi
@@ -53,15 +55,16 @@ deploy(){
       elif [ -z "$3" ]; then
           echo "Please provide a centralRoleArn"
           exit 1
-      elif [ -z "$4"]; then
+      elif [ -z "$4" ]; then
           echo "Please provide enabledRegions"
           exit 1
-      elif [ -z "$5"]; then
+      elif [ -z "$5" ]; then
           echo "Please provide aggregatorRegion"
           exit 1
       else
-        echo "Deploying Spoke Stack"
         prerequisites
+        echo "Deploying Spoke Stack"
+        echo "npm run deploy -- -c stack=$1 -c bucketName=$2 -c centralRoleArn=$3 -c enabledRegions=$4 -c aggregatorRegion=$5"
         npm run deploy -- -c stack=spoke -c bucketName=$2 -c centralRoleArn=$3 -c enabledRegions=$4 -c aggregatorRegion=$5
         exit 0;
       fi
@@ -81,7 +84,7 @@ deploy(){
             read -p "Enter the central role arn: " centralRoleArn
             read -p "Enter the enabled regions: " enabledRegions
             read -p "Enter the aggregator region: " aggregatorRegion
-            deploy $stack $bucketName $centralRoleArn $enabledRegions $aggregatorRegion
+            deploy $stack $bucketName $centralRoleArn "$enabledRegions" $aggregatorRegion
             break
           fi
       done
