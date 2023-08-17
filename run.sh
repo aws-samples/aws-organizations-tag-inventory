@@ -39,6 +39,7 @@ deploy(){
           exit 1
       else
         echo "Deploying Central Stack"
+        prequisites()
         npm run deploy -- -c stack=central -c organizationId=$2
         exit 0;
       fi
@@ -57,6 +58,7 @@ deploy(){
           exit 1
       else
         echo "Deploying Spoke Stack"
+        prerequisites()
         npm run deploy -- -c stack=spoke -c bucketName=$2 -c centralRoleArn=$3 -c enabledRegions=$4 -c aggregatorRegion=$5
         exit 0;
       fi
