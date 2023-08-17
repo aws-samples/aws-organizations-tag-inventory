@@ -284,7 +284,7 @@ export class CentralStack extends Stack {
         mode: 'OFF',
       },
       state: 'ENABLED',
-      scheduleExpression: 'cron(0,6,?*,*,*)',
+      scheduleExpression: 'cron(0,6,?,*,*,*)',
       target: {
         arn: generateCsvReportFunction.functionArn,
         roleArn: role.roleArn,
