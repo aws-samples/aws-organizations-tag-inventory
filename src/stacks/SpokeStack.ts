@@ -132,7 +132,7 @@ export class SpokeStack extends Stack {
         mode: 'FLEXIBLE',
       },
       state: 'ENABLED',
-      scheduleExpression: 'rate(1 days)',
+      scheduleExpression: 'cron(0,1,?*,*,*)',
       target: {
         arn: stateMachine.stateMachine.stateMachineArn,
         roleArn: role.roleArn,
