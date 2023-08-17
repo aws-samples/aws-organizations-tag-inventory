@@ -26,9 +26,12 @@ current_account=`aws sts get-caller-identity | jq -r '.Account'`
 current_region=$AWS_DEFAULT_REGION
 
 prerequisites() {
-  cd ../ && cdk bootstrap aws://$current_account/$current_region
-  npm install
-  npm run build
+  if [ -z "$current_region" ]; then
+     read -p "Enter your deployment region: " current_region
+  fi
+  (cd ../ && cdk bootstrap aws://$current_account/$current_region)
+  npm install;
+  npm run build;
 }
 
 deploy(){
@@ -39,7 +42,7 @@ deploy(){
           exit 1
       else
         echo "Deploying Central Stack"
-        prequisites()
+        prerequisites
         npm run deploy -- -c stack=central -c organizationId=$2
         exit 0;
       fi
@@ -58,7 +61,7 @@ deploy(){
           exit 1
       else
         echo "Deploying Spoke Stack"
-        prerequisites()
+        prerequisites
         npm run deploy -- -c stack=spoke -c bucketName=$2 -c centralRoleArn=$3 -c enabledRegions=$4 -c aggregatorRegion=$5
         exit 0;
       fi
