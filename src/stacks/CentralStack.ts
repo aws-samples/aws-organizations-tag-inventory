@@ -19,7 +19,7 @@ import path from 'path';
 import { Aws, CfnOutput, CfnParameter, Duration, RemovalPolicy, Stack, StackProps, Tags } from 'aws-cdk-lib';
 import { CfnWorkGroup } from 'aws-cdk-lib/aws-athena';
 import { CfnCrawler, CfnDatabase, CfnSecurityConfiguration, CfnTable } from 'aws-cdk-lib/aws-glue';
-import { Effect, ManagedPolicy, OrganizationPrincipal, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { AccountPrincipal, Effect, ManagedPolicy, OrganizationPrincipal, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { Architecture, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -96,6 +96,15 @@ export class CentralStack extends Stack {
         ManagedPolicy.fromManagedPolicyArn(this, 'AmazonSNSFullAccess', 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'),
         ManagedPolicy.fromManagedPolicyArn(this, 'AmazonSQSFullAccess', 'arn:aws:iam::aws:policy/AmazonSQSFullAccess'),
       ],
+      inlinePolicies: {
+        CloudWatchAccess: new PolicyDocument({
+          statements: [new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ['logs:AssociateKmsKey'],
+            resources: ['*'],
+          })],
+        }),
+      },
     });
     const tagInventoryEventDLQ = new Queue(this, 'TagInventoryEventDLQ', {
       removalPolicy: RemovalPolicy.DESTROY,
@@ -148,14 +157,7 @@ export class CentralStack extends Stack {
           },
           bucketColumns: [],
           sortColumns: [],
-          parameters: {
-            'partition_filtering.enabled': 'true',
-            'compressionType': 'none',
-            'classification': 'json',
-            'typeOfData': 'file',
-          },
           storedAsSubDirectories: false,
-
           columns: [
             {
               name: 'tagname',
@@ -171,6 +173,13 @@ export class CentralStack extends Stack {
             },
 
           ],
+
+        },
+        parameters: {
+          'partition_filtering.enabled': 'true',
+          'compressionType': 'none',
+          'classification': 'json',
+          'typeOfData': 'file',
         },
         partitionKeys: [{
           name: 'd',
@@ -181,9 +190,32 @@ export class CentralStack extends Stack {
 
     });
     const cloudWatchKmsKey = new Key(this, 'CloudwatchEncryptionKey', {
+      description: 'Encrypts cloudwatch logs for tag-inventory solution',
       removalPolicy: RemovalPolicy.DESTROY,
       enableKeyRotation: true,
+      policy: new PolicyDocument({
+        statements: [new PolicyStatement({
+
+          effect: Effect.ALLOW,
+          principals: [new AccountPrincipal(Aws.ACCOUNT_ID)],
+          actions: ['kms:*'],
+          resources: ['*'],
+
+        }), new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ['kms:Encrypt*',
+            'kms:Decrypt*',
+            'kms:ReEncrypt*',
+            'kms:GenerateDataKey*',
+            'kms:Describe*'],
+          principals: [new ServicePrincipal(`logs.${Aws.REGION}.amazonaws.com`)],
+          resources: ['*'],
+
+
+        })],
+      }),
     });
+    cloudWatchKmsKey.grantEncryptDecrypt(athenaRole);
     const securityConfiguration = new CfnSecurityConfiguration(this, 'SecurityConfiguration', {
       name: 'TagInventorySecurityConfiguration',
       encryptionConfiguration: {
@@ -223,7 +255,7 @@ export class CentralStack extends Stack {
         recrawlBehavior: 'CRAWL_EVENT_MODE',
       },
       schedule: {
-        scheduleExpression: 'cron(5 0/1 * * ? *)',
+        scheduleExpression: 'cron(0 2 * * ? *)',
       },
     });
     const centralStackRole = new Role(this, 'CentralStackPutTagInventoryRole', {

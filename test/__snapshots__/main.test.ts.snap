@@ -316,7 +316,7 @@ exports[`Snapshot 1`] = `
           "Mode": "FLEXIBLE",
         },
         "Name": "TagInventorySchedule",
-        "ScheduleExpression": "rate(1 days)",
+        "ScheduleExpression": "cron(0 1 ? * * *)",
         "ScheduleExpressionTimezone": "America/New_York",
         "State": "ENABLED",
         "Target": {
@@ -1029,7 +1029,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "2f8131c013796e1ac1cac406dc7d0b2f0d07ec7f0de4dc04e76068b810f20093.zip",
+          "S3Key": "13e00fd2c9bd58446b9381c433071b1f848ec12c690be78fea51dbcd6ab50b43.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

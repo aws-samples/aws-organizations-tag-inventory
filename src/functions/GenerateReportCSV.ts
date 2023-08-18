@@ -35,7 +35,6 @@ export const onEvent = async (
   logger.info(`Event: ${JSON.stringify(event)}`);
 
 
-
   await dropTable(athenaClient);
   const loadPartitionsResponse = await loadPartitions(athenaClient);
   if (loadPartitionsResponse != undefined && loadPartitionsResponse.QueryExecution?.Status?.State == QueryExecutionState.SUCCEEDED) {
