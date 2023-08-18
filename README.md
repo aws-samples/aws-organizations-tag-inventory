@@ -53,7 +53,7 @@ Below is the state machine diagram that is run in each spoke account to gather a
 ## Deployment
 ### Prerequisites
 
-
+* All accounts (central and spoke) need to be part of the same [AWS Organization](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html)
 * Install [nodejs](https://nodejs.org/en/download)
 * Install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 * `npm install -g aws-cdk` - Install the [AWS CDK Tooklkit](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
