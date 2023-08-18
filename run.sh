@@ -82,7 +82,7 @@ deploy(){
           elif [ "$stack" == "spoke" ]; then
             read -p "Enter the central stack bucket name: " bucketName
             read -p "Enter the central role arn: " centralRoleArn
-            read -p "Enter the enabled regions: " enabledRegions
+            read -p "Enter the enabled regions (comma separated list ie. us-east-1,us-east-2,us-west-1): " enabledRegions
             read -p "Enter the aggregator region: " aggregatorRegion
             deploy $stack $bucketName $centralRoleArn "$enabledRegions" $aggregatorRegion
             break
