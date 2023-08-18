@@ -21,7 +21,7 @@
 #if the user selects the central stack, then prompt for organization id
 #if the user selects the spoke stack, then prompt bucketName, centralRoleArn, enabledRegions, and aggregatorRegion
 #if the user selects neither, then print help message
-export JSII_SILENCE_WARNING_DEPRECATED_NODE_VERION=1
+export JSII_SILENCE_WARNING_DEPRECATED_NODE_VERSION=1
 export NODE_NO_WARNINGS=1
 current_account=`aws sts get-caller-identity | jq -r '.Account'`
 current_region=$AWS_DEFAULT_REGION
