@@ -15,42 +15,73 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { App, Aspects, DefaultStackSynthesizer } from 'aws-cdk-lib';
-import { AwsSolutionsChecks } from 'cdk-nag';
-import { CentralStack } from './stacks/CentralStack';
-import { SpokeStack } from './stacks/SpokeStack';
+import {App, Aspects, DefaultStackSynthesizer} from 'aws-cdk-lib';
+import {AwsSolutionsChecks} from 'cdk-nag';
+import {CentralStack} from './stacks/CentralStack';
+import {SpokeStack} from './stacks/SpokeStack';
 
+
+// import prompts, {Choice} from "prompts";
+// import {Choice} from "prompts";
+// import {OrganizationStackSetProps} from "./stacks/OrganizationStackSet";
+
+
+const main = async (): Promise<App> => {
 
 // for development, use account/region from cdk cli
-const env = {
-  account: process.env.CDK_DEFAULT_ACCOUNT,
-  region: 'us-east-1',
+	const env = {
+		account: process.env.CDK_DEFAULT_ACCOUNT,
+		region: 'us-east-1',
 
-};
+	};
 
-const app = new App();
-const stackToDeploy = app.node.tryGetContext('stack') as String | undefined;
-if (stackToDeploy == undefined || stackToDeploy == 'central') {
-  new CentralStack(app, 'aws-organizations-tag-inventory-central-stack', {
-    env: env,
-    organizationId: app.node.tryGetContext('organizationId'),
-    synthesizer: new DefaultStackSynthesizer({
-      generateBootstrapVersionRule: false,
-    }),
-  });
+	const app = new App();
+	Aspects.of(app).add(new AwsSolutionsChecks({}));
+	const stackToDeploy = app.node.tryGetContext('stack') as String | undefined;
+	if (stackToDeploy == 'central') {
+		new CentralStack(app, 'aws-organizations-tag-inventory-central-stack', {
+			env: env,
+			organizationId: app.node.tryGetContext('organizationId'),
+			synthesizer: new DefaultStackSynthesizer({
+				generateBootstrapVersionRule: false,
+			}),
+		});
+	} else if (stackToDeploy == 'spoke') {
+		new SpokeStack(app, 'aws-organizations-tag-inventory-spoke-stack', {
+			env: env,
+			enabledRegions: app.node.tryGetContext('enabledRegions'),
+			aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
+			bucketName: app.node.tryGetContext('bucketName'),
+			centralRoleArn: app.node.tryGetContext('centralRoleArn'),
+			synthesizer: new DefaultStackSynthesizer({
+				generateBootstrapVersionRule: false,
+			}),
+		});
+	} else if (stackToDeploy == 'org') {
+
+		// const stackInstancesGroup: CfnStackSet.StackInstancesProperty[] = []
+
+		//first we have to check that we're either in the organization payer account or in a delegate account
+
+		// let deploymentTargetAccounts = app.node.tryGetContext("deploymentTargetAccounts")
+		// let deploymentTargetOrganizationalUnitIds = app.node.tryGetContext("deploymentTargetOrganizationalUnitIds")
+
+
+
+
+	}
+
+	return app
 }
-if (stackToDeploy == undefined || stackToDeploy == 'spoke') {
-  new SpokeStack(app, 'aws-organizations-tag-inventory-spoke-stack', {
-    env: env,
-    enabledRegions: app.node.tryGetContext('enabledRegions'),
-    aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
-    bucketName: app.node.tryGetContext('bucketName'),
-    centralRoleArn: app.node.tryGetContext('centralRoleArn'),
-    synthesizer: new DefaultStackSynthesizer({
-      generateBootstrapVersionRule: false,
-    }),
-  });
-}
-Aspects.of(app).add(new AwsSolutionsChecks({}));
 
-app.synth();
+main().then(app => {
+	if (app.node.children.length == 0) {
+		console.error("Unable to find any stacks to deploy")
+	} else {
+		app.synth();
+	}
+}).catch(reason => {
+	throw new Error(reason)
+}).finally(() => {
+	console.log("Complete")
+})

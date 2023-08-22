@@ -28,6 +28,14 @@
       "name": "bundle",
       "description": "Prepare assets"
     },
+    "cli": {
+      "name": "cli",
+      "steps": [
+        {
+          "exec": "npx ts-node -P tsconfig.json --prefer-ts-exts src/cli.ts"
+        }
+      ]
+    },
     "clobber": {
       "name": "clobber",
       "description": "hard resets to HEAD of origin and cleans the local repo",

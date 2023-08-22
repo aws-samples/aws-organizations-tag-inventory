@@ -1,6 +1,26 @@
 {
   "dependencies": [
     {
+      "name": "@aws-sdk/client-ec2",
+      "type": "build"
+    },
+    {
+      "name": "@aws-sdk/client-organizations",
+      "type": "build"
+    },
+    {
+      "name": "@aws-sdk/client-sts",
+      "type": "build"
+    },
+    {
+      "name": "@aws-sdk/credential-providers",
+      "type": "build"
+    },
+    {
+      "name": "@aws-sdk/shared-ini-file-loader",
+      "type": "build"
+    },
+    {
       "name": "@npmcli/arborist",
       "type": "build"
     },
@@ -19,6 +39,10 @@
     },
     {
       "name": "@types/npmcli__arborist",
+      "type": "build"
+    },
+    {
+      "name": "@types/prompts",
       "type": "build"
     },
     {
@@ -81,6 +105,10 @@
     },
     {
       "name": "projen",
+      "type": "build"
+    },
+    {
+      "name": "prompts",
       "type": "build"
     },
     {
