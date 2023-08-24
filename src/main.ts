@@ -19,29 +19,28 @@ import {App, Aspects, DefaultStackSynthesizer} from 'aws-cdk-lib';
 import {AwsSolutionsChecks} from 'cdk-nag';
 import {CentralStack} from './stacks/CentralStack';
 import {SpokeStack} from './stacks/SpokeStack';
-
-
-// import prompts, {Choice} from "prompts";
-// import {Choice} from "prompts";
-// import {OrganizationStackSetProps} from "./stacks/OrganizationStackSet";
+import {OrganizationStack} from "./stacks/OrganizationStack";
+import {OrganizationAssetBucketStack} from "./stacks/OrganizationAssetBucketStack";
 
 
 const main = async (): Promise<App> => {
 
 // for development, use account/region from cdk cli
+
+	const app = new App();
 	const env = {
-		account: process.env.CDK_DEFAULT_ACCOUNT,
-		region: 'us-east-1',
+		account: app.node.tryGetContext("account") ?? process.env.CDK_DEFAULT_ACCOUNT,
+		region: app.node.tryGetContext("region") ?? process.env.CDK_DEFAULT_REGION,
 
 	};
 
-	const app = new App();
 	Aspects.of(app).add(new AwsSolutionsChecks({}));
 	const stackToDeploy = app.node.tryGetContext('stack') as String | undefined;
 	if (stackToDeploy == 'central') {
 		new CentralStack(app, 'aws-organizations-tag-inventory-central-stack', {
 			env: env,
 			organizationId: app.node.tryGetContext('organizationId'),
+			organizationPayerAccountId: app.node.tryGetContext("organizationPayerAccountId"),
 			synthesizer: new DefaultStackSynthesizer({
 				generateBootstrapVersionRule: false,
 			}),
@@ -56,17 +55,47 @@ const main = async (): Promise<App> => {
 			synthesizer: new DefaultStackSynthesizer({
 				generateBootstrapVersionRule: false,
 			}),
+			organizationPayerAccountId: app.node.tryGetContext("organizationPayerAccountId")
 		});
-	} else if (stackToDeploy == 'org') {
-
-		// const stackInstancesGroup: CfnStackSet.StackInstancesProperty[] = []
-
-		//first we have to check that we're either in the organization payer account or in a delegate account
-
-		// let deploymentTargetAccounts = app.node.tryGetContext("deploymentTargetAccounts")
-		// let deploymentTargetOrganizationalUnitIds = app.node.tryGetContext("deploymentTargetOrganizationalUnitIds")
-
-
+	} else if (stackToDeploy == 'organization') {
+		const organizationId = app.node.tryGetContext('organizationId')
+		const bucketName = `awsorgtaginvcdkassetbucket-${env.account}-${env.region}`
+		const assetBucketStack = new OrganizationAssetBucketStack(app, "aws-organizations-tag-inventory-asset-bucket-stack", {
+			env: env,
+			bucketName: bucketName,
+			organizationId: organizationId
+		})
+		const synthesizer = new DefaultStackSynthesizer({
+			generateBootstrapVersionRule: false,
+			fileAssetsBucketName: bucketName
+		})
+		const spokeStack = new SpokeStack(app, 'aws-organizations-tag-inventory-spoke-stack', {
+			env: env,
+			enabledRegions: app.node.tryGetContext('enabledRegions'),
+			aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
+			bucketName: app.node.tryGetContext('bucketName'),
+			centralRoleArn: app.node.tryGetContext('centralRoleArn'),
+			synthesizer: synthesizer,
+			organizationPayerAccountId: app.node.tryGetContext("organizationPayerAccountId")
+		});
+		spokeStack.addDependency(assetBucketStack)
+		spokeStack.synthesizer.synthesize({
+			outdir: app.outdir,
+			assembly: app._assemblyBuilder,
+			validateOnSynth: true
+		})
+		const organizationStack = new OrganizationStack(app, "aws-organizations-tag-inventory-spoke-stacks", {
+			env: env,
+			enabledRegions: app.node.tryGetContext('enabledRegions'),
+			aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
+			bucketName: app.node.tryGetContext('bucketName'),
+			centralRoleArn: app.node.tryGetContext('centralRoleArn'),
+			synthesizer: synthesizer,
+			organizationalUnitIds: app.node.tryGetContext("organizationalUnitIds").split(","),
+			templateFile: spokeStack.templateFile,
+			organizationPayerAccountId: app.node.tryGetContext("organizationPayerAccountId")
+		})
+		organizationStack.addDependency(spokeStack)
 
 
 	}
@@ -83,5 +112,5 @@ main().then(app => {
 }).catch(reason => {
 	throw new Error(reason)
 }).finally(() => {
-	console.log("Complete")
+
 })

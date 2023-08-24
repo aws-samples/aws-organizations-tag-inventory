@@ -14,26 +14,26 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {CfnParameter, Stack, StackProps, Tags} from 'aws-cdk-lib';
+
+
+import {CfnParameter, CfnStackSet, Stack, Tags, Fn} from 'aws-cdk-lib';
 
 import {NagSuppressions} from 'cdk-nag';
 import {Construct} from 'constructs';
-
-import {Spoke} from "../constructs/Spoke";
+import {SpokeStackProps} from "./SpokeStack";
 import {RegionInfo} from "aws-cdk-lib/region-info";
+import {Asset} from "aws-cdk-lib/aws-s3-assets";
+import * as path from 'path'
 
-
-export interface SpokeStackProps extends StackProps {
-	enabledRegions?: string;
-	aggregatorRegion?: string;
-	bucketName?: string | undefined;
-	centralRoleArn?: string | undefined;
+export interface OrganizationStackSetProps extends SpokeStackProps {
+	organizationalUnitIds?: string[]
+	templateFile: string
 	organizationPayerAccountId?:string
 }
 
-export class SpokeStack extends Stack {
+export class OrganizationStack extends Stack {
 
-	constructor(scope: Construct, id: string, props: SpokeStackProps) {
+	constructor(scope: Construct, id: string, props: OrganizationStackSetProps) {
 		super(scope, id, props);
 		const bucketNameParameter = new CfnParameter(this, 'BucketNameParameter', {
 			default: props.bucketName,
@@ -59,17 +59,58 @@ export class SpokeStack extends Stack {
 			type: 'String',
 			description: 'The region that contains teh Resource Explorer aggregator',
 		});
+		const organizationalUnitIds = new CfnParameter(this, 'OrganizationalUnitIds', {
+
+			default: props.organizationalUnitIds?.join(","),
+			type: 'CommaDelimitedList',
+			description: 'Organizational units to deploy the spoke stack to',
+		});
 		const organizationPayerAccountIdParameter = new CfnParameter(this, 'OrganizationPayerAccountIdParameter', {
 			default: props.organizationPayerAccountId,
 			type: 'String',
 			description: 'The id of the AWS organization payer account',
 		});
-		new Spoke(this, "spoke", {
-			bucketName: bucketNameParameter.valueAsString,
-			aggregatorRegion: aggregatorRegionParameter.valueAsString,
-			centralRoleArn: centralRoleArnParameter.valueAsString,
-			enabledRegions: enabledRegionsParameter.valueAsList.join(","),
-			organizationPayerAccountId: organizationPayerAccountIdParameter.valueAsString
+		const asset = new Asset(this, "SpokeStackTemplate", {
+			path: path.join(__dirname, "..", "..", "cdk.out", props.templateFile)
+		})
+		new CfnStackSet(this, "aws-organizations-tag-inventory-spoke-account-stack-set", {
+			description: "StackSet for deploy the aws-organizations-tag-inventory-spoke-stack to account across the organization",
+			stackSetName: "aws-organizations-tag-inventory-spoke-account-stack-set",
+			permissionModel: "SERVICE_MANAGED",
+			capabilities: ["CAPABILITY_IAM","CAPABILITY_NAMED_IAM"],
+			autoDeployment: {
+				enabled: true,
+				retainStacksOnAccountRemoval: true
+			},
+			templateUrl: asset.httpUrl,
+			parameters: [{
+				parameterKey: "BucketNameParameter",
+				parameterValue: bucketNameParameter.valueAsString
+			}, {
+				parameterKey: "CentralRoleArnParameter",
+				parameterValue: centralRoleArnParameter.valueAsString
+			}, {
+				parameterKey: "EnabledRegionsParameter",
+				parameterValue: Fn.join(",", enabledRegionsParameter.valueAsList)
+			}, {
+				parameterKey: "AggregatorRegionParameter",
+				parameterValue: aggregatorRegionParameter.valueAsString
+			}, {
+				parameterKey: "OrganizationPayerAccountIdParameter",
+				parameterValue: organizationPayerAccountIdParameter.valueAsString
+			}],
+			stackInstancesGroup: [{
+				regions: [this.region],
+				deploymentTargets: {
+					organizationalUnitIds: organizationalUnitIds.valueAsList
+				}
+			}],
+			operationPreferences: {
+				failureToleranceCount: 999,
+				regionConcurrencyType: "PARALLEL",
+				maxConcurrentCount: 10
+			}
+
 		})
 		this.cdkNagSuppressions();
 		Tags.of(this).add('Solution', 'aws-organizations-tag-inventory');
@@ -78,15 +119,6 @@ export class SpokeStack extends Stack {
 
 	private cdkNagSuppressions() {
 
-		NagSuppressions.addStackSuppressions(this, [
-			{
-				id: 'AwsSolutions-IAM4',
-				reason: 'AWS managed policies acceptable for sample',
-			},
-			{
-				id: 'AwsSolutions-IAM5',
-				reason: 'Wildcard permissions have been scoped down',
-			},
-		]);
+		NagSuppressions.addStackSuppressions(this, []);
 	}
 }

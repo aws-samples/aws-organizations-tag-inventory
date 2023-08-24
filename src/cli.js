@@ -35,6 +35,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 /*
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -177,7 +184,7 @@ function chooseStack() {
                                 choices: [
                                     { title: 'Central', description: 'This stack deploys the centralized bucket where all tag data will be written to and the bucket where the inventory reports will be generated. This stack should be deployed first and only be deployed once', value: 'central' },
                                     { title: 'Spoke', description: 'The stack deploy the spoke stack in the current account. It will setup a set of AWS Resource Explorer indexes and an AWS Step Function State Machine that will periodically run to gather tag inventory data and send it to the central account', value: 'spoke' },
-                                    { title: 'Organization', description: "This will deploy the spoke stack to mulitple account within your AWS Organization.", value: "organization" }
+                                    { title: 'Organization', description: "This will deploy the spoke stack to multiple accounts within your AWS Organization. Must be run from the organization payer account.", value: "organization" }
                                 ],
                             }, {
                                 type: 'select',
@@ -207,14 +214,13 @@ function getCurrentAccount(region) {
         });
     });
 }
-function getOrganizationId(region) {
+function getOrganizationId(region, client) {
+    if (client === void 0) { client = new client_organizations_1.OrganizationsClient({ region: region }); }
     return __awaiter(this, void 0, void 0, function () {
-        var client, describeOrganizationCommandOutput;
+        var describeOrganizationCommandOutput;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    client = new client_organizations_1.OrganizationsClient({ region: region });
-                    return [4 /*yield*/, client.send(new client_organizations_1.DescribeOrganizationCommand({}))];
+                case 0: return [4 /*yield*/, client.send(new client_organizations_1.DescribeOrganizationCommand({}))];
                 case 1:
                     describeOrganizationCommandOutput = _a.sent();
                     if (describeOrganizationCommandOutput.Organization == undefined) {
@@ -228,9 +234,80 @@ function getOrganizationId(region) {
         });
     });
 }
+function getAccountsForOrganization(region, client) {
+    var _a, e_2, _b, _c;
+    if (client === void 0) { client = new client_organizations_1.OrganizationsClient({ region: region }); }
+    return __awaiter(this, void 0, void 0, function () {
+        var accounts, paginatedAccounts, _d, paginatedAccounts_1, paginatedAccounts_1_1, page, _i, _e, account, e_2_1, e_3, error;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    _f.trys.push([0, 13, , 14]);
+                    accounts = [];
+                    paginatedAccounts = (0, client_organizations_1.paginateListAccounts)({
+                        client: client,
+                        pageSize: 10,
+                    }, {});
+                    _f.label = 1;
+                case 1:
+                    _f.trys.push([1, 6, 7, 12]);
+                    _d = true, paginatedAccounts_1 = __asyncValues(paginatedAccounts);
+                    _f.label = 2;
+                case 2: return [4 /*yield*/, paginatedAccounts_1.next()];
+                case 3:
+                    if (!(paginatedAccounts_1_1 = _f.sent(), _a = paginatedAccounts_1_1.done, !_a)) return [3 /*break*/, 5];
+                    _c = paginatedAccounts_1_1.value;
+                    _d = false;
+                    page = _c;
+                    if (page.Accounts != undefined) {
+                        for (_i = 0, _e = page.Accounts; _i < _e.length; _i++) {
+                            account = _e[_i];
+                            if (account.Status == "ACTIVE") {
+                                accounts.push(account);
+                            }
+                        }
+                    }
+                    _f.label = 4;
+                case 4:
+                    _d = true;
+                    return [3 /*break*/, 2];
+                case 5: return [3 /*break*/, 12];
+                case 6:
+                    e_2_1 = _f.sent();
+                    e_2 = { error: e_2_1 };
+                    return [3 /*break*/, 12];
+                case 7:
+                    _f.trys.push([7, , 10, 11]);
+                    if (!(!_d && !_a && (_b = paginatedAccounts_1.return))) return [3 /*break*/, 9];
+                    return [4 /*yield*/, _b.call(paginatedAccounts_1)];
+                case 8:
+                    _f.sent();
+                    _f.label = 9;
+                case 9: return [3 /*break*/, 11];
+                case 10:
+                    if (e_2) throw e_2.error;
+                    return [7 /*endfinally*/];
+                case 11: return [7 /*endfinally*/];
+                case 12: return [2 /*return*/, accounts];
+                case 13:
+                    e_3 = _f.sent();
+                    error = e_3;
+                    if (error.name == "AccessDeniedException") {
+                        console.error("AccessDenied. Are you running this from the organizational payer account?");
+                        process.exit(-1);
+                    }
+                    else {
+                        throw error;
+                    }
+                    return [3 /*break*/, 14];
+                case 14: return [2 /*return*/];
+            }
+        });
+    });
+}
 function centralStack(input) {
     return __awaiter(this, void 0, void 0, function () {
-        var account, orgId, answer, cmd;
+        var account, orgId, answer, cmd, child;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, getCurrentAccount(input.region)];
@@ -248,12 +325,12 @@ function centralStack(input) {
                     answer = _a.sent();
                     if (answer.confirm) {
                         console.log("Deploying Central Stack");
-                        cmd = "npx run deploy -- --require-approval never";
+                        cmd = "npm run deploy -- --require-approval never";
                         if (profile != undefined) {
                             cmd = cmd + " --profile " + profile;
                         }
-                        cmd = cmd + " --region " + input.region + " -c organizationId=" + orgId;
-                        exec(cmd, function (error, stdout, stderr) {
+                        cmd = cmd + " --region " + input.region + " -c stack=central -c organizationId=" + orgId;
+                        child = exec(cmd, function (error, stdout, stderr) {
                             if (error) {
                                 console.log("error: ".concat(error.message));
                                 return;
@@ -263,6 +340,158 @@ function centralStack(input) {
                                 return;
                             }
                             console.log("stdout: ".concat(stdout));
+                        });
+                        child.stdout.on('data', function (data) {
+                            console.log(data.toString());
+                        });
+                    }
+                    else {
+                        console.log("Goodbye");
+                        process.exit(0);
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function spokeStack(input) {
+    return __awaiter(this, void 0, void 0, function () {
+        var account, allRegions, answer, cmd, child;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getCurrentAccount(input.region)];
+                case 1:
+                    account = _a.sent();
+                    return [4 /*yield*/, getAllRegions()];
+                case 2:
+                    allRegions = _a.sent();
+                    return [4 /*yield*/, prompts([{
+                                type: "text",
+                                message: "Enter the name of the bucket in the central account where tag inventory data will be written to: ",
+                                name: "bucketName",
+                            }, {
+                                type: "text",
+                                message: "Enter the arn of the central cross-account role: ",
+                                name: "centralRoleArn",
+                            }, {
+                                type: "multiselect",
+                                message: "Select the regions in this account to gather tag inventory data from: ",
+                                name: "enabledRegions",
+                                choices: allRegions.map(function (region) {
+                                    return { title: region, value: region };
+                                })
+                            }, {
+                                type: "select",
+                                message: "Select the region to deploy AWS Resource Explorer aggregator index: ",
+                                name: "aggregatorRegion",
+                                choices: allRegions.map(function (region) {
+                                    return { title: region, value: region };
+                                })
+                            }, {
+                                type: "confirm",
+                                name: "confirm",
+                                message: "Are you sure you want to deploy the spoke stack to region ".concat(input.region, " in account ").concat(account, "?"),
+                            }])];
+                case 3:
+                    answer = _a.sent();
+                    if (answer.confirm) {
+                        console.log("Deploying Spoke Stack");
+                        cmd = "npm run deploy -- --require-approval never";
+                        if (profile != undefined) {
+                            cmd = cmd + " --profile " + profile;
+                        }
+                        cmd = cmd + " --region " + input.region + " -c stack=spoke -c enabledRegions=" + answer.enabledRegions.join(",") + " -c aggregatorRegion=" + answer.aggregatorRegion + " -c bucketName=" + answer.bucketName + " -c centralRoleArn=" + answer.centralRoleArn;
+                        child = exec(cmd, function (error, stdout, stderr) {
+                            if (error) {
+                                console.log("error: ".concat(error.message));
+                                return;
+                            }
+                            if (stderr) {
+                                console.log("stderr: ".concat(stderr));
+                                return;
+                            }
+                            console.log("stdout: ".concat(stdout));
+                        });
+                        child.stdout.on('data', function (data) {
+                            console.log(data.toString());
+                        });
+                    }
+                    else {
+                        console.log("Goodbye");
+                        process.exit(0);
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function organizationStack(input) {
+    return __awaiter(this, void 0, void 0, function () {
+        var allRegions, allAccounts, answer, cmd, child;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getAllRegions()];
+                case 1:
+                    allRegions = _a.sent();
+                    return [4 /*yield*/, getAccountsForOrganization(input.region)];
+                case 2:
+                    allAccounts = _a.sent();
+                    return [4 /*yield*/, prompts([{
+                                type: "text",
+                                message: "Enter the name of the bucket in the central account where tag inventory data will be written to: ",
+                                name: "bucketName",
+                            }, {
+                                type: "text",
+                                message: "Enter the arn of the central cross-account role: ",
+                                name: "centralRoleArn",
+                            }, {
+                                type: "multiselect",
+                                message: "Select the regions in this account to gather tag inventory data from: ",
+                                name: "enabledRegions",
+                                choices: allRegions.map(function (region) {
+                                    return { title: region, value: region };
+                                })
+                            }, {
+                                type: "select",
+                                message: "Select the region to deploy AWS Resource Explorer aggregator index: ",
+                                name: "aggregatorRegion",
+                                choices: allRegions.map(function (region) {
+                                    return { title: region, value: region };
+                                })
+                            }, {
+                                type: "multiselect",
+                                message: "Select the accounts to deploy the spoke stacks to: ",
+                                name: "spokeStackAccounts",
+                                choices: allAccounts.map(function (account) {
+                                    return { title: "".concat(account.Name, " - ").concat(account.Id), value: account.Id };
+                                })
+                            }, {
+                                type: "confirm",
+                                name: "confirm",
+                                message: "Are you sure you want to deploy the spoke stack to the selected accounts?",
+                            }])];
+                case 3:
+                    answer = _a.sent();
+                    if (answer.confirm) {
+                        console.log("Deploying Spoke Stacks to Organization");
+                        cmd = "npm run deploy -- --require-approval never";
+                        if (profile != undefined) {
+                            cmd = cmd + " --profile " + profile;
+                        }
+                        cmd = cmd + " --region " + input.region + " -c stack=organization -c enabledRegions=" + answer.enabledRegions.join(",") + " -c aggregatorRegion=" + answer.aggregatorRegion + " -c bucketName=" + answer.bucketName + " -c centralRoleArn=" + answer.centralRoleArn + " -c spokeAccounts=" + answer.spokeStackAccounts.join(",");
+                        child = exec(cmd, function (error, stdout, stderr) {
+                            if (error) {
+                                console.log("error: ".concat(error.message));
+                                return;
+                            }
+                            if (stderr) {
+                                console.log("stderr: ".concat(stderr));
+                                return;
+                            }
+                            console.log("stdout: ".concat(stdout));
+                        });
+                        child.stdout.on('data', function (data) {
+                            console.log(data.toString());
                         });
                     }
                     else {
@@ -285,8 +514,20 @@ function centralStack(input) {
                 return [4 /*yield*/, centralStack(stackResponse)];
             case 2:
                 _a.sent();
-                _a.label = 3;
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 3:
+                if (!(stackResponse.stack == "spoke")) return [3 /*break*/, 5];
+                return [4 /*yield*/, spokeStack(stackResponse)];
+            case 4:
+                _a.sent();
+                return [3 /*break*/, 7];
+            case 5:
+                if (!(stackResponse.stack == "organization")) return [3 /*break*/, 7];
+                return [4 /*yield*/, organizationStack(stackResponse)];
+            case 6:
+                _a.sent();
+                _a.label = 7;
+            case 7: return [2 /*return*/];
         }
     });
 }); })();
