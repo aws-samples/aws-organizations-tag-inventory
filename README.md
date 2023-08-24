@@ -61,20 +61,25 @@ Below is the state machine diagram that is run in each spoke account to gather a
 
 ℹ️ **Note**: If you are running from the [AWS CloudShell](https://docs.aws.amazon.com/cloudshell/latest/userguide/welcome.html) you can skip the prerequisites section
 ## Deployment
-The easiest way to deploy the solution is using the supplied command line interface (cli) through the [AWS CloudShell](https://docs.aws.amazon.com/cloudshell/latest/userguide/welcome.html)
+The easiest way to deploy the solution is using the supplied command line interface (cli) 
 
 ### Deploy central stack
-1. Login to the AWS Console in the account you want to use for centralized reporting of tag inventory.
-2. Open the AWS CloudShell
-3. Checkout the project from GitHub by running `git clone https://github.com/aws-samples/aws-organizations-tag-inventory.git`
-4. `cd` into the project directory `cd aws-organizations-tag-inventory`
-5. Install dependencies `npm install`
-6. Run the cli tool `npm run cli`  select "central" and follow the prompts 
-7. Copy the output values for  "**CentralStackPutTagInventoryRoleOutput**" and "**OrganizationsTagInventoryBucketNameOutput**"
-
+1. Open a terminal on your local machine, 
+1. Ensure there are  [AWS credentials available on your terminal](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html) for the account that you want to deploy the central stack to.
+1. Checkout the project from GitHub by running `git clone https://github.com/aws-samples/aws-organizations-tag-inventory.git`
+1. `cd` into the project directory `cd aws-organizations-tag-inventory`
+1. Install dependencies `npm install`
+1. Run the cli tool `npm run cli`  select "central" and follow the prompts 
+![Select central](./images/central01.png)
+2. Select the region you want to deploy the resources to
+   ![Select central](./images/central02.png)
+   3. Confirm your choices
+   ![central03.png](images%2Fcentral03.png)
+1. Copy the output values for  "**CentralStackPutTagInventoryRoleOutput**" and "**OrganizationsTagInventoryBucketNameOutput**"
+![central04.png](images%2Fcentral04.png)
 
 ###  Deploy a single spoke stack
-If you would like to deploy just a single spoke stack follow the directions below, if you would like to deploy the spoke stack to multiple account across your 
+If you would like to deploy just a single spoke stack follow the directions below. However, if you would like to deploy the spoke stack to **multiple** account across your 
 AWS organization jump to [Deploy multiple spoke stacks using Cloudformation StackSets](#deploy-multiple-spoke-stacks-using-cloudformation-stacksets)
 
 1. Login to the AWS Console in the account you want to use for centralized reporting of tag inventory.
