@@ -66,20 +66,33 @@ The easiest way to deploy the solution is using the supplied command line interf
 ### Deploy central stack
 1. Login to the AWS Console in the account you want to use for centralized reporting of tag inventory.
 2. Open the AWS CloudShell
-2. `npm run deploy -- -c stack=central -c organizationId=?`
-   * **organizationId** - Your [AWS organization id](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_details.html)
-3. Copy the output values for  "**CentralStackPutTagInventoryRoleOutput**" and "**OrganizationsTagInventoryBucketNameOutput**"
+3. Checkout the project from GitHub by running `git clone https://github.com/aws-samples/aws-organizations-tag-inventory.git`
+4. `cd` into the project directory `cd aws-organizations-tag-inventory`
+5. Install dependencies `npm install`
+6. Run the cli tool `npm run cli`  select "central" and follow the prompts 
+7. Copy the output values for  "**CentralStackPutTagInventoryRoleOutput**" and "**OrganizationsTagInventoryBucketNameOutput**"
 
 
-### Deploy spoke stack
-For each account you want to gather tag inventory from do the following
+###  Deploy a single spoke stack
+If you would like to deploy just a single spoke stack follow the directions below, if you would like to deploy the spoke stack to multiple account across your 
+AWS organization jump to [Deploy multiple spoke stacks using Cloudformation StackSets](#deploy-multiple-spoke-stacks-using-cloudformation-stacksets)
 
-1. Put credentials on the terminal for the spoke account.
-2. `npm run deploy -- -c stack=spoke -c bucketName=? -c centralRoleArn=? -c enabledRegions=? -c aggregatorRegion=?`
-    * **bucketName** - Value from the central stack's OrganizationsTagInventoryBucketNameOutput
-    * **centralRoleArn** - Value from the central stack's CentralStackPutTagInventoryRoleOutput
-    * **enabledRegions** - Regions to create [Resource Explorer indexes](https://docs.aws.amazon.com/resource-explorer/latest/userguide/manage-service-turn-on-region.html#manage-service-turn-on-region-region)
-    * **aggregatorRegion** - Region to create a [Resource Explorer aggregator index](https://docs.aws.amazon.com/resource-explorer/latest/userguide/manage-aggregator-region.html)
+1. Login to the AWS Console in the account you want to use for centralized reporting of tag inventory.
+2. Open the AWS CloudShell
+3. Checkout the project from GitHub by running `git clone https://github.com/aws-samples/aws-organizations-tag-inventory.git`
+4. `cd` into the project directory `cd aws-organizations-tag-inventory`
+5. Install dependencies `npm install`
+6. Run the cli tool `npm run cli`  select "spoke" and follow the prompts 
+
+### Deploy multiple spoke stacks using Cloudformation StackSets
+Before you can deploy multiple spoke stacks using stackets be sure to [activate trusted access with AWS Organizations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-activate-trusted-access.html) 
+
+1. Login to the AWS Console in the payer account for your AWS Organization.
+2. Open the AWS CloudShell
+3. Checkout the project from GitHub by running `git clone https://github.com/aws-samples/aws-organizations-tag-inventory.git`
+4. `cd` into the project directory `cd aws-organizations-tag-inventory`
+5. Install dependencies `npm install`
+6. Run the cli tool `npm run cli`  select "organization" and follow the prompts 
 
 ### Removal Policies
 
