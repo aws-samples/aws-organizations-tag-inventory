@@ -59,19 +59,13 @@ Below is the state machine diagram that is run in each spoke account to gather a
 * `npm install -g aws-cdk` - Install the [AWS CDK Tooklkit](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
 * Be sure to have [AWS credentials available on your terminal](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html)
 
-ℹ️ **Note**: If you are running from the AWS CloudShell you can skip the prerequisites section
-## Quick start
-`run.sh` - Follow the prompts
-
-## Step by step deployment
-
-* `cdk bootstrap aws://<ACCOUNT_NUMBER>/<REGION>` - Ensure you have run [CDK bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) the accounts/regions you'll be deploying to
-* `npm install` - Installs required dependencies 
-* `npm run build` - Build the project assets
-
+ℹ️ **Note**: If you are running from the [AWS CloudShell](https://docs.aws.amazon.com/cloudshell/latest/userguide/welcome.html) you can skip the prerequisites section
+## Deployment
+The easiest way to deploy the solution is using the supplied command line interface (cli) through the [AWS CloudShell](https://docs.aws.amazon.com/cloudshell/latest/userguide/welcome.html)
 
 ### Deploy central stack
-1. Put credentials on the terminal for the central account you want to send the tag inventory to and generate reports in.
+1. Login to the AWS Console in the account you want to use for centralized reporting of tag inventory.
+2. Open the AWS CloudShell
 2. `npm run deploy -- -c stack=central -c organizationId=?`
    * **organizationId** - Your [AWS organization id](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_details.html)
 3. Copy the output values for  "**CentralStackPutTagInventoryRoleOutput**" and "**OrganizationsTagInventoryBucketNameOutput**"

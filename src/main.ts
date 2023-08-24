@@ -92,7 +92,7 @@ const main = async (): Promise<App> => {
 			centralRoleArn: app.node.tryGetContext('centralRoleArn'),
 			synthesizer: synthesizer,
 			organizationalUnitIds: app.node.tryGetContext("organizationalUnitIds").split(","),
-			templateFile: spokeStack.templateFile,
+			spokeStackTemplateFile: spokeStack.templateFile,
 			organizationPayerAccountId: app.node.tryGetContext("organizationPayerAccountId")
 		})
 		organizationStack.addDependency(spokeStack)

@@ -27,7 +27,7 @@ import * as path from 'path'
 
 export interface OrganizationStackSetProps extends SpokeStackProps {
 	organizationalUnitIds?: string[]
-	templateFile: string
+	spokeStackTemplateFile: string
 	organizationPayerAccountId?:string
 }
 
@@ -71,7 +71,7 @@ export class OrganizationStack extends Stack {
 			description: 'The id of the AWS organization payer account',
 		});
 		const asset = new Asset(this, "SpokeStackTemplate", {
-			path: path.join(__dirname, "..", "..", "cdk.out", props.templateFile)
+			path: path.join(__dirname, "..", "..", "cdk.out", props.spokeStackTemplateFile)
 		})
 		new CfnStackSet(this, "aws-organizations-tag-inventory-spoke-account-stack-set", {
 			description: "StackSet for deploy the aws-organizations-tag-inventory-spoke-stack to account across the organization",
