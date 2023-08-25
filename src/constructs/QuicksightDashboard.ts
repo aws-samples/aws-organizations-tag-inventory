@@ -16,22 +16,27 @@
  */
 
 import {Construct} from "constructs";
-import {AccountPrincipal, CfnManagedPolicy} from "aws-cdk-lib/aws-iam";
+import {CfnManagedPolicy, ManagedPolicy, Policy, Role} from "aws-cdk-lib/aws-iam";
 import {Central} from "./Central";
-import {IBucket} from "aws-cdk-lib/aws-s3";
+import {BlockPublicAccess, Bucket, BucketEncryption, IBucket} from "aws-cdk-lib/aws-s3";
 import {CfnDataSet, CfnDataSource} from "aws-cdk-lib/aws-quicksight";
 import {CfnWorkGroup} from "aws-cdk-lib/aws-athena";
-import {Aws} from "aws-cdk-lib";
+import {Aws, RemovalPolicy} from "aws-cdk-lib";
 
 export interface QuicksightDashboardConfig {
-	central: Central
+	organizationId: string
+	central: Central,
+	quickSightUserArns?: string[]
+	quickSightGroupArns?: string[]
 }
 
 export class QuicksightDashboard extends Construct {
 
 	constructor(scope: Construct, id: string, config: QuicksightDashboardConfig) {
 		super(scope, id);
-
+		if ((config.quickSightUserArns == undefined || config.quickSightUserArns.length == 0) && (config.quickSightGroupArns == undefined || config.quickSightGroupArns.length == 0)) {
+			throw new Error("You must specify at least one QuickSight user or group")
+		}
 		const qsServiceRoleNames = [
 			"aws-quicksight-service-role-v0"
 		];
@@ -39,7 +44,18 @@ export class QuicksightDashboard extends Construct {
 		const tagInventoryBucket: IBucket = config.central.tagInventoryBucket
 		const athenaWorkGroupBucket: IBucket = config.central.athenaWorkGroupBucket
 		const workGroup: CfnWorkGroup = config.central.workGroup
-		const qsPrincipalArn = new AccountPrincipal(Aws.ACCOUNT_ID).arn
+		const qsBucket = new Bucket(this, 'OutputBucket', {
+			bucketName: `tag-inventory-qs-${config.organizationId}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
+			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+			eventBridgeEnabled: true,
+			removalPolicy: RemovalPolicy.DESTROY,
+			serverAccessLogsBucket: config.central.serverAccessLogBucket,
+			enforceSSL: true,
+			autoDeleteObjects: true,
+			encryption: BucketEncryption.S3_MANAGED,
+		});
+		const qsServiceRole=Role.fromRoleName(this,"aws-quicksight-service-role-v0","aws-quicksight-service-role-v0")
+		qsServiceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AWSQuicksightAthenaAccess"))
 		const qsManagedPolicy = new CfnManagedPolicy(this, 'QuickSightPolicy', {
 			managedPolicyName: 'QuickSightAthenaS3Policy',
 			policyDocument: {
@@ -54,29 +70,37 @@ export class QuicksightDashboard extends Construct {
 						Effect: "Allow",
 						Resource: [
 							athenaWorkGroupBucket.bucketArn,
-							tagInventoryBucket.bucketArn
+							tagInventoryBucket.bucketArn,
+							qsBucket.bucketArn
 						],
 					},
 					{
 						Action: [
+							"s3:GetBucketLocation",
 							"s3:GetObject",
 							"s3:List*",
+
 						],
 						Effect: "Allow",
 						Resource: [
+							`arn:aws:s3:::${tagInventoryBucket.bucketName}/*`,
 							`arn:aws:s3:::${athenaWorkGroupBucket.bucketName}/tables/*`,
+							`arn:aws:s3:::${qsBucket.bucketName}/*`,
 						],
 					},
 					{
 						Action: [
+							"s3:GetBucketLocation",
 							"s3:GetObject",
 							"s3:List*",
 							"s3:AbortMultipartUpload",
 							"s3:PutObject",
+							"s3:CreateBucket",
 						],
 						Effect: "Allow",
 						Resource: [
 							`arn:aws:s3:::${athenaWorkGroupBucket.bucketName}/*`,
+							`arn:aws:s3:::${qsBucket.bucketName}/*`,
 						],
 					},
 				],
@@ -84,20 +108,21 @@ export class QuicksightDashboard extends Construct {
 			},
 			roles: qsServiceRoleNames,
 		});
-		const qsDataSourcePermissions: CfnDataSource.ResourcePermissionProperty[] = [
-			{
-				principal: qsPrincipalArn,
+		const principalArns = [...config.quickSightGroupArns ?? [], ...config.quickSightUserArns ?? []]
+		const qsDataSourcePermissions: CfnDataSource.ResourcePermissionProperty[] = principalArns.map(arn => {
+			return {
+				principal: arn,
 				actions: [
 					"quicksight:DescribeDataSource",
 					"quicksight:DescribeDataSourcePermissions",
 					"quicksight:PassDataSource",
 				],
-			},
-		];
+			}
+		})
 
-		const qsDatasetPermissions: CfnDataSet.ResourcePermissionProperty[] = [
-			{
-				principal: qsPrincipalArn,
+		const qsDatasetPermissions: CfnDataSet.ResourcePermissionProperty[] = principalArns.map(arn => {
+			return {
+				principal: arn,
 				actions: [
 					"quicksight:DescribeDataSet",
 					"quicksight:DescribeDataSetPermissions",
@@ -105,8 +130,9 @@ export class QuicksightDashboard extends Construct {
 					"quicksight:DescribeIngestion",
 					"quicksight:ListIngestions",
 				],
-			},
-		];
+			}
+		})
+
 
 		const dataSource = new CfnDataSource(this, 'TagInventoryDataSource', {
 			name: 'tag-inventory-data-source',
@@ -135,31 +161,31 @@ export class QuicksightDashboard extends Construct {
 						name: "tag-inventory-view",
 						catalog: config.central.database.catalogId,
 						schema: config.central.database.ref,
-						inputColumns:[
+						inputColumns: [
 							{
 								name: "d",
-								type:"STRING"
-							},{
+								type: "STRING"
+							}, {
 								name: "tagname",
-								type:"STRING"
-							},{
+								type: "STRING"
+							}, {
 								name: "tagvalue",
-								type:"STRING"
-							},{
+								type: "STRING"
+							}, {
 								name: "owningaccountid",
-								type:"STRING"
-							},{
+								type: "STRING"
+							}, {
 								name: "region",
-								type:"STRING"
-							},{
+								type: "STRING"
+							}, {
 								name: "service",
-								type:"STRING"
-							},{
+								type: "STRING"
+							}, {
 								name: "resourcetype",
-								type:"STRING"
-							},{
+								type: "STRING"
+							}, {
 								name: "arn",
-								type:"STRING"
+								type: "STRING"
 							}
 						]
 					}

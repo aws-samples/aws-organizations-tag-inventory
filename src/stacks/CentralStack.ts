@@ -27,7 +27,9 @@ import {QuicksightDashboard} from "../constructs/QuicksightDashboard";
 export interface CentralStackProps extends StackProps {
 	organizationId?: string
 	organizationPayerAccountId?: string
-	deployQuickSightDashboard: boolean
+	deployQuickSightDashboard: boolean,
+	quickSightUserArns?: string
+	quickSightGroupArns?: string
 }
 
 export class CentralStack extends Stack {
@@ -44,13 +46,19 @@ export class CentralStack extends Stack {
 			type: 'String',
 			description: 'The id of the AWS organization payer account',
 		});
+
 		const central = new Central(this, "central", {
 			organizationId: organizationIdParameter.valueAsString,
 			organizationPayerAccountId: organizationPayerAccountIdParameter.valueAsString
 		})
+		//right now this option is only available through cdk generation
 		if (props.deployQuickSightDashboard) {
+
 			new QuicksightDashboard(this, "QuickSight", {
-				central: central
+				central: central,
+				quickSightUserArns: props.quickSightUserArns?.split(","),
+				quickSightGroupArns: props.quickSightGroupArns?.split(","),
+				organizationId: organizationIdParameter.valueAsString
 			})
 		}
 		this.cdkNagSuppressions();

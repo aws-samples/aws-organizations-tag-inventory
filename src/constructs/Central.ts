@@ -32,6 +32,7 @@ import {CfnSchedule} from "aws-cdk-lib/aws-scheduler";
 export interface CentralConfig {
 	organizationId: string
 	organizationPayerAccountId: string
+
 }
 
 export class Central extends Construct {
@@ -41,11 +42,12 @@ export class Central extends Construct {
 	readonly workGroup:CfnWorkGroup
 	readonly table:CfnTable
 	readonly database:CfnDatabase
+	readonly serverAccessLogBucket:IBucket
 	constructor(scope: Construct, id: string, config: CentralConfig) {
 		super(scope, id);
 
 		const powerToolsLayer = LayerVersion.fromLayerVersionArn(this, 'powertools', `arn:aws:lambda:${Aws.REGION}:094274105915:layer:AWSLambdaPowertoolsTypeScript:11`);
-		const serverAccessLogBucket = new Bucket(this, 'S3ServerAccessLogBucket', {
+		this.serverAccessLogBucket = new Bucket(this, 'S3ServerAccessLogBucket', {
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 			removalPolicy: RemovalPolicy.DESTROY,
 			enforceSSL: true,
@@ -57,7 +59,7 @@ export class Central extends Construct {
 
 			eventBridgeEnabled: true,
 			removalPolicy: RemovalPolicy.DESTROY,
-			serverAccessLogsBucket: serverAccessLogBucket,
+			serverAccessLogsBucket: this.serverAccessLogBucket,
 			enforceSSL: true,
 			autoDeleteObjects: true,
 
@@ -69,7 +71,7 @@ export class Central extends Construct {
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 			eventBridgeEnabled: true,
 			removalPolicy: RemovalPolicy.DESTROY,
-			serverAccessLogsBucket: serverAccessLogBucket,
+			serverAccessLogsBucket: this.serverAccessLogBucket,
 			enforceSSL: true,
 			autoDeleteObjects: true,
 		});
@@ -79,7 +81,7 @@ export class Central extends Construct {
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 			eventBridgeEnabled: true,
 			removalPolicy: RemovalPolicy.DESTROY,
-			serverAccessLogsBucket: serverAccessLogBucket,
+			serverAccessLogsBucket: this.serverAccessLogBucket,
 			enforceSSL: true,
 			autoDeleteObjects: true,
 			encryption: BucketEncryption.S3_MANAGED,
