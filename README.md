@@ -69,26 +69,36 @@ The easiest way to deploy the solution is using the supplied command line interf
 1. Checkout the project from GitHub by running `git clone https://github.com/aws-samples/aws-organizations-tag-inventory.git`
 1. `cd` into the project directory `cd aws-organizations-tag-inventory`
 1. Install dependencies `npm install`
-1. Run the cli tool `npm run cli`  select "central" and follow the prompts 
-![Select central](./images/central01.png)
+1. Run the cli tool `npm run cli`  select "central" and follow the prompts
+   ![Select central](./images/central01.png)
 2. Select the region you want to deploy the resources to
    ![Select central](./images/central02.png)
-   3. Confirm your choices
+3. Confirm your choices
    ![central03.png](images%2Fcentral03.png)
 1. Copy the output values for  "**CentralStackPutTagInventoryRoleOutput**" and "**OrganizationsTagInventoryBucketNameOutput**"
-![central04.png](images%2Fcentral04.png)
+   ![central04.png](images%2Fcentral04.png)
 
 ###  Deploy a single spoke stack
 If you would like to deploy just a single spoke stack follow the directions below. However, if you would like to deploy the spoke stack to **multiple** account across your 
 AWS organization jump to [Deploy multiple spoke stacks using Cloudformation StackSets](#deploy-multiple-spoke-stacks-using-cloudformation-stacksets)
 
-1. Login to the AWS Console in the account you want to use for centralized reporting of tag inventory.
-2. Open the AWS CloudShell
+1. Open a terminal on your local machine,
+1. Ensure there are  [AWS credentials available on your terminal](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html) for the account that you want to deploy the spoke stack to.
 3. Checkout the project from GitHub by running `git clone https://github.com/aws-samples/aws-organizations-tag-inventory.git`
 4. `cd` into the project directory `cd aws-organizations-tag-inventory`
 5. Install dependencies `npm install`
-6. Run the cli tool `npm run cli`  select "spoke" and follow the prompts 
-
+6. Run the cli tool `npm run cli`  select "spoke" and follow the prompts
+   ![spoke01.png](images%2Fspoke01.png)
+7. Select the region you want to deploth the resources to
+   ![spoke02.png](images%2Fspoke02.png)
+8. Enter the central bucket name from [Deploy central stack - Step 8](#deploy-central-stack)
+   ![spoke03.png](images%2Fspoke03.png)
+9. Enter the arn of the central cross account role from [Deploy central stack - Step 8](#deploy-central-stack)
+   ![spoke04.png](images%2Fspoke04.png)
+10. Select the region that you want to setup AWS Resource Explorer indexes in
+   ![spoke05.png](images%2Fspoke05.png)
+11. Confirm your choices
+   ![spoke06.png](images%2Fspoke06.png)
 ### Deploy multiple spoke stacks using Cloudformation StackSets
 Before you can deploy multiple spoke stacks using stackets be sure to [activate trusted access with AWS Organizations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-activate-trusted-access.html) 
 
