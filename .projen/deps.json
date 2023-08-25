@@ -5,7 +5,15 @@
       "type": "build"
     },
     {
+      "name": "@aws-sdk/client-iam",
+      "type": "build"
+    },
+    {
       "name": "@aws-sdk/client-organizations",
+      "type": "build"
+    },
+    {
+      "name": "@aws-sdk/client-quicksight",
       "type": "build"
     },
     {
@@ -17,11 +25,11 @@
       "type": "build"
     },
     {
-      "name": "@aws-sdk/shared-ini-file-loader",
+      "name": "@npmcli/arborist",
       "type": "build"
     },
     {
-      "name": "@npmcli/arborist",
+      "name": "@smithy/shared-ini-file-loader",
       "type": "build"
     },
     {

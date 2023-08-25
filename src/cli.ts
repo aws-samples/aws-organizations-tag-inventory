@@ -19,9 +19,10 @@ import {DescribeRegionsCommand, EC2Client} from "@aws-sdk/client-ec2";
 import {fromIni} from "@aws-sdk/credential-providers";
 import {GetCallerIdentityCommand, STSClient} from "@aws-sdk/client-sts";
 import {DescribeOrganizationCommand, ListRootsCommand, Organization, OrganizationalUnit, OrganizationsClient, paginateListOrganizationalUnitsForParent} from "@aws-sdk/client-organizations";
+import {GetRoleCommand, IAMClient} from "@aws-sdk/client-iam";
 
 const {exec} = require("child_process");
-const sharedIniFileLoader = require('@aws-sdk/shared-ini-file-loader');
+const sharedIniFileLoader = require('@smithy/shared-ini-file-loader');
 const prompts = require('prompts');
 const allRegions: string[] = []
 let profile: string | undefined = undefined
@@ -173,19 +174,35 @@ async function getAllOus(region: string, client: OrganizationsClient = new Organ
 async function centralStack(input: { stack: string, region: string }): Promise<void> {
 	const account = await getCurrentAccount(input.region)
 	const organization = await getOrganization(input.region)
-	const answer = await prompts({
+	const answer = await prompts([{
+		type:"confirm",
+		name:"deployQuickSightDashboard",
+		message:"Would you like to deploy a QuickSight dashboard to visualize your tag inventory data?"
+	},{
 		type: "confirm",
-		name: "confirm",
+			name: "confirm",
 		message: `Are you sure you want to deploy the central stack to region ${input.region} in account ${account}?`,
 
-	})
+	}])
+	if(answer.deployQuickSightDashboard){
+		//cehck for aws-quicksight-service-role-v0
+		const iamClient=new IAMClient({region:input.region})
+		const getRoleResponse=await iamClient.send(new GetRoleCommand({
+			RoleName: "aws-quicksight-service-role-v0"
+		}))
+		if(getRoleResponse.Role==undefined){
+			console.log("Unable to verify that QuickSight has been enabled in this account. Please follow the guide here https://docs.aws.amazon.com/quicksight/latest/user/getting-started.html")
+			process.exit(-1)
+		}
+
+	}
 	if (answer.confirm) {
 		console.log("Deploying Central Stack")
 		let cmd = "npm run deploy -- --require-approval never"
 		if (profile != undefined) {
 			cmd = cmd + " --profile " + profile
 		}
-		cmd = cmd + " --region " + input.region + " -c stack=central -c organizationId=" + organization.Id + " -c organizationPayerAccountId=" + organization.MasterAccountId
+		cmd = cmd + " --region " + input.region + " -c stack=central -c organizationId=" + organization.Id + " -c organizationPayerAccountId=" + organization.MasterAccountId+" -c deployQuickSightDashboard="+answer.deployQuickSightDashboard
 		const child = exec(cmd, (error: any, stdout: any, stderr: any) => {
 			if (error) {
 				console.log(`error: ${error.message}`);
@@ -350,6 +367,10 @@ async function organizationStack(input: { stack: string, region: string }): Prom
 				}
 				console.log(`stdout: ${stdout}`);
 			})
+			child.stderr.on('data', function (data: any) {
+				console.error(data.toString());
+			});
+
 			child.stdout.on('data', function (data: any) {
 				console.log(data.toString());
 			});

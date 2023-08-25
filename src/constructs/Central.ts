@@ -18,7 +18,7 @@
 import {Construct} from "constructs";
 import {Aws, CfnOutput, Duration, RemovalPolicy} from "aws-cdk-lib";
 import {Architecture, LayerVersion, Runtime} from "aws-cdk-lib/aws-lambda";
-import {BlockPublicAccess, Bucket, BucketEncryption, CfnBucket} from "aws-cdk-lib/aws-s3";
+import {BlockPublicAccess, Bucket, BucketEncryption, CfnBucket, IBucket} from "aws-cdk-lib/aws-s3";
 import {AccountPrincipal, Effect, ManagedPolicy, OrganizationPrincipal, PolicyDocument, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 import {Queue, QueueEncryption} from "aws-cdk-lib/aws-sqs";
 import {SqsDestination} from "aws-cdk-lib/aws-s3-notifications";
@@ -31,11 +31,16 @@ import {CfnSchedule} from "aws-cdk-lib/aws-scheduler";
 
 export interface CentralConfig {
 	organizationId: string
-	organizationPayerAccountId:string
+	organizationPayerAccountId: string
 }
 
 export class Central extends Construct {
-
+	readonly reportingBucket: IBucket
+	readonly tagInventoryBucket: IBucket
+	readonly athenaWorkGroupBucket: IBucket
+	readonly workGroup:CfnWorkGroup
+	readonly table:CfnTable
+	readonly database:CfnDatabase
 	constructor(scope: Construct, id: string, config: CentralConfig) {
 		super(scope, id);
 
@@ -46,7 +51,7 @@ export class Central extends Construct {
 			enforceSSL: true,
 			autoDeleteObjects: true,
 		});
-		const reportingBucket = new Bucket(this, 'ReportBucket', {
+		this.reportingBucket = new Bucket(this, 'ReportBucket', {
 			bucketName: `tag-inventory-reports-${config.organizationId}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 
@@ -55,9 +60,11 @@ export class Central extends Construct {
 			serverAccessLogsBucket: serverAccessLogBucket,
 			enforceSSL: true,
 			autoDeleteObjects: true,
+
 		});
 
-		const tagInventoryBucket = new Bucket(this, 'TagBucket', {
+
+		this.tagInventoryBucket = new Bucket(this, 'TagBucket', {
 			bucketName: `tag-inventory-${config.organizationId}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 			eventBridgeEnabled: true,
@@ -67,7 +74,7 @@ export class Central extends Construct {
 			autoDeleteObjects: true,
 		});
 
-		const athenaWorkGroupBucket = new Bucket(this, 'AthenaWorkGroupBucket', {
+		this.athenaWorkGroupBucket = new Bucket(this, 'AthenaWorkGroupBucket', {
 			bucketName: `tag-inventory-athena-wg-${config.organizationId}-${Aws.ACCOUNT_ID}-${Aws.REGION}`,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 			eventBridgeEnabled: true,
@@ -77,6 +84,7 @@ export class Central extends Construct {
 			autoDeleteObjects: true,
 			encryption: BucketEncryption.S3_MANAGED,
 		});
+
 
 		const athenaRole = new Role(this, 'CentralStackTagInventoryAthenaRole', {
 
@@ -119,9 +127,9 @@ export class Central extends Construct {
 			principals: [new ServicePrincipal('s3.amazonaws.com')],
 			actions: ['SQS:SendMessage'],
 		}));
-		tagInventoryBucket.addObjectCreatedNotification(new SqsDestination(tagInventoryEventQueue));
+		this.tagInventoryBucket.addObjectCreatedNotification(new SqsDestination(tagInventoryEventQueue));
 
-		const database = new CfnDatabase(this, 'OrganizationalTagInventoryDatabase', {
+		this.database = new CfnDatabase(this, 'OrganizationalTagInventoryDatabase', {
 			catalogId: Aws.ACCOUNT_ID,
 			databaseInput: {
 				name: `${config.organizationId}-tag-inventory-database`,
@@ -130,13 +138,13 @@ export class Central extends Construct {
 			},
 
 		});
-		const table = new CfnTable(this, 'TagInventoryTable', {
+		this.table = new CfnTable(this, 'TagInventoryTable', {
 			catalogId: Aws.ACCOUNT_ID,
-			databaseName: database.ref,
+			databaseName: this.database.ref,
 			tableInput: {
 				name: `${config.organizationId}-tag-inventory-table`,
 				storageDescriptor: {
-					location: tagInventoryBucket.s3UrlForObject('/'),
+					location: this.tagInventoryBucket.s3UrlForObject('/'),
 					inputFormat: 'org.apache.hadoop.mapred.TextInputFormat',
 					outputFormat: 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat',
 					compressed: false,
@@ -220,20 +228,20 @@ export class Central extends Construct {
 				},
 			},
 		});
-		const tableArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:table/${table.databaseName}`;
-		const databaseArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:database/${database.ref}`;
-		const catalogArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog/${table.catalogId}`;
+		const tableArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:table/${this.table.databaseName}`;
+		const databaseArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:database/${this.database.ref}`;
+		const catalogArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog/${this.table.catalogId}`;
 		new CfnCrawler(this, 'OrganizationalTagInventoryCrawler', {
 			name: `${config.organizationId}-tag-inventory-crawler`,
 			description: 'Organizational tag inventory crawler',
-			databaseName: database.ref,
+			databaseName: this.database.ref,
 			role: athenaRole.roleArn,
 			configuration: '{"Version":1,"CrawlerOutput":{"Partitions":{"AddOrUpdateBehavior":"InheritFromTable"},"Tables":{"AddOrUpdateBehavior":"MergeNewColumns"}},"Grouping":{"TableGroupingPolicy":"CombineCompatibleSchemas"},"CreatePartitionIndex":false}',
 			targets: {
 				catalogTargets: [{
-					databaseName: database.ref,
+					databaseName: this.database.ref,
 					tables: [
-						table.ref,
+						this.table.ref,
 					],
 					eventQueueArn: tagInventoryEventQueue.queueArn,
 				}],
@@ -254,8 +262,8 @@ export class Central extends Construct {
 			assumedBy: new OrganizationPrincipal(config.organizationId),
 			description: "Role with access to write to the central stack's OrganizationsTagInventory bucket",
 		});
-		tagInventoryBucket.grantPut(centralStackRole);
-		reportingBucket.grantPut(centralStackRole);
+		this.tagInventoryBucket.grantPut(centralStackRole);
+		this.reportingBucket.grantPut(centralStackRole);
 		const workgroupName = 'TagInventoryAthenaWorkGroup';
 		const generateCsvReportFunction = new NodejsFunction(this, 'GenerateCsvReportFunction', {
 			architecture: Architecture.ARM_64,
@@ -270,30 +278,30 @@ export class Central extends Construct {
 				resources: [`arn:aws:athena:${Aws.REGION}:${Aws.ACCOUNT_ID}:workgroup/${workgroupName}`],
 			}), new PolicyStatement({
 				effect: Effect.ALLOW,
-				actions: ['glue:GetTable', 'glue:CreateTable', 'glue:GetPartitions', 'glue:GetPartition', 'glue:CreatePartition', 'glue:GetDatabase', 'glue:CreateDatabase', 'glue:DeleteTable'],
+				actions: ['glue:GetTable', 'glue:CreateTable', 'glue:UpdateTable', 'glue:GetPartitions', 'glue:GetPartition', 'glue:CreatePartition', 'glue:GetDatabase', 'glue:CreateDatabase', 'glue:DeleteTable'],
 				resources: [`arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog`, `${tableArn}/*`, `${catalogArn}/*`, databaseArn, `${databaseArn}/*`, `arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/default`, `arn:aws:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/default/*`],
 			})],
 			environment: {
 				LOG_LEVEL: 'DEBUG',
 				// @ts-ignore
-				DATABASE: table.databaseName,
-				CATALOG: table.catalogId,
-				REPORT_BUCKET: reportingBucket.bucketName,
-				TAG_INVENTORY_TABLE: table.ref,
-				ATHENA_BUCKET: athenaWorkGroupBucket.bucketName,
+				DATABASE: this.table.databaseName,
+				CATALOG: this.table.catalogId,
+				REPORT_BUCKET: this.reportingBucket.bucketName,
+				TAG_INVENTORY_TABLE: this.table.ref,
+				ATHENA_BUCKET: this.athenaWorkGroupBucket.bucketName,
 				WORKGROUP: workgroupName,
 			},
 		});
 		const role = new Role(this, 'ReportSchedulerRole', {assumedBy: new ServicePrincipal('scheduler.amazonaws.com')});
 		generateCsvReportFunction.grantInvoke(role);
-		reportingBucket.grantReadWrite(generateCsvReportFunction);
-		athenaWorkGroupBucket.grantReadWrite(generateCsvReportFunction);
-		tagInventoryBucket.grantRead(generateCsvReportFunction);
-		const workGroup = new CfnWorkGroup(this, 'AthenaWorkGroup', {
+		this.reportingBucket.grantReadWrite(generateCsvReportFunction);
+		this.athenaWorkGroupBucket.grantReadWrite(generateCsvReportFunction);
+		this.tagInventoryBucket.grantRead(generateCsvReportFunction);
+		this.workGroup = new CfnWorkGroup(this, 'AthenaWorkGroup', {
 			name: workgroupName,
 			workGroupConfiguration: {
 				resultConfiguration: {
-					outputLocation: athenaWorkGroupBucket.s3UrlForObject(''),
+					outputLocation: this.athenaWorkGroupBucket.s3UrlForObject(''),
 					encryptionConfiguration: {
 						encryptionOption: 'SSE_S3',
 					},
@@ -301,8 +309,8 @@ export class Central extends Construct {
 				enforceWorkGroupConfiguration: false,
 			},
 		});
-		workGroup.addDependency(athenaWorkGroupBucket.node.defaultChild as CfnBucket)
-		generateCsvReportFunction.addEnvironment('WORKGROUP', workGroup.name);
+		this.workGroup.addDependency(this.athenaWorkGroupBucket.node.defaultChild as CfnBucket)
+		generateCsvReportFunction.addEnvironment('WORKGROUP', this.workGroup.name);
 		new CfnSchedule(this, 'Scheduler', {
 			name: 'ReportGenerateSchedule',
 			flexibleTimeWindow: {
@@ -320,7 +328,7 @@ export class Central extends Construct {
 			this, 'OrganizationsTagInventoryBucketNameOutput',
 			{
 				description: 'Name of the bucket where the Organizations Tag inventory is stored',
-				value: tagInventoryBucket.bucketName,
+				value: this.tagInventoryBucket.bucketName,
 				exportName: 'OrganizationsTagInventoryBucketName',
 			},
 		);

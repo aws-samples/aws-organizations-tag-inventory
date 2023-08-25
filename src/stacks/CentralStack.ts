@@ -21,11 +21,13 @@ import {CfnParameter, Stack, StackProps, Tags} from 'aws-cdk-lib';
 import {NagSuppressions} from 'cdk-nag';
 import {Construct} from 'constructs';
 import {Central} from "../constructs/Central";
+import {QuicksightDashboard} from "../constructs/QuicksightDashboard";
 
 
 export interface CentralStackProps extends StackProps {
 	organizationId?: string
 	organizationPayerAccountId?: string
+	deployQuickSightDashboard: boolean
 }
 
 export class CentralStack extends Stack {
@@ -42,10 +44,15 @@ export class CentralStack extends Stack {
 			type: 'String',
 			description: 'The id of the AWS organization payer account',
 		});
-		new Central(this, "central", {
+		const central = new Central(this, "central", {
 			organizationId: organizationIdParameter.valueAsString,
 			organizationPayerAccountId: organizationPayerAccountIdParameter.valueAsString
 		})
+		if (props.deployQuickSightDashboard) {
+			new QuicksightDashboard(this, "QuickSight", {
+				central: central
+			})
+		}
 		this.cdkNagSuppressions();
 		Tags.of(this).add('Solution', 'aws-organizations-tag-inventory');
 		Tags.of(this).add('Url', 'https://github.com/aws-samples/aws-organizations-tag-inventory');

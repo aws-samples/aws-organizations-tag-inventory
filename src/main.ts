@@ -41,6 +41,7 @@ const main = async (): Promise<App> => {
 			env: env,
 			organizationId: app.node.tryGetContext('organizationId'),
 			organizationPayerAccountId: app.node.tryGetContext("organizationPayerAccountId"),
+			deployQuickSightDashboard: app.node.tryGetContext("deployQuickSightDashboard") ?? false,
 			synthesizer: new DefaultStackSynthesizer({
 				generateBootstrapVersionRule: false,
 			}),
@@ -110,7 +111,7 @@ main().then(app => {
 		app.synth();
 	}
 }).catch(reason => {
-	throw new Error(reason)
+	console.error(reason)
 }).finally(() => {
 
 })
