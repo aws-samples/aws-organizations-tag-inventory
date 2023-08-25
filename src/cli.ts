@@ -21,7 +21,7 @@ import {GetCallerIdentityCommand, STSClient} from "@aws-sdk/client-sts";
 import {DescribeOrganizationCommand, ListRootsCommand, Organization, OrganizationalUnit, OrganizationsClient, paginateListOrganizationalUnitsForParent} from "@aws-sdk/client-organizations";
 
 const {exec} = require("child_process");
-const sharedIniFileLoader = require('@aws-sdk/shared-ini-file-loader');
+const sharedIniFileLoader = require('@smithy/shared-ini-file-loader');
 const prompts = require('prompts');
 const allRegions: string[] = []
 let profile: string | undefined = undefined
