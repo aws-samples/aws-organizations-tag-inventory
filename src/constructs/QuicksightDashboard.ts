@@ -16,10 +16,10 @@
  */
 
 import {Construct} from "constructs";
-import {CfnManagedPolicy, ManagedPolicy,  Role} from "aws-cdk-lib/aws-iam";
+import {CfnManagedPolicy, ManagedPolicy, Role} from "aws-cdk-lib/aws-iam";
 import {Central} from "./Central";
 import {BlockPublicAccess, Bucket, BucketEncryption, IBucket} from "aws-cdk-lib/aws-s3";
-import {CfnDataSet, CfnDataSource} from "aws-cdk-lib/aws-quicksight";
+import {CfnAnalysis, CfnDataSet, CfnDataSource} from "aws-cdk-lib/aws-quicksight";
 import {CfnWorkGroup} from "aws-cdk-lib/aws-athena";
 import {Aws, RemovalPolicy} from "aws-cdk-lib";
 
@@ -54,7 +54,7 @@ export class QuicksightDashboard extends Construct {
 			autoDeleteObjects: true,
 			encryption: BucketEncryption.S3_MANAGED,
 		});
-		const qsServiceRole=Role.fromRoleName(this,"aws-quicksight-service-role-v0","aws-quicksight-service-role-v0")
+		const qsServiceRole = Role.fromRoleName(this, "aws-quicksight-service-role-v0", "aws-quicksight-service-role-v0")
 		qsServiceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AWSQuicksightAthenaAccess"))
 		const qsManagedPolicy = new CfnManagedPolicy(this, 'QuickSightPolicy', {
 			managedPolicyName: 'QuickSightAthenaS3Policy',
@@ -148,7 +148,7 @@ export class QuicksightDashboard extends Construct {
 		});
 		dataSource.addDependency(qsManagedPolicy)
 
-		new CfnDataSet(this, 'TagInventoryDataSet', {
+		const dataSet = new CfnDataSet(this, 'TagInventoryDataSet', {
 			name: 'tag-inventory-data-set',
 			dataSetId: 'tag-inventory-data-set',
 			awsAccountId: Aws.ACCOUNT_ID,
@@ -192,5 +192,75 @@ export class QuicksightDashboard extends Construct {
 				}
 			}
 		});
+
+		new CfnAnalysis(this, "Analysis", {
+			name: "Tag Inventory",
+			awsAccountId: Aws.ACCOUNT_ID,
+			analysisId: "tag-inventory-analysis",
+			permissions:principalArns.map(value => {
+				return {
+					principal:value,
+					actions:[  "quicksight:RestoreAnalysis",
+						"quicksight:UpdateAnalysisPermissions",
+						"quicksight:DeleteAnalysis",
+						"quicksight:DescribeAnalysisPermissions",
+						"quicksight:QueryAnalysis",
+						"quicksight:DescribeAnalysis",
+						"quicksight:UpdateAnalysis"
+					]
+
+				}
+			}),
+			definition: {
+				dataSetIdentifierDeclarations:[{
+					dataSetArn:dataSet.attrArn,
+					identifier:dataSet.dataSetId!
+				}],
+				sheets: [{
+					name: "Overview",
+					sheetId: "tag-inventory-analysis-overview-sheet",
+					visuals: [{
+						pieChartVisual: {
+							visualId: "distinct-tag-names-by-service",
+							title: {
+								formatText: {
+									plainText: "Distinct Tag Names by Service",
+								}
+							},
+							chartConfiguration: {
+								fieldWells: {
+									pieChartAggregatedFieldWells: {
+										category: [{
+											categoricalDimensionField: {
+												fieldId:"service",
+												column: {
+													dataSetIdentifier: dataSet.dataSetId!,
+													columnName: "service",
+												}
+											}
+										}],
+										values:[{
+											categoricalMeasureField:{
+												fieldId:"tagname",
+
+												column: {
+													dataSetIdentifier: dataSet.dataSetId!,
+													columnName: "tagname",
+												},
+												aggregationFunction:"DISTINCT_COUNT"
+										}}],
+
+									}
+
+								}
+							}
+
+						}
+					}]
+				}]
+			}
+
+		})
+
 	}
 }
