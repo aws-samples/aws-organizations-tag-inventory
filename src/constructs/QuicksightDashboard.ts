@@ -16,7 +16,7 @@
  */
 
 import {Construct} from "constructs";
-import {CfnManagedPolicy, ManagedPolicy, Policy, Role} from "aws-cdk-lib/aws-iam";
+import {CfnManagedPolicy, ManagedPolicy,  Role} from "aws-cdk-lib/aws-iam";
 import {Central} from "./Central";
 import {BlockPublicAccess, Bucket, BucketEncryption, IBucket} from "aws-cdk-lib/aws-s3";
 import {CfnDataSet, CfnDataSource} from "aws-cdk-lib/aws-quicksight";
@@ -159,7 +159,7 @@ export class QuicksightDashboard extends Construct {
 					relationalTable: {
 						dataSourceArn: dataSource.attrArn,
 						name: "tag-inventory-view",
-						catalog: config.central.database.catalogId,
+						catalog: "AwsDataCatalog",
 						schema: config.central.database.ref,
 						inputColumns: [
 							{
