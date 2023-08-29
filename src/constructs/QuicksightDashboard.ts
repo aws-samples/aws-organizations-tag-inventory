@@ -19,7 +19,7 @@ import {Construct} from "constructs";
 import {CfnManagedPolicy, ManagedPolicy, Role} from "aws-cdk-lib/aws-iam";
 import {Central} from "./Central";
 import {BlockPublicAccess, Bucket, BucketEncryption, IBucket} from "aws-cdk-lib/aws-s3";
-import {CfnAnalysis, CfnDataSet, CfnDataSource} from "aws-cdk-lib/aws-quicksight";
+import { CfnDashboard, CfnDataSet, CfnDataSource} from "aws-cdk-lib/aws-quicksight";
 import {CfnWorkGroup} from "aws-cdk-lib/aws-athena";
 import {Aws, RemovalPolicy} from "aws-cdk-lib";
 
@@ -267,20 +267,22 @@ export class QuicksightDashboard extends Construct {
 			}
 		});
 
-		new CfnAnalysis(this, "Analysis", {
+		new CfnDashboard(this, "TagInventoryDashboard", {
 			name: "Tag Inventory",
 			awsAccountId: Aws.ACCOUNT_ID,
-			analysisId: "tag-inventory-analysis",
+			dashboardId: "tag-inventory-dashboard",
 			permissions: principalArns.map(value => {
 				return {
 					principal: value,
-					actions: ["quicksight:RestoreAnalysis",
-						"quicksight:UpdateAnalysisPermissions",
-						"quicksight:DeleteAnalysis",
-						"quicksight:DescribeAnalysisPermissions",
-						"quicksight:QueryAnalysis",
-						"quicksight:DescribeAnalysis",
-						"quicksight:UpdateAnalysis"
+					actions: [
+						"quicksight:DescribeDashboard",
+						"quicksight:ListDashboardVersions",
+						"quicksight:UpdateDashboardPermissions",
+						"quicksight:QueryDashboard",
+						"quicksight:UpdateDashboard",
+						"quicksight:DeleteDashboard",
+						"quicksight:DescribeDashboardPermissions",
+						"quicksight:UpdateDashboardPublishedVersion"
 					]
 
 				}
@@ -553,9 +555,12 @@ export class QuicksightDashboard extends Construct {
 					],
 					contentType: "INTERACTIVE"
 				}]
+
 			}
+
 
 		})
 
 	}
+
 }
