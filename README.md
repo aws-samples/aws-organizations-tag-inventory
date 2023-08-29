@@ -75,7 +75,7 @@ The easiest way to deploy the solution is using the supplied command line interf
    ![Select central](./images/central02.png)
 3. Choose whether you want to deploy the QuickSight dashboard to visualize your tag data
    ![central021.png](images%2Fcentral021.png)
-   4. If you choose to deploy the [QuickSight dashboard](#quicksight-dashboard) you'll be asked to select the users and groups that can access the dashboard
+   1. If you choose to deploy the [QuickSight dashboard](#quicksight-dashboard) you'll be asked to select the users and groups that can access the dashboard
       ![central022.png](images%2Fcentral022.png)
 3. Confirm your choices
    ![central03.png](images%2Fcentral03.png)
