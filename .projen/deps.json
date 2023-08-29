@@ -5,7 +5,15 @@
       "type": "build"
     },
     {
+      "name": "@aws-sdk/client-iam",
+      "type": "build"
+    },
+    {
       "name": "@aws-sdk/client-organizations",
+      "type": "build"
+    },
+    {
+      "name": "@aws-sdk/client-quicksight",
       "type": "build"
     },
     {
