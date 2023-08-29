@@ -35,58 +35,64 @@ export const onEvent = async (
 	logger.info(`Event: ${JSON.stringify(event)}`);
 
 
-	await dropTable(athenaClient);
-	const loadPartitionsResponse = await loadPartitions(athenaClient);
-	if (loadPartitionsResponse != undefined && loadPartitionsResponse.QueryExecution?.Status?.State == QueryExecutionState.SUCCEEDED) {
+	await dropTagInventoryLatestCsvTable(athenaClient);
+
+	if (await run(athenaClient, loadPartitions)) {
 		const dateString = await getMaxDateString(athenaClient);
-		const createViewResponse = await createView(athenaClient)
-		if (createViewResponse != undefined && QueryExecutionState.SUCCEEDED == createViewResponse.QueryExecution?.Status?.State) {
-			const createTableResponse = await createTable(athenaClient, dateString);
-			if (createTableResponse != undefined && QueryExecutionState.SUCCEEDED == createTableResponse.QueryExecution?.Status?.State) {
-				logger.info(`Create table succeeded: ${JSON.stringify(createTableResponse)}`);
-				const manifestUri = new URL(createTableResponse.QueryExecution.Statistics?.DataManifestLocation!);
-				const manifestBucket = manifestUri.hostname;
-				const manifestKey = manifestUri.pathname.substring(1);
+		if (await run(athenaClient, createTagInventoryExternalTable)) {
+			if (await run(athenaClient, createTagInventoryLatestView)) {
+				if (await run(athenaClient, createTagInventoryLatestTopTenView)) {
+					const createTagInventoryLatestCsvTableResponse = await createTagInventoryLatestCsvTable(athenaClient, dateString);
+					if (createTagInventoryLatestCsvTableResponse != undefined && QueryExecutionState.SUCCEEDED == createTagInventoryLatestCsvTableResponse.QueryExecution?.Status?.State) {
+						logger.info(`Create table succeeded: ${JSON.stringify(createTagInventoryLatestCsvTableResponse)}`);
+						const manifestUri = new URL(createTagInventoryLatestCsvTableResponse.QueryExecution.Statistics?.DataManifestLocation!);
+						const manifestBucket = manifestUri.hostname;
+						const manifestKey = manifestUri.pathname.substring(1);
+						logger.info(`Retrieving manifest from : ${manifestBucket}/${manifestKey}`);
+						const getObjectResponse = await s3Client.send(new GetObjectCommand({
+							Bucket: manifestBucket,
+							Key: manifestKey,
+						}));
+						const dataFileLocation = await getObjectResponse.Body?.transformToString();
+						if (dataFileLocation != undefined && dataFileLocation != '') {
+							logger.info(`Data file located at: '${dataFileLocation}'`);
+							const dataFileUri = new URL(dataFileLocation);
+							const dataFileBucket = dataFileUri.hostname;
+							const dataFileKey = dataFileUri.pathname.substring(1);
+							await s3Client.send(new CopyObjectCommand({
+								CopySource: `${dataFileBucket}/${dataFileKey}`,
+								Key: `tag-inventory-${dateString}.csv.gz`,
+								Bucket: process.env.REPORT_BUCKET,
+							}));
+							await s3Client.send(new DeleteObjectCommand({
+								Bucket: dataFileBucket,
+								Key: dataFileKey,
+							}));
+						} else {
+							throw new Error(`Could not determine data file location: '${dataFileLocation}'`);
+						}
+						const dropTableResponse = await dropTagInventoryLatestCsvTable(athenaClient);
+						if (dropTableResponse != undefined && QueryExecutionState.SUCCEEDED == dropTableResponse.QueryExecution?.Status?.State) {
+							logger.info(`Deleting tables from ${manifestBucket}`);
+							await s3Client.send(new DeleteObjectCommand({
+								Bucket: manifestBucket,
+								Key: 'tables',
+							}));
+						} else {
+							throw new Error('Could not drop table');
+						}
 
-				logger.info(`Retrieving manifest from : ${manifestBucket}/${manifestKey}`);
-				const getObjectResponse = await s3Client.send(new GetObjectCommand({
-					Bucket: manifestBucket,
-					Key: manifestKey,
-				}));
-				const dataFileLocation = await getObjectResponse.Body?.transformToString();
-				if (dataFileLocation != undefined && dataFileLocation != '') {
-					logger.info(`Data file located at: '${dataFileLocation}'`);
-					const dataFileUri = new URL(dataFileLocation);
-					const dataFileBucket = dataFileUri.hostname;
-					const dataFileKey = dataFileUri.pathname.substring(1);
-					await s3Client.send(new CopyObjectCommand({
-						CopySource: `${dataFileBucket}/${dataFileKey}`,
-						Key: `tag-inventory-${dateString}.csv.gz`,
-						Bucket: process.env.REPORT_BUCKET,
-					}));
-					await s3Client.send(new DeleteObjectCommand({
-						Bucket: dataFileBucket,
-						Key: dataFileKey,
-					}));
+					} else {
+						throw new Error('Could not create external table: tag-inventory-latest-csv');
+					}
 				} else {
-					throw new Error(`Could not determine data file location: '${dataFileLocation}'`);
+					throw new Error("Could not create view: tag-inventory-latest-top-ten")
 				}
-				const dropTableResponse = await dropTable(athenaClient);
-				if (dropTableResponse != undefined && QueryExecutionState.SUCCEEDED == dropTableResponse.QueryExecution?.Status?.State) {
-					logger.info(`Deleting tables from ${manifestBucket}`);
-					await s3Client.send(new DeleteObjectCommand({
-						Bucket: manifestBucket,
-						Key: 'tables',
-					}));
-				} else {
-					throw new Error('Could not drop table');
-				}
-
 			} else {
-				throw new Error('Could not create table');
+				throw new Error("Could not create view: tag-inventory-latest")
 			}
 		} else {
-			throw new Error('Could not create view');
+			throw new Error('Could not create external table: tag-inventory');
 		}
 	} else {
 		throw new Error('Could not load partitions');
@@ -98,9 +104,18 @@ export const onEvent = async (
 
 };
 
-async function dropTable(client: AthenaClient) {
-	logger.info('Dropping table');
-	return executeCommand(client, `DROP TABLE IF EXISTS \`${process.env.DATABASE}.tag_inventory_csv\`;`);
+async function run(client: AthenaClient, fn: (client: AthenaClient) => Promise<GetQueryExecutionCommandOutput | undefined>): Promise<boolean> {
+	const response = await fn(client)
+	if (response != undefined && QueryExecutionState.SUCCEEDED == response.QueryExecution?.Status?.State) {
+		return true;
+	} else {
+		return false
+	}
+}
+
+async function dropTagInventoryLatestCsvTable(client: AthenaClient) {
+	logger.info('Dropping table: tag-inventory-latest-csv');
+	return executeCommand(client, `DROP TABLE IF EXISTS \`${process.env.DATABASE}.tag-inventory-latest-csv\`;`);
 }
 
 async function loadPartitions(client: AthenaClient): Promise<GetQueryExecutionCommandOutput | undefined> {
@@ -109,9 +124,17 @@ async function loadPartitions(client: AthenaClient): Promise<GetQueryExecutionCo
 	return executeCommand(client, loadPartitionsStatement);
 }
 
-async function createView(client: AthenaClient): Promise<GetQueryExecutionCommandOutput | undefined> {
-	logger.info('Creating view');
-	const createViewStatement = `CREATE OR REPLACE VIEW \"${process.env.DATABASE}\".\"tag-inventory-view\" AS 
+async function createTagInventoryExternalTable(client: AthenaClient): Promise<GetQueryExecutionCommandOutput | undefined> {
+	logger.info('Creating external table: tag-inventory');
+	const statement = `CREATE TABLE IF NOT EXISTS \"${process.env.DATABASE}\".\"tag-inventory\"\n` +
+		'WITH (\n' +
+		"			table_type='HIVE',\n" +
+		"					format = 'PARQUET',\n" +
+		"					parquet_compression = 'SNAPPY',\n" +
+		`					external_location = 's3://${process.env.ATHENA_BUCKET}/tables/tag-inventory/',\n` +
+		"					bucketed_by = ARRAY['d'],\n" +
+		'					bucket_count = 1)\n' +
+		`AS
     SELECT
       d
     , tagname
@@ -124,21 +147,64 @@ async function createView(client: AthenaClient): Promise<GetQueryExecutionComman
     FROM
       \"${process.env.DATABASE}\".\"${process.env.TAG_INVENTORY_TABLE}\"
     , UNNEST("resources") t ("r")
+    `
+	return executeCommand(client, statement);
+}
+
+async function createTagInventoryLatestView(client: AthenaClient): Promise<GetQueryExecutionCommandOutput | undefined> {
+	logger.info('Creating view: tag-inventory-view-latest');
+	const createViewStatement = `CREATE OR REPLACE VIEW \"${process.env.DATABASE}\".\"tag-inventory-view-latest\" AS
+    SELECT
+      d
+    , tagname
+    , tagvalue
+    , owningAccountId
+    , region
+    , service
+    , resourceType
+    , arn
+    FROM
+      \"${process.env.DATABASE}\"."tag-inventory"
+   
+    where d = (select max(d) from \"${process.env.DATABASE}\"."tag-inventory")
     ORDER BY d DESC, tagname DESC, tagvalue DESC
     `
 	return executeCommand(client, createViewStatement);
 }
 
-async function createTable(client: AthenaClient, dateString: string): Promise<GetQueryExecutionCommandOutput | undefined> {
-	logger.info('Creating table');
-	const createTableStatement = `CREATE TABLE \"${process.env.DATABASE}\".\"tag_inventory_csv\"\n` +
+async function createTagInventoryLatestTopTenView(client: AthenaClient): Promise<GetQueryExecutionCommandOutput | undefined> {
+	logger.info('Creating view: tag-inventory-view-latest-top-ten');
+	const createViewStatement = `CREATE OR REPLACE VIEW \"${process.env.DATABASE}\".\"tag-inventory-view-latest-top-ten\" AS
+			 SELECT
+				tagname,
+				tagvalue,
+				count(distinct arn) as resource_count
+		FROM \"${process.env.DATABASE}\"."tag-inventory-view-latest"
+		group by 
+				tagname, tagvalue
+		ORDER BY 
+				resource_count DESC,
+				tagname DESC,
+				tagvalue DESC
+				limit 10`
+	return executeCommand(client, createViewStatement);
+}
+
+async function createTagInventoryLatestCsvTable(client: AthenaClient, dateString: string): Promise<GetQueryExecutionCommandOutput | undefined> {
+	logger.info('Creating table: tag-inventory-latest-csv');
+	const createTableStatement = `CREATE TABLE \"${process.env.DATABASE}\".\"tag-inventory-latest-csv\"\n` +
 		'WITH (\n' +
 		"      format = 'TEXTFILE',\n" +
 		"      field_delimiter = ',',\n" +
 		`      external_location = 's3://${process.env.REPORT_BUCKET}/${dateString}',\n` +
 		"      bucketed_by = ARRAY['d'],\n" +
 		'      bucket_count = 1)\n' +
-		`AS (\n SELECT * FROM \"${process.env.DATABASE}\".\"tag-inventory-view\" where d=(select max(d) from \"${process.env.DATABASE}\".\"tag-inventory-view\")\n);`;
+		`AS (\n 
+					select 'date' as d,'tagname' as tagname,'tagvalue'as tagvalue,'owningaccountid' as owningaccountid,'region' as region,'service' as service,'resourcetype' as resourcetype,'arn' as arn \n
+					union all \n
+					SELECT d,tagname,tagvalue,owningaccountid, region,service,resourcetype, arn FROM \"${process.env.DATABASE}\".\"tag-inventory-view-latest\" \n
+					order by d desc, tagname asc\n
+		);`;
 
 	return executeCommand(client, createTableStatement);
 }

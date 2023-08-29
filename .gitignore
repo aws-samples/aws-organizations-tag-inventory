@@ -35,6 +35,8 @@ jspm_packages/
 repolinter.txt
 .$architecture.drawio.bkp
 *.output.txt
+QuestionsQuicksightShouldAnswer.md
+definition.json
 !/.projenrc.js
 /test-reports/
 junit.xml

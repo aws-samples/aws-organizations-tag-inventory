@@ -148,17 +148,17 @@ export class QuicksightDashboard extends Construct {
 		});
 		dataSource.addDependency(qsManagedPolicy)
 
-		const dataSet = new CfnDataSet(this, 'TagInventoryDataSet', {
-			name: 'tag-inventory-data-set',
-			dataSetId: 'tag-inventory-data-set',
+		new CfnDataSet(this, 'TagInventoryAllDataSet', {
+			name: 'tag-inventory-all-data-set',
+			dataSetId: 'tag-inventory-all-data-set',
 			awsAccountId: Aws.ACCOUNT_ID,
 			permissions: qsDatasetPermissions,
 			importMode: "DIRECT_QUERY",
 			physicalTableMap: {
-				"tag-inventory-table": {
+				"tag-inventory": {
 					relationalTable: {
 						dataSourceArn: dataSource.attrArn,
-						name: "tag-inventory-view",
+						name: "tag-inventory",
 						catalog: "AwsDataCatalog",
 						schema: config.central.database.ref,
 						inputColumns: [
@@ -189,7 +189,81 @@ export class QuicksightDashboard extends Construct {
 							}
 						]
 					}
-				}
+				},
+			}
+		});
+		const tagInventoryLatestViewDataSet = new CfnDataSet(this, 'TagInventoryLatestDataSet', {
+			name: 'tag-inventory-latest-data-set',
+			dataSetId: 'tag-inventory-latest-data-set',
+			awsAccountId: Aws.ACCOUNT_ID,
+			permissions: qsDatasetPermissions,
+			importMode: "DIRECT_QUERY",
+			physicalTableMap: {
+				"tag-inventory-view-latest": {
+					relationalTable: {
+						dataSourceArn: dataSource.attrArn,
+						name: "tag-inventory-view-latest",
+						catalog: "AwsDataCatalog",
+						schema: config.central.database.ref,
+						inputColumns: [
+							{
+								name: "d",
+								type: "STRING"
+							}, {
+								name: "tagname",
+								type: "STRING"
+							}, {
+								name: "tagvalue",
+								type: "STRING"
+							}, {
+								name: "owningaccountid",
+								type: "STRING"
+							}, {
+								name: "region",
+								type: "STRING"
+							}, {
+								name: "service",
+								type: "STRING"
+							}, {
+								name: "resourcetype",
+								type: "STRING"
+							}, {
+								name: "arn",
+								type: "STRING"
+							}
+						]
+					}
+				},
+			}
+		});
+
+		const tagInventoryLatestTopTenViewDataSet = new CfnDataSet(this, 'TagInventoryLatestTopTenViewDataSet', {
+			name: 'tag-inventory-latest-top-ten-data-set',
+			dataSetId: 'tag-inventory-latest-top-ten-data-set',
+			awsAccountId: Aws.ACCOUNT_ID,
+			permissions: qsDatasetPermissions,
+			importMode: "DIRECT_QUERY",
+			physicalTableMap: {
+				"tag-inventory-view-latest-top-ten": {
+					relationalTable: {
+						dataSourceArn: dataSource.attrArn,
+						name: "tag-inventory-view-latest-top-ten",
+						catalog: "AwsDataCatalog",
+						schema: config.central.database.ref,
+						inputColumns: [
+						 {
+								name: "tagname",
+								type: "STRING"
+							}, {
+								name: "tagvalue",
+								type: "STRING"
+							}, {
+								name: "resource_count",
+								type: "INTEGER"
+							}
+						]
+					}
+				},
 			}
 		});
 
@@ -197,10 +271,10 @@ export class QuicksightDashboard extends Construct {
 			name: "Tag Inventory",
 			awsAccountId: Aws.ACCOUNT_ID,
 			analysisId: "tag-inventory-analysis",
-			permissions:principalArns.map(value => {
+			permissions: principalArns.map(value => {
 				return {
-					principal:value,
-					actions:[  "quicksight:RestoreAnalysis",
+					principal: value,
+					actions: ["quicksight:RestoreAnalysis",
 						"quicksight:UpdateAnalysisPermissions",
 						"quicksight:DeleteAnalysis",
 						"quicksight:DescribeAnalysisPermissions",
@@ -212,13 +286,80 @@ export class QuicksightDashboard extends Construct {
 				}
 			}),
 			definition: {
-				dataSetIdentifierDeclarations:[{
-					dataSetArn:dataSet.attrArn,
-					identifier:dataSet.dataSetId!
+				dataSetIdentifierDeclarations: [{
+					dataSetArn: tagInventoryLatestViewDataSet.attrArn,
+					identifier: tagInventoryLatestViewDataSet.dataSetId!
+				},{
+					dataSetArn: tagInventoryLatestTopTenViewDataSet.attrArn,
+					identifier: tagInventoryLatestTopTenViewDataSet.dataSetId!
 				}],
+				filterGroups: [
+					{
+						filterGroupId: "tag-name-filter-group",
+						filters: [
+							{
+								categoryFilter: {
+									filterId: "tag-name-filter",
+									column: {
+										dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
+										columnName: "tagname"
+									},
+									configuration: {
+										filterListConfiguration: {
+											matchOperator: "CONTAINS",
+											selectAllOptions: "FILTER_ALL_VALUES"
+										}
+									}
+								}
+							}
+						],
+						scopeConfiguration: {
+							selectedSheets: {
+								sheetVisualScopingConfigurations: [
+									{
+										sheetId: "tag-inventory-analysis-latest-sheet",
+										scope: "SELECTED_VISUALS",
+										visualIds: [
+											"distinct-tag-names-by-service"
+										]
+									}
+								]
+							}
+						},
+						status: "ENABLED",
+						crossDataset: "SINGLE_DATASET"
+					}
+				],
 				sheets: [{
-					name: "Overview",
-					sheetId: "tag-inventory-analysis-overview-sheet",
+					name: "Latest",
+					sheetId: "tag-inventory-analysis-latest-sheet",
+
+					filterControls: [
+						{
+							dropdown: {
+								filterControlId: "latest-tag-name-filter",
+								sourceFilterId: "tag-name-filter",
+								title: "Tag name",
+								displayOptions: {
+									selectAllOptions: {
+										visibility: "VISIBLE"
+									},
+									titleOptions: {
+										visibility: "VISIBLE",
+										fontConfiguration: {
+											fontSize: {
+												relative: "MEDIUM"
+											}
+										},
+
+									}
+
+
+								},
+								type: "MULTI_SELECT"
+							}
+						}
+					],
 					visuals: [{
 						pieChartVisual: {
 							visualId: "distinct-tag-names-by-service",
@@ -232,23 +373,24 @@ export class QuicksightDashboard extends Construct {
 									pieChartAggregatedFieldWells: {
 										category: [{
 											categoricalDimensionField: {
-												fieldId:"service",
+												fieldId: "service",
 												column: {
-													dataSetIdentifier: dataSet.dataSetId!,
+													dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
 													columnName: "service",
 												}
 											}
 										}],
-										values:[{
-											categoricalMeasureField:{
-												fieldId:"tagname",
+										values: [{
+											categoricalMeasureField: {
+												fieldId: "tagname",
 
 												column: {
-													dataSetIdentifier: dataSet.dataSetId!,
+													dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
 													columnName: "tagname",
 												},
-												aggregationFunction:"DISTINCT_COUNT"
-										}}],
+												aggregationFunction: "DISTINCT_COUNT"
+											}
+										}],
 
 									}
 
@@ -256,7 +398,160 @@ export class QuicksightDashboard extends Construct {
 							}
 
 						}
-					}]
+					},{
+						tableVisual: {
+							visualId: "tag-inventory-view-latest-top-ten",
+							title: {
+								visibility: "VISIBLE",
+								formatText: {
+									richText: "<visual-title>Top 10 Tag Names and Values</visual-title>"
+								}
+							},
+							subtitle: {
+								visibility: "VISIBLE"
+							},
+							chartConfiguration: {
+								fieldWells: {
+									tableAggregatedFieldWells: {
+										groupBy: [
+											{
+												categoricalDimensionField: {
+													fieldId: "tag-inventory-view-latest-top-ten.tagname.1.1693345312669",
+													column: {
+														dataSetIdentifier: "tag-inventory-latest-top-ten-data-set",
+														columnName: "tagname"
+													}
+												}
+											},
+											{
+												categoricalDimensionField: {
+													fieldId: "tag-inventory-view-latest-top-ten.tagvalue.0.1693345288988",
+													column: {
+														dataSetIdentifier: "tag-inventory-latest-top-ten-data-set",
+														columnName: "tagvalue"
+													}
+												}
+											}
+										],
+										values: [
+											{
+												numericalMeasureField: {
+													fieldId: "tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
+													column: {
+														dataSetIdentifier: "tag-inventory-latest-top-ten-data-set",
+														columnName: "resource_count"
+													},
+													aggregationFunction: {
+														simpleNumericalAggregation: "SUM"
+													},
+													formatConfiguration: {
+														formatConfiguration: {
+															numberDisplayFormatConfiguration: {
+																separatorConfiguration: {
+																	thousandsSeparator: {
+																		visibility: "HIDDEN"
+																	}
+																},
+																decimalPlacesConfiguration: {
+																	decimalPlaces: 0
+																}
+															}
+														}
+													}
+												}
+											}
+										]
+									}
+								},
+								sortConfiguration: {
+									rowSort: [
+										{
+											fieldSort: {
+												fieldId: "tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
+												direction: "DESC"
+											}
+										}
+									]
+								},
+								tableOptions: {
+									headerStyle: {
+										textWrap: "WRAP",
+										height: 25
+									},
+									rowAlternateColorOptions: {
+										status: "DISABLED"
+									}
+								},
+								fieldOptions: {
+									selectedFieldOptions: [
+										{
+											fieldId: "tag-inventory-view-latest-top-ten.tagname.1.1693345312669",
+											width: "188px",
+											customLabel: "Tag Name"
+										},
+										{
+											fieldId: "tag-inventory-view-latest-top-ten.tagvalue.0.1693345288988",
+											width: "261px",
+											customLabel: "Tag Value"
+										},
+										{
+											fieldId: "tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
+											width: "130px",
+											customLabel: "Resources"
+										}
+									],
+									order: [
+										"tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
+										"tag-inventory-view-latest-top-ten.tagname.1.1693345312669",
+										"tag-inventory-view-latest-top-ten.tagvalue.0.1693345288988"
+									]
+								}
+							},
+							actions: []
+						}
+					}],
+					layouts: [
+						{
+							configuration: {
+								gridLayout: {
+									elements: [
+										{
+											elementId: "distinct-tag-names-by-service",
+											elementType: "VISUAL",
+											columnIndex: 0,
+											columnSpan: 18,
+											rowIndex: 2,
+											rowSpan: 12
+										},
+										{
+											elementId: "tag-inventory-view-latest-top-ten",
+											elementType: "VISUAL",
+											columnSpan: 18,
+											rowSpan: 12
+										}
+									]
+								}
+							}
+						},
+
+					],
+					sheetControlLayouts: [
+						{
+							configuration: {
+								gridLayout: {
+									elements: [
+										{
+											elementId: "latest-tag-name-filter",
+											elementType: "FILTER_CONTROL",
+											columnSpan: 2,
+											rowSpan: 1
+										}
+									]
+								}
+							}
+						}
+					],
+					contentType: "INTERACTIVE"
 				}]
 			}
 
