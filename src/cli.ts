@@ -177,12 +177,12 @@ async function centralStack(input: { stack: string, region: string }): Promise<v
 	const organization = await getOrganization(input.region)
 	const quicksightConfirmation = await prompts([{
 		type: "confirm",
-		name: "deployQuickSightDashboard",
-		message: "Would you like to deploy a QuickSight dashboard to visualize your tag inventory data?"
+		name: "deployQuickSight",
+		message: "Would you like to use QuickSight to visualize your tag inventory data?"
 	}])
 	const users: User[] = []
 	const groups: Group[] = []
-	if (quicksightConfirmation.deployQuickSightDashboard) {
+	if (quicksightConfirmation.deployQuickSight) {
 		//cehck for aws-quicksight-service-role-v0
 		console.log("Gathering information on your QuickSight environment...")
 		const iamClient = new IAMClient({region: input.region})
@@ -227,11 +227,11 @@ async function centralStack(input: { stack: string, region: string }): Promise<v
 		}
 	}
 	const quicksightUsersAndGroupsPrompts = []
-	if (users.length > 0 || groups.length > 0) {
+	if (quicksightConfirmation.deployQuickSight && (users.length > 0 || groups.length > 0)) {
 		if (users.length > 0) {
 			quicksightUsersAndGroupsPrompts.push({
 				type: "multiselect",
-				message: "Select the QuickSight users you want to allow to read the tag inventory dashboard ",
+				message: "Select the QuickSight users you want to allow access to the Tag Inventory QuickSight resources",
 				name: "quickSightUsers",
 				choices: users.filter(user => {
 					return user.Active == true
@@ -245,7 +245,7 @@ async function centralStack(input: { stack: string, region: string }): Promise<v
 		if (groups.length > 0) {
 			quicksightUsersAndGroupsPrompts.push({
 				type: "multiselect",
-				message: "Select the QuickSight groups you want to allow to read the tag inventory dashboard ",
+				message: "Select the QuickSight groups you want to allow access to the Tag Inventory QuickSight resources",
 				name: "quickSightGroups",
 				choices: groups.map(group => {
 					return {title: `${group.GroupName} - ${group.Description}`, value: group.Arn}
@@ -254,7 +254,7 @@ async function centralStack(input: { stack: string, region: string }): Promise<v
 
 			})
 		}
-	} else {
+	} else if(quicksightConfirmation.deployQuickSight) {
 		console.log("Unable to retrieve any QuickSight users or groups. Please ensure you have setup at least one user https://docs.aws.amazon.com/quicksight/latest/user/managing-users.html")
 		process.exit(-1)
 	}
@@ -271,7 +271,7 @@ async function centralStack(input: { stack: string, region: string }): Promise<v
 		if (profile != undefined) {
 			cmd = cmd + " --profile " + profile
 		}
-		cmd = cmd + " --region " + input.region + " -c stack=central -c organizationId=" + organization.Id + " -c organizationPayerAccountId=" + organization.MasterAccountId + " -c deployQuickSightDashboard=" + quicksightConfirmation.deployQuickSightDashboard
+		cmd = cmd + " --region " + input.region + " -c stack=central -c organizationId=" + organization.Id + " -c organizationPayerAccountId=" + organization.MasterAccountId + " -c deployQuickSight=" + quicksightConfirmation.deployQuickSight
 		if(quicksightUsersAndGroups.quickSightUsers!=undefined){
 			cmd=cmd+" -c quickSightUserArns="+quicksightUsersAndGroups.quickSightUsers.join(",")
 		}

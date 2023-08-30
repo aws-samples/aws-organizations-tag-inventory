@@ -21,13 +21,13 @@ import {CfnParameter, Stack, StackProps, Tags} from 'aws-cdk-lib';
 import {NagSuppressions} from 'cdk-nag';
 import {Construct} from 'constructs';
 import {Central} from "../constructs/Central";
-import {QuicksightDashboard} from "../constructs/QuicksightDashboard";
+import {QuickSight} from "../constructs/QuickSight";
 
 
 export interface CentralStackProps extends StackProps {
 	organizationId?: string
 	organizationPayerAccountId?: string
-	deployQuickSightDashboard: boolean,
+	deployQuickSight: boolean,
 	quickSightUserArns?: string
 	quickSightGroupArns?: string
 }
@@ -52,9 +52,9 @@ export class CentralStack extends Stack {
 			organizationPayerAccountId: organizationPayerAccountIdParameter.valueAsString
 		})
 		//right now this option is only available through cdk generation
-		if (props.deployQuickSightDashboard) {
+		if (props.deployQuickSight) {
 
-			new QuicksightDashboard(this, "QuickSight", {
+			new QuickSight(this, "QuickSight", {
 				central: central,
 				quickSightUserArns: props.quickSightUserArns?.split(","),
 				quickSightGroupArns: props.quickSightGroupArns?.split(","),
