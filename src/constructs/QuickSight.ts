@@ -408,18 +408,15 @@ export class QuickSight extends Construct {
 							},
 							{
 								tableVisual: {
-									visualId: "tag-inventory-view-latest-top-ten",
+									visualId: "aa36eaf4-6c95-46a6-b914-4ccbfd036eff",
 									title: {
 										visibility: "VISIBLE",
 										formatText: {
-											richText: "<visual-title>Top 10 Tag Names and Values</visual-title>"
+											richText: "<visual-title>Tag Inventory</visual-title>"
 										}
 									},
 									subtitle: {
-										visibility: "VISIBLE",
-										formatText: {
-											richText: "<visual-subtitle>Note that a single distinct resource can have multiple tag name/value combinations applied</visual-subtitle>"
-										}
+										visibility: "VISIBLE"
 									},
 									chartConfiguration: {
 										fieldWells: {
@@ -427,62 +424,76 @@ export class QuickSight extends Construct {
 												groupBy: [
 													{
 														categoricalDimensionField: {
-															fieldId: "tag-inventory-view-latest-top-ten.tagname.1.1693345312669",
+															fieldId: "tag-inventory-view-latest.tagname.0.1693424974533",
 															column: {
-																dataSetIdentifier: tagInventoryLatestTopTenViewDataSet.dataSetId!,
+																dataSetIdentifier: "tag-inventory-latest-data-set",
 																columnName: "tagname"
 															}
 														}
 													},
 													{
 														categoricalDimensionField: {
-															fieldId: "tag-inventory-view-latest-top-ten.tagvalue.0.1693345288988",
+															fieldId: "tag-inventory-view-latest.tagvalue.1.1693424991141",
 															column: {
-																dataSetIdentifier: tagInventoryLatestTopTenViewDataSet.dataSetId!,
+																dataSetIdentifier: "tag-inventory-latest-data-set",
 																columnName: "tagvalue"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.owningaccountid.2.1693425018483",
+															column: {
+																dataSetIdentifier: "tag-inventory-latest-data-set",
+																columnName: "owningaccountid"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.region.3.1693425061317",
+															column: {
+																dataSetIdentifier: "tag-inventory-latest-data-set",
+																columnName: "region"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.service.4.1693425114160",
+															column: {
+																dataSetIdentifier: "tag-inventory-latest-data-set",
+																columnName: "service"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.resourcetype.5.1693425118981",
+															column: {
+																dataSetIdentifier: "tag-inventory-latest-data-set",
+																columnName: "resourcetype"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.arn.6.1693425128501",
+															column: {
+																dataSetIdentifier: "tag-inventory-latest-data-set",
+																columnName: "arn"
 															}
 														}
 													}
 												],
-												values: [
-													{
-														numericalMeasureField: {
-															fieldId: "tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
-															column: {
-																dataSetIdentifier: tagInventoryLatestTopTenViewDataSet.dataSetId!,
-																columnName: "resource_count"
-															},
-															aggregationFunction: {
-																simpleNumericalAggregation: "SUM"
-															},
-															formatConfiguration: {
-																formatConfiguration: {
-																	numberDisplayFormatConfiguration: {
-																		separatorConfiguration: {
-																			thousandsSeparator: {
-																				visibility: "HIDDEN"
-																			}
-																		},
-																		decimalPlacesConfiguration: {
-																			decimalPlaces: 0
-																		}
-																	}
-																}
-															}
-														}
-													}
-												]
+												values: []
 											}
 										},
 										sortConfiguration: {
-											rowSort: [
-												{
-													fieldSort: {
-														fieldId: "tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
-														direction: "DESC"
-													}
-												}
-											]
+											paginationConfiguration: {
+												pageSize: 100,
+												pageNumber: 1
+											}
 										},
 										tableOptions: {
 											headerStyle: {
@@ -493,33 +504,40 @@ export class QuickSight extends Construct {
 												status: "DISABLED"
 											}
 										},
-										totalOptions: {
-											totalsVisibility: "HIDDEN",
-											placement: "END"
-										},
 										fieldOptions: {
 											selectedFieldOptions: [
 												{
-													fieldId: "tag-inventory-view-latest-top-ten.tagname.1.1693345312669",
-													width: "188px",
+													fieldId: "tag-inventory-view-latest.tagname.0.1693424974533",
+													width: "198px",
 													customLabel: "Tag Name"
 												},
 												{
-													fieldId: "tag-inventory-view-latest-top-ten.tagvalue.0.1693345288988",
-													width: "261px",
+													fieldId: "tag-inventory-view-latest.tagvalue.1.1693424991141",
+													width: "244px",
 													customLabel: "Tag Value"
 												},
 												{
-													fieldId: "tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
-													width: "130px",
-													customLabel: "Resources"
+													fieldId: "tag-inventory-view-latest.owningaccountid.2.1693425018483",
+													customLabel: "Account #"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.region.3.1693425061317",
+													customLabel: "Region"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.service.4.1693425114160",
+													customLabel: "Service"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.resourcetype.5.1693425118981",
+													customLabel: "Resource Type"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.arn.6.1693425128501",
+													customLabel: "Resource ARN"
 												}
 											],
-											order: [
-												"tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
-												"tag-inventory-view-latest-top-ten.tagname.1.1693345312669",
-												"tag-inventory-view-latest-top-ten.tagvalue.0.1693345288988"
-											]
+											order: []
 										}
 									},
 									actions: []
@@ -785,8 +803,8 @@ export class QuickSight extends Construct {
 											scrollbarOptions: {
 												visibleRange: {
 													percentRange: {
-														from: 47.36842105263172,
-														to: 100.0
+														from: 0.0,
+														to: 52.631578947368304
 													}
 												}
 											}
@@ -863,8 +881,8 @@ export class QuickSight extends Construct {
 								}
 							},
 							{
-								kpiVisual: {
-									visualId: "959cb39c-49be-4af6-858f-3e977535edf9",
+								tableVisual: {
+									visualId: "aa36eaf4-6c95-46a6-b914-4ccbfd036eff",
 									title: {
 										visibility: "VISIBLE"
 									},
@@ -873,44 +891,105 @@ export class QuickSight extends Construct {
 									},
 									chartConfiguration: {
 										fieldWells: {
-											values: [
-												{
-													categoricalMeasureField: {
-														fieldId: "tag-inventory-view-latest-top-ten.tagname.1.1693424309116",
-														column: {
-															dataSetIdentifier: tagInventoryLatestTopTenViewDataSet.dataSetId!,
-															columnName: "tagname"
-														},
-														aggregationFunction: "COUNT"
-													}
-												}
-											],
-											targetValues: [],
-											trendGroups: [
-												{
-													numericalDimensionField: {
-														fieldId: "tag-inventory-view-latest-top-ten.resource_count.0.1693424248498",
-														column: {
-															dataSetIdentifier: tagInventoryLatestTopTenViewDataSet.dataSetId!,
-															columnName: "resource_count"
+											tableAggregatedFieldWells: {
+												groupBy: [
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.tagname.0.1693424974533",
+															column: {
+																dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
+																columnName: "tagname"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.tagvalue.1.1693424991141",
+															column: {
+																dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
+																columnName: "tagvalue"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.owningaccountid.2.1693425018483",
+															column: {
+																dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
+																columnName: "owningaccountid"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.region.3.1693425061317",
+															column: {
+																dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
+																columnName: "region"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.service.4.1693425114160",
+															column: {
+																dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
+																columnName: "service"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.resourcetype.5.1693425118981",
+															column: {
+																dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
+																columnName: "resourcetype"
+															}
+														}
+													},
+													{
+														categoricalDimensionField: {
+															fieldId: "tag-inventory-view-latest.arn.6.1693425128501",
+															column: {
+																dataSetIdentifier: tagInventoryLatestViewDataSet.dataSetId!,
+																columnName: "arn"
+															}
 														}
 													}
-												}
-											]
+												],
+												values: []
+											}
 										},
 										sortConfiguration: {
-											trendGroupSort: [
+											paginationConfiguration: {
+												pageSize: 100,
+												pageNumber: 1
+											}
+										},
+										tableOptions: {
+											headerStyle: {
+												textWrap: "WRAP",
+												height: 25
+											},
+											rowAlternateColorOptions: {
+												status: "DISABLED"
+											}
+										},
+										fieldOptions: {
+											selectedFieldOptions: [
 												{
-													fieldSort: {
-														fieldId: "tag-inventory-view-latest-top-ten.tagname.1.1693424309116",
-														direction: "DESC"
-													}
+													fieldId: "tag-inventory-view-latest.tagname.0.1693424974533",
+													width: "198px"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.tagvalue.1.1693424991141",
+													width: "244px"
 												}
-											]
+											],
+											order: []
 										}
 									},
-									actions: [],
-									columnHierarchies: []
+									actions: []
 								}
 							}
 						],
@@ -968,10 +1047,12 @@ export class QuickSight extends Construct {
 												rowSpan: 14
 											},
 											{
-												elementId: "959cb39c-49be-4af6-858f-3e977535edf9",
+												elementId: "aa36eaf4-6c95-46a6-b914-4ccbfd036eff",
 												elementType: "VISUAL",
-												columnSpan: 18,
-												rowSpan: 12
+												columnIndex: 0,
+												columnSpan: 36,
+												rowIndex: 32,
+												rowSpan: 21
 											}
 										]
 									}
