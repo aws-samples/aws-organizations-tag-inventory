@@ -41,7 +41,7 @@ const main = async (): Promise<App> => {
 			env: env,
 			organizationId: app.node.tryGetContext('organizationId'),
 			organizationPayerAccountId: app.node.tryGetContext("organizationPayerAccountId"),
-			deployQuickSight: app.node.tryGetContext("deployQuickSight") ?? false,
+			deployQuickSight: JSON.parse(app.node.tryGetContext("deployQuickSight") ?? false),
 			quickSightGroupArns:app.node.tryGetContext("quickSightGroupArns"),
 			quickSightUserArns:app.node.tryGetContext("quickSightUserArns"),
 			synthesizer: new DefaultStackSynthesizer({

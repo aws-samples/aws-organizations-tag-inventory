@@ -320,11 +320,11 @@ export class QuickSight extends Construct {
 					},
 					{
 						identifier: tagInventoryLatestTopTenViewDataSet.dataSetId!,
-						dataSetArn: "arn:aws:quicksight:us-east-1:325887880674:dataset/tag-inventory-latest-top-ten-data-set"
+						dataSetArn: tagInventoryLatestTopTenViewDataSet.attrArn
 					},
 					{
 						identifier: tagInventoryLatestTaggedVsUntagggedViewDataSet.dataSetId!,
-						dataSetArn: "arn:aws:quicksight:us-east-1:325887880674:dataset/tag-inventory-latest-tagged-vs-untagged-data-set"
+						dataSetArn: tagInventoryLatestTaggedVsUntagggedViewDataSet.attrArn
 					}
 				],
 				sheets: [
@@ -408,15 +408,18 @@ export class QuickSight extends Construct {
 							},
 							{
 								tableVisual: {
-									visualId: "aa36eaf4-6c95-46a6-b914-4ccbfd036eff",
+									visualId: "tag-inventory-view-latest-top-ten",
 									title: {
 										visibility: "VISIBLE",
 										formatText: {
-											richText: "<visual-title>Tag Inventory</visual-title>"
+											richText: "<visual-title>Top 10 Tag Names and Values</visual-title>"
 										}
 									},
 									subtitle: {
-										visibility: "VISIBLE"
+										visibility: "VISIBLE",
+										formatText: {
+											richText: "<visual-subtitle>Note that a single distinct resource can have multiple tag name/value combinations applied</visual-subtitle>"
+										}
 									},
 									chartConfiguration: {
 										fieldWells: {
@@ -424,76 +427,62 @@ export class QuickSight extends Construct {
 												groupBy: [
 													{
 														categoricalDimensionField: {
-															fieldId: "tag-inventory-view-latest.tagname.0.1693424974533",
+															fieldId: "tag-inventory-view-latest-top-ten.tagname.1.1693345312669",
 															column: {
-																dataSetIdentifier: "tag-inventory-latest-data-set",
+																dataSetIdentifier: tagInventoryLatestTopTenViewDataSet.dataSetId!,
 																columnName: "tagname"
 															}
 														}
 													},
 													{
 														categoricalDimensionField: {
-															fieldId: "tag-inventory-view-latest.tagvalue.1.1693424991141",
+															fieldId: "tag-inventory-view-latest-top-ten.tagvalue.0.1693345288988",
 															column: {
-																dataSetIdentifier: "tag-inventory-latest-data-set",
+																dataSetIdentifier: tagInventoryLatestTopTenViewDataSet.dataSetId!,
 																columnName: "tagvalue"
-															}
-														}
-													},
-													{
-														categoricalDimensionField: {
-															fieldId: "tag-inventory-view-latest.owningaccountid.2.1693425018483",
-															column: {
-																dataSetIdentifier: "tag-inventory-latest-data-set",
-																columnName: "owningaccountid"
-															}
-														}
-													},
-													{
-														categoricalDimensionField: {
-															fieldId: "tag-inventory-view-latest.region.3.1693425061317",
-															column: {
-																dataSetIdentifier: "tag-inventory-latest-data-set",
-																columnName: "region"
-															}
-														}
-													},
-													{
-														categoricalDimensionField: {
-															fieldId: "tag-inventory-view-latest.service.4.1693425114160",
-															column: {
-																dataSetIdentifier: "tag-inventory-latest-data-set",
-																columnName: "service"
-															}
-														}
-													},
-													{
-														categoricalDimensionField: {
-															fieldId: "tag-inventory-view-latest.resourcetype.5.1693425118981",
-															column: {
-																dataSetIdentifier: "tag-inventory-latest-data-set",
-																columnName: "resourcetype"
-															}
-														}
-													},
-													{
-														categoricalDimensionField: {
-															fieldId: "tag-inventory-view-latest.arn.6.1693425128501",
-															column: {
-																dataSetIdentifier: "tag-inventory-latest-data-set",
-																columnName: "arn"
 															}
 														}
 													}
 												],
-												values: []
+												values: [
+													{
+														numericalMeasureField: {
+															fieldId: "tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
+															column: {
+																dataSetIdentifier: tagInventoryLatestTopTenViewDataSet.dataSetId!,
+																columnName: "resource_count"
+															},
+															aggregationFunction: {
+																simpleNumericalAggregation: "SUM"
+															},
+															formatConfiguration: {
+																formatConfiguration: {
+																	numberDisplayFormatConfiguration: {
+																		separatorConfiguration: {
+																			thousandsSeparator: {
+																				visibility: "HIDDEN"
+																			}
+																		},
+																		decimalPlacesConfiguration: {
+																			decimalPlaces: 0
+																		}
+																	}
+																}
+															}
+														}
+													}
+												]
 											}
 										},
 										sortConfiguration: {
-											paginationConfiguration: {
-												pageSize: 100,
-												pageNumber: 1
-											}
+											rowSort: [
+												{
+													fieldSort: {
+														fieldId: "tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
+														direction: "DESC"
+													}
+												}
+											]
 										},
 										tableOptions: {
 											headerStyle: {
@@ -504,40 +493,33 @@ export class QuickSight extends Construct {
 												status: "DISABLED"
 											}
 										},
+										totalOptions: {
+											totalsVisibility: "HIDDEN",
+											placement: "END"
+										},
 										fieldOptions: {
 											selectedFieldOptions: [
 												{
-													fieldId: "tag-inventory-view-latest.tagname.0.1693424974533",
-													width: "198px",
+													fieldId: "tag-inventory-view-latest-top-ten.tagname.1.1693345312669",
+													width: "188px",
 													customLabel: "Tag Name"
 												},
 												{
-													fieldId: "tag-inventory-view-latest.tagvalue.1.1693424991141",
-													width: "244px",
+													fieldId: "tag-inventory-view-latest-top-ten.tagvalue.0.1693345288988",
+													width: "261px",
 													customLabel: "Tag Value"
 												},
 												{
-													fieldId: "tag-inventory-view-latest.owningaccountid.2.1693425018483",
-													customLabel: "Account #"
-												},
-												{
-													fieldId: "tag-inventory-view-latest.region.3.1693425061317",
-													customLabel: "Region"
-												},
-												{
-													fieldId: "tag-inventory-view-latest.service.4.1693425114160",
-													customLabel: "Service"
-												},
-												{
-													fieldId: "tag-inventory-view-latest.resourcetype.5.1693425118981",
-													customLabel: "Resource Type"
-												},
-												{
-													fieldId: "tag-inventory-view-latest.arn.6.1693425128501",
-													customLabel: "Resource ARN"
+													fieldId: "tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
+													width: "130px",
+													customLabel: "Resources"
 												}
 											],
-											order: []
+											order: [
+												"tag-inventory-view-latest-top-ten.resource_count.2.1693345358630",
+												"tag-inventory-view-latest-top-ten.tagname.1.1693345312669",
+												"tag-inventory-view-latest-top-ten.tagvalue.0.1693345288988"
+											]
 										}
 									},
 									actions: []
@@ -884,7 +866,10 @@ export class QuickSight extends Construct {
 								tableVisual: {
 									visualId: "aa36eaf4-6c95-46a6-b914-4ccbfd036eff",
 									title: {
-										visibility: "VISIBLE"
+										visibility: "VISIBLE",
+										formatText: {
+											richText: "<visual-title>Tag Inventory</visual-title>"
+										}
 									},
 									subtitle: {
 										visibility: "VISIBLE"
@@ -979,11 +964,33 @@ export class QuickSight extends Construct {
 											selectedFieldOptions: [
 												{
 													fieldId: "tag-inventory-view-latest.tagname.0.1693424974533",
-													width: "198px"
+													width: "198px",
+													customLabel: "Tag Name"
 												},
 												{
 													fieldId: "tag-inventory-view-latest.tagvalue.1.1693424991141",
-													width: "244px"
+													width: "244px",
+													customLabel: "Tag Value"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.owningaccountid.2.1693425018483",
+													customLabel: "Account #"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.region.3.1693425061317",
+													customLabel: "Region"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.service.4.1693425114160",
+													customLabel: "Service"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.resourcetype.5.1693425118981",
+													customLabel: "Resource Type"
+												},
+												{
+													fieldId: "tag-inventory-view-latest.arn.6.1693425128501",
+													customLabel: "Resource ARN"
 												}
 											],
 											order: []
