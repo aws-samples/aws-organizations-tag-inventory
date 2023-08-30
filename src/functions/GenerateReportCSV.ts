@@ -39,7 +39,7 @@ export const onEvent = async (
 
 	if (await run(athenaClient, loadPartitions)) {
 		const dateString = await getMaxDateString(athenaClient);
-		if (await run(athenaClient, createTagInventoryExternalTable)) {
+		if (await run(athenaClient, createTagInventoryExternalTable) && await run(athenaClient,updateTagInventoryExternalTable)) {
 			if (await run(athenaClient, createTagInventoryLatestView)) {
 				if (await run(athenaClient, createTagInventoryLatestTopTenView)) {
 					const createTagInventoryLatestCsvTableResponse = await createTagInventoryLatestCsvTable(athenaClient, dateString);
@@ -132,18 +132,38 @@ async function createTagInventoryExternalTable(client: AthenaClient): Promise<Ge
 		"					format = 'PARQUET',\n" +
 		"					parquet_compression = 'SNAPPY',\n" +
 		`					external_location = 's3://${process.env.ATHENA_BUCKET}/tables/tag-inventory/',\n` +
-		"					bucketed_by = ARRAY['d'],\n" +
-		'					bucket_count = 1)\n' +
+		"         partitioned_by=array['d']\n"+
+		")\n"+
 		`AS
-    SELECT
-      d
-    , tagname
+    SELECT 
+     tagname
     , tagvalue
     , r.owningAccountId
     , r.region
     , r.service
     , r.resourceType
     , r.arn
+    , d
+    FROM
+      \"${process.env.DATABASE}\".\"${process.env.TAG_INVENTORY_TABLE}\"
+    , UNNEST("resources") t ("r")
+     WITH NO DATA
+   	 
+    `
+	return executeCommand(client, statement);
+}
+
+async function updateTagInventoryExternalTable(client: AthenaClient): Promise<GetQueryExecutionCommandOutput | undefined> {
+	logger.info('Creating external table: tag-inventory');
+	const statement = `insert into \"${process.env.DATABASE}\".\"tag-inventory\"\n` +
+	`SELECT tagname
+    ,tagvalue
+    ,r.owningAccountId as owningAccountId
+    ,r.region as region
+    ,r.service as service
+    ,r.resourceType as resourceType
+    ,r.arn as arn
+    ,d
     FROM
       \"${process.env.DATABASE}\".\"${process.env.TAG_INVENTORY_TABLE}\"
     , UNNEST("resources") t ("r")
@@ -230,6 +250,7 @@ async function getMaxDateString(client: AthenaClient): Promise<string> {
 }
 
 async function executeCommand(client: AthenaClient, command: string): Promise<GetQueryExecutionCommandOutput | undefined> {
+	logger.info(`Execute statement: ${command}`);
 	const input: StartQueryExecutionCommandInput = { // StartQueryExecutionInput
 		QueryString: command, // required
 		WorkGroup: process.env.WORKGROUP,
@@ -249,7 +270,7 @@ async function executeCommand(client: AthenaClient, command: string): Promise<Ge
 		}
 		await sleep(3000);
 		if (sleepLoopCount++ > 5) {
-			throw new Error('Create table query took too long');
+			throw new Error(`Execution of the following statement took too long: ${command} `);
 		}
 	}
 	return response;
