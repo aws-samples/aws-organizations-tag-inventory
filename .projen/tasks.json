@@ -95,7 +95,7 @@
           "receiveArgs": true
         },
         {
-          "exec": "cdk deploy",
+          "exec": "originalArgs=\"$@\" && AWS_DEFAULT_REGION=`npx ts-node -P tsconfig.json --prefer-ts-exts src/parseRegionArg.ts $originalArgs` && echo \"Deploying to $AWS_DEFAULT_REGION\" && cdk deploy $originalArgs",
           "receiveArgs": true
         }
       ]

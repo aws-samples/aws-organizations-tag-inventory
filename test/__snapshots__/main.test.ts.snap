@@ -120,11 +120,11 @@ exports[`Snapshot 1`] = `
     },
   },
   "Outputs": {
-    "MyIndextaginventoryallresourcesarnoutputFF1B3C48": {
+    "spokeMyIndextaginventoryallresourcesarnoutput76D45A96": {
       "Description": "Arn of tag-inventory-all-resources view",
       "Value": {
         "Fn::GetAtt": [
-          "MyIndexresourceexplorerindexcustomresource6FC13F1F",
+          "spokeMyIndexresourceexplorerindexcustomresource40170C84",
           "ViewArn",
         ],
       },
@@ -181,592 +181,22 @@ exports[`Snapshot 1`] = `
       "Description": "Name of the central account bucket where tag inventory data is stored",
       "Type": "String",
     },
+    "CentralRoleArnParameter": {
+      "Default": "test-role",
+      "Description": "ARN of the central account's cross account role with permissions to write to the centralized bucket where tag inventory data is stored",
+      "Type": "String",
+    },
     "EnabledRegionsParameter": {
       "Default": "us-east-1,us-east-2,us-west-1,us-west-2",
       "Description": "Regions to enable Resource Explorer Indexing",
       "Type": "CommaDelimitedList",
     },
-    "centralRoleArnParameter": {
-      "Default": "test-role",
-      "Description": "ARN of the central account's cross account role with permissions to write to the centralized bucket where tag inventory data is stored",
+    "OrganizationPayerAccountIdParameter": {
+      "Description": "The id of the AWS organization payer account",
       "Type": "String",
     },
   },
   "Resources": {
-    "MergeResultsfnAA3E2F42": {
-      "DependsOn": [
-        "MergeResultsfnServiceRoleB265D4F0",
-      ],
-      "Properties": {
-        "Architectures": [
-          "arm64",
-        ],
-        "Code": {
-          "S3Bucket": {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "bd0ba193507f68e8219f006f6347811b4f250f2ffa70233bc32a80e6a31681d8.zip",
-        },
-        "Environment": {
-          "Variables": {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "LOG_LEVEL": "DEBUG",
-          },
-        },
-        "Handler": "index.onEvent",
-        "Layers": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:aws:lambda:",
-                {
-                  "Ref": "AWS::Region",
-                },
-                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:11",
-              ],
-            ],
-          },
-        ],
-        "Role": {
-          "Fn::GetAtt": [
-            "MergeResultsfnServiceRoleB265D4F0",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs18.x",
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-        "Timeout": 60,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "MergeResultsfnServiceRoleB265D4F0": {
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "MyIndexresourceexplorerindexcustomresource6FC13F1F": {
-      "DeletionPolicy": "Delete",
-      "Properties": {
-        "AGGREGATOR_INDEX_REGION": {
-          "Ref": "AggregatorRegionParameter",
-        },
-        "ENABLED_REGIONS": {
-          "Ref": "EnabledRegionsParameter",
-        },
-        "ServiceToken": {
-          "Fn::GetAtt": [
-            "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::ResourceExplorerIndex",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "Scheduler": {
-      "Properties": {
-        "FlexibleTimeWindow": {
-          "MaximumWindowInMinutes": 60,
-          "Mode": "FLEXIBLE",
-        },
-        "Name": "TagInventorySchedule",
-        "ScheduleExpression": "cron(0 1 ? * * *)",
-        "ScheduleExpressionTimezone": "America/New_York",
-        "State": "ENABLED",
-        "Target": {
-          "Arn": {
-            "Ref": "SpokeAccountStateMachine10567581",
-          },
-          "RoleArn": {
-            "Fn::GetAtt": [
-              "SchedulerRole59E73443",
-              "Arn",
-            ],
-          },
-        },
-      },
-      "Type": "AWS::Scheduler::Schedule",
-    },
-    "SchedulerRole59E73443": {
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "scheduler.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "SchedulerRoleDefaultPolicy66F774B8": {
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": "states:StartExecution",
-              "Effect": "Allow",
-              "Resource": {
-                "Ref": "SpokeAccountStateMachine10567581",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "SchedulerRoleDefaultPolicy66F774B8",
-        "Roles": [
-          {
-            "Ref": "SchedulerRole59E73443",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "Searchfn39BBF692": {
-      "DependsOn": [
-        "SearchfnServiceRoleDefaultPolicy46A0B0D1",
-        "SearchfnServiceRole3456AD27",
-      ],
-      "Properties": {
-        "Architectures": [
-          "arm64",
-        ],
-        "Code": {
-          "S3Bucket": {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "690d1d6c714585d76fd82772ffc9a73f6de1be70c40709f32297ba2a2a7eb8d6.zip",
-        },
-        "Environment": {
-          "Variables": {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "LOG_LEVEL": "DEBUG",
-            "VIEW_ARN": {
-              "Fn::GetAtt": [
-                "MyIndexresourceexplorerindexcustomresource6FC13F1F",
-                "ViewArn",
-              ],
-            },
-          },
-        },
-        "Handler": "index.onEvent",
-        "Layers": [
-          {
-            "Ref": "layerslayerB10D4ECB",
-          },
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:aws:lambda:",
-                {
-                  "Ref": "AWS::Region",
-                },
-                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:11",
-              ],
-            ],
-          },
-        ],
-        "Role": {
-          "Fn::GetAtt": [
-            "SearchfnServiceRole3456AD27",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs18.x",
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-        "Timeout": 60,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "SearchfnServiceRole3456AD27": {
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "SearchfnServiceRoleDefaultPolicy46A0B0D1": {
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": "resource-explorer-2:Search",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "SearchfnServiceRoleDefaultPolicy46A0B0D1",
-        "Roles": [
-          {
-            "Ref": "SearchfnServiceRole3456AD27",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "SpokeAccountStateMachine10567581": {
-      "DeletionPolicy": "Delete",
-      "DependsOn": [
-        "SpokeAccountStateMachineRoleDefaultPolicyF9A051B5",
-        "SpokeAccountStateMachineRole9B579215",
-      ],
-      "Properties": {
-        "DefinitionS3Location": {
-          "Bucket": {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "Key": "545dc56330a59415542eb272e0b9aec36d53d07f5c77ab02fff93d7e3a0b0699.json",
-        },
-        "DefinitionSubstitutions": {
-          "CENTRAL_BUCKET_NAME": {
-            "Ref": "BucketNameParameter",
-          },
-          "CENTRAL_ROLE_ARN": {
-            "Ref": "centralRoleArnParameter",
-          },
-          "MERGE_FUNCTION": {
-            "Fn::GetAtt": [
-              "MergeResultsfnAA3E2F42",
-              "Arn",
-            ],
-          },
-          "SEARCH_FUNCTION": {
-            "Fn::GetAtt": [
-              "Searchfn39BBF692",
-              "Arn",
-            ],
-          },
-        },
-        "LoggingConfiguration": {
-          "Destinations": [
-            {
-              "CloudWatchLogsLogGroup": {
-                "LogGroupArn": {
-                  "Fn::GetAtt": [
-                    "SpokeAccountStateMachineSpokeAccountStateMachineLogGroup6C75AE39",
-                    "Arn",
-                  ],
-                },
-              },
-            },
-          ],
-          "Level": "ALL",
-        },
-        "RoleArn": {
-          "Fn::GetAtt": [
-            "SpokeAccountStateMachineRole9B579215",
-            "Arn",
-          ],
-        },
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-        "TracingConfiguration": {
-          "Enabled": true,
-        },
-      },
-      "Type": "AWS::StepFunctions::StateMachine",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "SpokeAccountStateMachineRole9B579215": {
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": {
-                  "Fn::FindInMap": [
-                    "ServiceprincipalMap",
-                    {
-                      "Ref": "AWS::Region",
-                    },
-                    "states",
-                  ],
-                },
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "SpokeAccountStateMachineRoleDefaultPolicyF9A051B5": {
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": [
-                "logs:CreateLogDelivery",
-                "logs:GetLogDelivery",
-                "logs:UpdateLogDelivery",
-                "logs:DeleteLogDelivery",
-                "logs:ListLogDeliveries",
-                "logs:PutResourcePolicy",
-                "logs:DescribeResourcePolicies",
-                "logs:DescribeLogGroups",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            {
-              "Action": [
-                "xray:PutTraceSegments",
-                "xray:PutTelemetryRecords",
-                "xray:GetSamplingRules",
-                "xray:GetSamplingTargets",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            {
-              "Action": [
-                "s3:PutObject",
-                "s3:PutObjectAcl",
-              ],
-              "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:s3:::",
-                      {
-                        "Ref": "BucketNameParameter",
-                      },
-                    ],
-                  ],
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:s3:::",
-                      {
-                        "Ref": "BucketNameParameter",
-                      },
-                      "/*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Resource": {
-                "Ref": "centralRoleArnParameter",
-              },
-            },
-            {
-              "Action": "lambda:InvokeFunction",
-              "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::GetAtt": [
-                    "MergeResultsfnAA3E2F42",
-                    "Arn",
-                  ],
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      {
-                        "Fn::GetAtt": [
-                          "MergeResultsfnAA3E2F42",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            {
-              "Action": "lambda:InvokeFunction",
-              "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::GetAtt": [
-                    "Searchfn39BBF692",
-                    "Arn",
-                  ],
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      {
-                        "Fn::GetAtt": [
-                          "Searchfn39BBF692",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "SpokeAccountStateMachineRoleDefaultPolicyF9A051B5",
-        "Roles": [
-          {
-            "Ref": "SpokeAccountStateMachineRole9B579215",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "SpokeAccountStateMachineSpokeAccountStateMachineLogGroup6C75AE39": {
-      "DeletionPolicy": "Delete",
-      "Properties": {
-        "LogGroupName": "/aws/statemachine/SpokeAccountStateMachine",
-        "RetentionInDays": 30,
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
-    },
     "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB": {
       "DependsOn": [
         "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventServiceRoleDefaultPolicy196222C7",
@@ -918,7 +348,7 @@ exports[`Snapshot 1`] = `
         "Handler": "index.onEvent",
         "Layers": [
           {
-            "Ref": "layerslayerB10D4ECB",
+            "Ref": "spokelayerslayerBCD68A79",
           },
         ],
         "Role": {
@@ -1018,7 +448,581 @@ exports[`Snapshot 1`] = `
       },
       "Type": "AWS::IAM::Policy",
     },
-    "layerslayerB10D4ECB": {
+    "spokeMergeResultsfn262D356D": {
+      "DependsOn": [
+        "spokeMergeResultsfnServiceRole07998249",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "bd0ba193507f68e8219f006f6347811b4f250f2ffa70233bc32a80e6a31681d8.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "LOG_LEVEL": "DEBUG",
+          },
+        },
+        "Handler": "index.onEvent",
+        "Layers": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:lambda:",
+                {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:11",
+              ],
+            ],
+          },
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "spokeMergeResultsfnServiceRole07998249",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+        "Timeout": 60,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "spokeMergeResultsfnServiceRole07998249": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "spokeMyIndexresourceexplorerindexcustomresource40170C84": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "AGGREGATOR_INDEX_REGION": {
+          "Ref": "AggregatorRegionParameter",
+        },
+        "ENABLED_REGIONS": {
+          "Ref": "EnabledRegionsParameter",
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::ResourceExplorerIndex",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "spokeSchedulerFAB0B53F": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "MaximumWindowInMinutes": 60,
+          "Mode": "FLEXIBLE",
+        },
+        "Name": "TagInventorySchedule",
+        "ScheduleExpression": "cron(0 1 ? * * *)",
+        "ScheduleExpressionTimezone": "America/New_York",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Ref": "spokeSpokeAccountStateMachineD18081B4",
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "spokeSchedulerRole9550E8FD",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "spokeSchedulerRole9550E8FD": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "spokeSchedulerRoleDefaultPolicy3D206F1D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "states:StartExecution",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "spokeSpokeAccountStateMachineD18081B4",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "spokeSchedulerRoleDefaultPolicy3D206F1D",
+        "Roles": [
+          {
+            "Ref": "spokeSchedulerRole9550E8FD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "spokeSearchfn7ED063A8": {
+      "DependsOn": [
+        "spokeSearchfnServiceRoleDefaultPolicyFFFA2302",
+        "spokeSearchfnServiceRole7D05723F",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "690d1d6c714585d76fd82772ffc9a73f6de1be70c40709f32297ba2a2a7eb8d6.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "LOG_LEVEL": "DEBUG",
+            "VIEW_ARN": {
+              "Fn::GetAtt": [
+                "spokeMyIndexresourceexplorerindexcustomresource40170C84",
+                "ViewArn",
+              ],
+            },
+          },
+        },
+        "Handler": "index.onEvent",
+        "Layers": [
+          {
+            "Ref": "spokelayerslayerBCD68A79",
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:lambda:",
+                {
+                  "Ref": "AWS::Region",
+                },
+                ":094274105915:layer:AWSLambdaPowertoolsTypeScript:11",
+              ],
+            ],
+          },
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "spokeSearchfnServiceRole7D05723F",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+        "Timeout": 60,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "spokeSearchfnServiceRole7D05723F": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "spokeSearchfnServiceRoleDefaultPolicyFFFA2302": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "resource-explorer-2:Search",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "spokeSearchfnServiceRoleDefaultPolicyFFFA2302",
+        "Roles": [
+          {
+            "Ref": "spokeSearchfnServiceRole7D05723F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "spokeSpokeAccountStateMachineD18081B4": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "spokeSpokeAccountStateMachineRoleDefaultPolicy4B03EE37",
+        "spokeSpokeAccountStateMachineRoleEF6757B7",
+      ],
+      "Properties": {
+        "DefinitionS3Location": {
+          "Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "Key": "545dc56330a59415542eb272e0b9aec36d53d07f5c77ab02fff93d7e3a0b0699.json",
+        },
+        "DefinitionSubstitutions": {
+          "CENTRAL_BUCKET_NAME": {
+            "Ref": "BucketNameParameter",
+          },
+          "CENTRAL_ROLE_ARN": {
+            "Ref": "CentralRoleArnParameter",
+          },
+          "MERGE_FUNCTION": {
+            "Fn::GetAtt": [
+              "spokeMergeResultsfn262D356D",
+              "Arn",
+            ],
+          },
+          "SEARCH_FUNCTION": {
+            "Fn::GetAtt": [
+              "spokeSearchfn7ED063A8",
+              "Arn",
+            ],
+          },
+        },
+        "LoggingConfiguration": {
+          "Destinations": [
+            {
+              "CloudWatchLogsLogGroup": {
+                "LogGroupArn": {
+                  "Fn::GetAtt": [
+                    "spokeSpokeAccountStateMachineSpokeAccountStateMachineLogGroupBF1216DD",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Level": "ALL",
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "spokeSpokeAccountStateMachineRoleEF6757B7",
+            "Arn",
+          ],
+        },
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+        "TracingConfiguration": {
+          "Enabled": true,
+        },
+      },
+      "Type": "AWS::StepFunctions::StateMachine",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "spokeSpokeAccountStateMachineRoleDefaultPolicy4B03EE37": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogDelivery",
+                "logs:GetLogDelivery",
+                "logs:UpdateLogDelivery",
+                "logs:DeleteLogDelivery",
+                "logs:ListLogDeliveries",
+                "logs:PutResourcePolicy",
+                "logs:DescribeResourcePolicies",
+                "logs:DescribeLogGroups",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+                "xray:GetSamplingRules",
+                "xray:GetSamplingTargets",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "s3:PutObject",
+                "s3:PutObjectAcl",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "BucketNameParameter",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "BucketNameParameter",
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "CentralRoleArnParameter",
+              },
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "spokeMergeResultsfn262D356D",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "spokeMergeResultsfn262D356D",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "spokeSearchfn7ED063A8",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "spokeSearchfn7ED063A8",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "spokeSpokeAccountStateMachineRoleDefaultPolicy4B03EE37",
+        "Roles": [
+          {
+            "Ref": "spokeSpokeAccountStateMachineRoleEF6757B7",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "spokeSpokeAccountStateMachineRoleEF6757B7": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::FindInMap": [
+                    "ServiceprincipalMap",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    "states",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "spokeSpokeAccountStateMachineSpokeAccountStateMachineLogGroupBF1216DD": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LogGroupName": "/aws/statemachine/SpokeAccountStateMachine",
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "spokelayerslayerBCD68A79": {
       "DeletionPolicy": "Delete",
       "Properties": {
         "CompatibleArchitectures": [
@@ -1029,7 +1033,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "13e00fd2c9bd58446b9381c433071b1f848ec12c690be78fea51dbcd6ab50b43.zip",
+          "S3Key": "58044aeaa5a541ea14f56b716d383ce8ed60356a27df6d9558c43a04f6a14336.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

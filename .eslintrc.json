@@ -34,11 +34,7 @@
     }
   },
   "ignorePatterns": [
-    "*.js",
-    "*.d.ts",
-    "node_modules/",
-    "*.generated.ts",
-    "coverage",
+    "cli.ts",
     "!.projenrc.ts",
     "!projenrc/**/*.ts"
   ],

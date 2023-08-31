@@ -15,14 +15,17 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
     name: 'aws-organizations-tag-inventory',
     projenrcTs: true,
     packageManager: NodePackageManager.NPM,
-    gitignore: ['.idea', '*.iml', '.DS_Store', 'repolinter.txt', '.$architecture.drawio.bkp', '*.output.txt','QuestionsQuicksightShouldAnswer.md','definition.json'],
+    gitignore: ['.idea', '*.iml', '.DS_Store', 'repolinter.txt', '.$architecture.drawio.bkp', '*.output.txt', 'QuestionsQuicksightShouldAnswer.md', 'definition.json'],
     license: 'MIT-0',
     github: false,
-
+    eslintOptions: {
+      dirs: ['src'],
+      ignorePatterns: ['cli.ts'],
+    },
     copyrightOwner: 'Amazon.com, Inc. or its affiliates. All Rights Reserved.',
     deps: ['@types/aws-lambda', '@aws-sdk/client-resource-explorer-2', 'uuid', '@aws-sdk/client-athena', '@aws-sdk/client-s3', '@aws-lambda-powertools/logger', 'cdk-nag'], /* Runtime dependencies of this module. */
     // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-    devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist', 'cdk-assets','@aws-sdk/client-organizations','prompts','@types/prompts','@aws-sdk/client-ec2','@smithy/shared-ini-file-loader','@aws-sdk/credential-providers','@aws-sdk/client-sts','@aws-sdk/client-iam','@aws-sdk/client-quicksight'], /* Build dependencies for this module. */
+    devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist', 'cdk-assets', '@aws-sdk/client-organizations', 'prompts', '@types/prompts', '@aws-sdk/client-ec2', '@smithy/shared-ini-file-loader', '@aws-sdk/credential-providers', '@aws-sdk/client-sts', '@aws-sdk/client-iam', '@aws-sdk/client-quicksight', '@aws-sdk/client-ssm'], /* Build dependencies for this module. */
     // packageName: undefined,  /* The "name" in package.json. */
 
   });
@@ -105,15 +108,20 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
 };
 
 app().then(project => {
-  project.tasks.addTask("cli",{
-    exec:"npx ts-node -P tsconfig.json --prefer-ts-exts src/cli.ts"
-  })
+  project.tasks.addTask('cli', {
+    exec: 'npx ts-node -P tsconfig.json --prefer-ts-exts src/cli.ts',
+  });
   project.tasks.tryFind('post-compile')?.reset();
   project.tasks.tryFind('synth')?.reset('cdk synth', {
     receiveArgs: true,
   });
   project.tasks.tryFind('synth:silent')?.reset('cdk synth -q', {
     receiveArgs: true,
+  });
+  project.tasks.tryFind('deploy')?.reset('originalArgs="$@" && AWS_DEFAULT_REGION=`npx ts-node -P tsconfig.json --prefer-ts-exts src/parseRegionArg.ts $originalArgs` && echo "Deploying to $AWS_DEFAULT_REGION" && cdk deploy $originalArgs', {
+    receiveArgs: true,
+
+
   });
   project.tasks.tryFind('deploy')?.prependExec('cdk synth', {
     receiveArgs: true,
@@ -122,4 +130,5 @@ app().then(project => {
 }).catch(reason => {
   throw new Error(reason);
 });
+
 
