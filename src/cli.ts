@@ -138,7 +138,7 @@ async function checkBootstrap(account: string, region: string): Promise<any> {
 					stdio: 'inherit'
 				})
 			} else {
-				console.error(`You must run cdk bootstrap for in the region you'd like to deploy to.`);
+				console.error(`You must run cdk bootstrap for the region you'd like to deploy to.`);
 				process.exit(-1)
 			}
 		} else {
@@ -354,7 +354,7 @@ async function centralStack(input: { account: string, stack: string; region: str
 		if (quicksightUsersAndGroups.quickSightGroups != undefined) {
 			cmd = cmd + ' -c quickSightGroupArns=' + quicksightUsersAndGroups.quickSightGroups?.join(',');
 		}
-		execSync(cmd, {stdio: 'inherit'})
+		execSync(cmd, {stdio: 'inherit', env: {...process.env, "AWS_DEFAULT_REGION": input.region}})
 
 	} else {
 		console.log('Goodbye');
@@ -407,7 +407,7 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 			cmd = cmd + ' --profile ' + profile;
 		}
 		cmd = cmd + ' --region ' + input.region + ' -c stack=spoke -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationPayerAccountId=' + organization.MasterAccountId;
-		execSync(cmd, {env: {CDK_DEFAULT_REGION: input.region, AWS_DEFAULT_REGION: input.region}, stdio: 'inherit'});
+		execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'});
 
 
 	} else {
@@ -482,7 +482,7 @@ async function organizationStack(input: { account: string, stack: string; region
 				cmd = cmd + ' --profile ' + profile;
 			}
 			cmd = cmd + ' --region ' + input.region + ' -c stack=organization -c organizationId=' + organization.Id + ' -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationalUnitIds=' + answer.organizationalUnitIds.join(',') + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' --all';
-			execSync(cmd,{stdio: 'inherit'})
+			execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'})
 
 		} else {
 			console.log('Goodbye');

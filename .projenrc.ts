@@ -118,7 +118,7 @@ app().then(project => {
   project.tasks.tryFind('synth:silent')?.reset('cdk synth -q', {
     receiveArgs: true,
   });
-  project.tasks.tryFind('deploy')?.reset('originalArgs="$@" && AWS_DEFAULT_REGION=`npx ts-node -P tsconfig.json --prefer-ts-exts src/parseRegionArg.ts $originalArgs` && echo "Deploying to $AWS_DEFAULT_REGION" && cdk deploy $originalArgs', {
+  project.tasks.tryFind('deploy')?.reset('cdk deploy', {
     receiveArgs: true,
 
 
