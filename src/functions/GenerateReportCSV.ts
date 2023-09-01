@@ -131,14 +131,14 @@ async function loadPartitions(client: AthenaClient): Promise<GetQueryExecutionCo
 
 async function createTagInventoryExternalTable(client: AthenaClient): Promise<GetQueryExecutionCommandOutput | undefined> {
   logger.info('Creating external table: tag-inventory');
-  const statement = `CREATE TABLE IF NOT EXISTS \"${process.env.DATABASE}\".\"tag-inventory\"\n` +
-		'WITH (\n' +
-		"			table_type='HIVE',\n" +
-		"					format = 'PARQUET',\n" +
-		"					parquet_compression = 'SNAPPY',\n" +
-		`					external_location = 's3://${process.env.ATHENA_BUCKET}/tables/tag-inventory/',\n` +
-		"         partitioned_by=array['d']\n" +
-		')\n' +
+  const statement = `CREATE TABLE IF NOT EXISTS \"${process.env.DATABASE}\".\"tag-inventory\"` +
+		'WITH (' +
+		"			table_type='HIVE'," +
+		"					format = 'PARQUET'," +
+		"					parquet_compression = 'SNAPPY'," +
+		`					external_location = 's3://${process.env.ATHENA_BUCKET}/tables/tag-inventory/',` +
+		"         partitioned_by=array['d']" +
+		')' +
 		`AS
     SELECT 
      tagname
@@ -239,20 +239,20 @@ async function createTagInventoryLatestTopTenView(client: AthenaClient): Promise
 
 async function createTagInventoryLatestCsvTable(client: AthenaClient, dateString: string): Promise<GetQueryExecutionCommandOutput | undefined> {
   logger.info('Creating table: tag-inventory-latest-csv');
-  const createTableStatement = `CREATE TABLE \"${process.env.DATABASE}\".\"tag-inventory-latest-csv\"\n` +
-		'WITH (\n' +
-		"      format = 'TEXTFILE',\n" +
-		"      field_delimiter = ',',\n" +
-		`      external_location = 's3://${process.env.REPORT_BUCKET}/${dateString}',\n` +
-		"      bucketed_by = ARRAY['d'],\n" +
-		'      bucket_count = 1)\n' +
-		`AS (\n
+  const createTableStatement = `CREATE TABLE \"${process.env.DATABASE}\".\"tag-inventory-latest-csv\"` +
+		'WITH (' +
+		"      format = 'TEXTFILE'," +
+		"      field_delimiter = ','," +
+		`      external_location = 's3://${process.env.REPORT_BUCKET}/${dateString}',` +
+		"      bucketed_by = ARRAY['d']," +
+		'      bucket_count = 1)' +
+		`AS (
 			select * from ( 
-					select 'date' as d,'tagname' as tagname,'tagvalue'as tagvalue,'owningaccountid' as owningaccountid,'region' as region,'service' as service,'resourcetype' as resourcetype,'arn' as arn \n
-					union all \n
-					SELECT d,tagname,tagvalue,owningaccountid, region,service,resourcetype, arn FROM \"${process.env.DATABASE}\".\"tag-inventory-view-latest\") \n
-					order by d desc, tagname asc\n
-		);`;
+					select 'date' as d,'tagname' as tagname,'tagvalue'as tagvalue,'owningaccountid' as owningaccountid,'region' as region,'service' as service,'resourcetype' as resourcetype,'arn' as arn 
+					union all 
+					SELECT d,tagname,tagvalue,owningaccountid, region,service,resourcetype, arn FROM \"${process.env.DATABASE}\".\"tag-inventory-view-latest\") 
+					
+		) order by d desc, tagname asc;`;
 
   return executeCommand(client, createTableStatement);
 }

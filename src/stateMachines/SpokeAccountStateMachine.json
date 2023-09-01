@@ -24,7 +24,8 @@
             "Lambda.ServiceException",
             "Lambda.AWSLambdaException",
             "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
+            "Lambda.TooManyRequestsException",
+            "ThrottlingException"
           ],
           "IntervalSeconds": 2,
           "MaxAttempts": 6,
