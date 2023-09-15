@@ -137,7 +137,7 @@ Before you can deploy multiple spoke stacks using [stacksets](https://docs.aws.a
    ![organization05.png](images%2Forganization05.png)
 
 ### QuickSight Dashboard
-The optionally deployed QuickSight dashboard currently shows two visualizations
+The optionally deployed QuickSight dashboard currently shows several example visualizations
 
 ![quicksight01.png](images%2Fquicksight01.png)
 
