@@ -16,7 +16,7 @@
  */
 
 import path from 'path';
-import {Aws, Duration} from 'aws-cdk-lib';
+import {Aws, CfnCondition, Duration, Fn} from 'aws-cdk-lib';
 import {Effect, PolicyStatement, Role, ServicePrincipal} from 'aws-cdk-lib/aws-iam';
 import {Architecture, LayerVersion, Runtime} from 'aws-cdk-lib/aws-lambda';
 import {NodejsFunction} from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -27,6 +27,7 @@ import {Layers} from './Layers';
 import {ResourceExplorerIndex} from './ResourceExplorerIndex';
 import {StateMachineFromFile} from './StateMachineFromFile';
 import {ScheduleExpression} from "./ScheduleExpression";
+import {ICfnRuleConditionExpression} from "aws-cdk-lib/core/lib/cfn-condition";
 
 export interface SpokeConfig {
 	enabledRegions: string;
@@ -34,7 +35,7 @@ export interface SpokeConfig {
 	bucketName: string;
 	centralRoleArn: string;
 	organizationPayerAccountId: string;
-	schedule: ScheduleExpression
+	schedule: string
 }
 
 export class Spoke extends Construct {
@@ -107,7 +108,7 @@ export class Spoke extends Construct {
 				mode: 'FLEXIBLE',
 			},
 			state: 'ENABLED',
-			scheduleExpression: this.scheduleExpressionToCron(config.schedule),
+			scheduleExpression: this.scheduleExpressionToCron(config.schedule).toString(),
 			target: {
 				arn: stateMachine.stateMachine.stateMachineArn,
 				roleArn: scheduler.roleArn,
@@ -117,18 +118,18 @@ export class Spoke extends Construct {
 
 	}
 
-	scheduleExpressionToCron(schedule: ScheduleExpression): string {
-		switch (schedule) {
-		case ScheduleExpression.DAILY:
-			return 'cron(0 1 ? * * *)'
-			break;
-		case ScheduleExpression.WEEKLY:
-			return 'cron(0 1 ? * SAT *)'
-			break;
-		case ScheduleExpression.MONTHLY:
-			return 'cron(0 1 ? 1/1 SAT#4 *)'
-			break;
-		}
+	scheduleExpressionToCron(schedule: string): ICfnRuleConditionExpression {
+		const scheduleDailyCondition = new CfnCondition(this, "ScheduleDailyCondition", {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.DAILY)
+		})
+		const scheduleWeeklyCondition = new CfnCondition(this, "ScheduleWeeklyCondition", {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.WEEKLY)
+		})
+		const scheduleMonthlyCondition = new CfnCondition(this, "ScheduleMonthlyCondition", {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.MONTHLY)
+		})
+		return Fn.conditionIf(scheduleDailyCondition.logicalId, 'cron(0 1 ? * * *)', Fn.conditionIf(scheduleWeeklyCondition.logicalId, 'cron(0 1 ? * SAT *)', Fn.conditionIf(scheduleMonthlyCondition.logicalId, "cron(0 1 ? 1/1 SAT#4 *)", 'cron(0 1 ? * SAT *)')))
+
 
 	}
 

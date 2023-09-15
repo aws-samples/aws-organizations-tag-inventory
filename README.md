@@ -73,6 +73,8 @@ The easiest way to deploy the solution is using the supplied command line interf
    ![Select central](./images/central01.png)
 2. Select the region you want to deploy the resources to
    ![Select central](./images/central02.png)
+2. Select the frequency you want to generate the report
+   ![Select schedule](./images/schedule.png)
 3. Choose whether you want to deploy the QuickSight dashboard to visualize your tag data
    ![central021.png](images%2Fcentral021.png)
    1. If you choose to deploy the [QuickSight dashboard](#quicksight-dashboard) you'll be asked to select the users and groups that can access the dashboard
@@ -95,6 +97,8 @@ AWS organization jump to [Deploy multiple spoke stacks using Cloudformation Stac
    ![spoke01.png](images%2Fspoke01.png)
 7. Select the region you want to deploy the resources to
    ![spoke02.png](images%2Fspoke02.png)
+2. Select the frequency you want to gather tag inventory
+   ![Select schedule](./images/schedule.png)
 8. Enter the central bucket name from [Deploy central stack - Step 8](#deploy-central-stack)
    ![spoke03.png](images%2Fspoke03.png)
 9. Enter the arn of the central cross account role from [Deploy central stack - Step 8](#deploy-central-stack)
@@ -117,6 +121,8 @@ Before you can deploy multiple spoke stacks using [stacksets](https://docs.aws.a
    ![organization01.png](images%2Forganization01.png)
 7. Select the region you want to deploy the resources to
    ![organization02.png](images%2Forganization02.png)
+2. Select the frequency you want to gather tag inventory and generate the report 
+   ![Select schedule](./images/schedule.png)
 8. Enter the central bucket name from [Deploy central stack - Step 8](#deploy-central-stack)
    ![organization03.png](images%2Forganization03.png)
 9. Enter the arn of the central cross account role from [Deploy central stack - Step 8](#deploy-central-stack)

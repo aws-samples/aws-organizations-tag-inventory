@@ -79,7 +79,7 @@ export class SpokeStack extends Stack {
       enabledRegions: enabledRegionsParameter.valueAsList.join(','),
       organizationPayerAccountId: organizationPayerAccountIdParameter.valueAsString,
       // @ts-ignore
-      schedule: ScheduleExpression[scheduleParameter.valueAsString] as ScheduleExpression
+      schedule: scheduleParameter.valueAsString
     });
     this.cdkNagSuppressions();
     Tags.of(this).add('Solution', 'aws-organizations-tag-inventory');

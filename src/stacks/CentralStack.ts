@@ -54,17 +54,14 @@ export class CentralStack extends Stack {
 			type: 'String',
 			description: 'The id of the AWS organization payer account',
 		});
-
-
 		const central = new Central(this, 'central', {
 			organizationId: organizationIdParameter.valueAsString,
 			organizationPayerAccountId: organizationPayerAccountIdParameter.valueAsString,
 			// @ts-ignore
-			schedule: ScheduleExpression[scheduleParameter.valueAsString] as ScheduleExpression
+			schedule:scheduleParameter.valueAsString
 		});
 		//right now this option is only available through cdk generation
 		if (props.deployQuickSight) {
-
 			new QuickSight(this, 'QuickSight', {
 				central: central,
 				quickSightUserArns: props.quickSightUserArns?.split(','),

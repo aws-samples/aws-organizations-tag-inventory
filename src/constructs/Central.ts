@@ -16,7 +16,7 @@
  */
 
 import path from 'path';
-import {Aws, CfnOutput, Duration, RemovalPolicy} from 'aws-cdk-lib';
+import {Aws, CfnOutput, Duration, RemovalPolicy, Fn, CfnCondition} from 'aws-cdk-lib';
 import {CfnWorkGroup} from 'aws-cdk-lib/aws-athena';
 import {CfnCrawler, CfnDatabase, CfnSecurityConfiguration, CfnTable} from 'aws-cdk-lib/aws-glue';
 import {AccountPrincipal, Effect, ManagedPolicy, OrganizationPrincipal, PolicyDocument, PolicyStatement, Role, ServicePrincipal} from 'aws-cdk-lib/aws-iam';
@@ -29,11 +29,12 @@ import {CfnSchedule} from 'aws-cdk-lib/aws-scheduler';
 import {Queue, QueueEncryption} from 'aws-cdk-lib/aws-sqs';
 import {Construct} from 'constructs';
 import {ScheduleExpression} from "./ScheduleExpression";
+import {ICfnRuleConditionExpression} from "aws-cdk-lib/core/lib/cfn-condition";
 
 export interface CentralConfig {
 	organizationId: string;
 	organizationPayerAccountId: string;
-	schedule: ScheduleExpression
+	schedule: string
 }
 
 export class Central extends Construct {
@@ -259,7 +260,7 @@ export class Central extends Construct {
 				recrawlBehavior: 'CRAWL_EVENT_MODE',
 			},
 			schedule: {
-				scheduleExpression: this.crawlerScheduleCron(config.schedule),
+				scheduleExpression: this.crawlerScheduleCron(config.schedule).toString(),
 			},
 		});
 		const centralStackRole = new Role(this, 'CentralStackPutTagInventoryRole', {
@@ -321,7 +322,7 @@ export class Central extends Construct {
 				mode: 'OFF',
 			},
 			state: 'ENABLED',
-			scheduleExpression: this.reportGenerateScheduleCron(config.schedule),
+			scheduleExpression: this.reportGenerateScheduleCron(config.schedule).toString(),
 			target: {
 				arn: generateCsvReportFunction.functionArn,
 				roleArn: role.roleArn,
@@ -347,33 +348,33 @@ export class Central extends Construct {
 
 	}
 
-	reportGenerateScheduleCron(schedule: ScheduleExpression): string {
-		switch (schedule) {
-		case ScheduleExpression.DAILY:
-			return 'cron(0 6 ? * * *)'
-			break;
-		case ScheduleExpression.WEEKLY:
-			return 'cron(0 6 ? * SAT *)'
-			break;
-		case ScheduleExpression.MONTHLY:
-			return 'cron(0 6 ? 1/1 SAT#4 *)'
-			break;
-		}
+	reportGenerateScheduleCron(schedule: string): ICfnRuleConditionExpression {
+		const reportGenerateDailyCondition=new CfnCondition(this, "ReportGenerateDailyCondition", {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.DAILY)
+		})
+		const reportGenerateWeeklyCondition=new CfnCondition(this, "ReportGenerateWeeklyCondition", {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.WEEKLY)
+		})
+		const reportGenerateMonthlyCondition=new CfnCondition(this, "ReportGenerateMonthlyCondition", {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.MONTHLY)
+		})
+		return Fn.conditionIf(reportGenerateDailyCondition.logicalId, 'cron(0 6 ? * * *)', Fn.conditionIf(reportGenerateWeeklyCondition.logicalId, 'cron(0 6 ? * SAT *)', Fn.conditionIf(reportGenerateMonthlyCondition.logicalId, "cron(0 6 ? 1/1 SAT#4 *)", 'cron(0 6 ? * SAT *)')))
+
 
 	}
 
-	crawlerScheduleCron(schedule: ScheduleExpression): string {
-		switch (schedule) {
-		case ScheduleExpression.DAILY:
-			return 'cron(0 2 ? * * *)'
-			break;
-		case ScheduleExpression.WEEKLY:
-			return 'cron(0 2 ? * SAT *)'
-			break;
-		case ScheduleExpression.MONTHLY:
-			return 'cron(0 2 ? 1/1 SAT#4 *)'
-			break;
-		}
+	crawlerScheduleCron(schedule: string): ICfnRuleConditionExpression {
+		const crawlerDailyCondition = new CfnCondition(this, "CrawlerDailyCondition", {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.DAILY)
+		})
+		const crawlerWeeklyCondition = new CfnCondition(this, "CrawlerWeeklyCondition", {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.WEEKLY)
+		})
+		const crawlerMonthlyCondition = new CfnCondition(this, "CrawlerMonthlyCondition", {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.MONTHLY)
+		})
+		return Fn.conditionIf(crawlerDailyCondition.logicalId, 'cron(0 2 ? * * *)', Fn.conditionIf(crawlerWeeklyCondition.logicalId, 'cron(0 2 ? * SAT *)', Fn.conditionIf(crawlerMonthlyCondition.logicalId, "cron(0 2 ? 1/1 SAT#4 *)", 'cron(0 2 ? * SAT *)')))
+
 
 	}
 }

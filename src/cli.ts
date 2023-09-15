@@ -63,7 +63,8 @@ async function getAllRegions(profile: string | undefined = undefined): Promise<s
 			describeRegionsResponse.Regions!.forEach((region) => {
 				allRegions.push(region.RegionName!);
 			});
-			return allRegions;
+
+			return allRegions.sort();
 
 		} catch (e) {
 			const error = e as Error;
@@ -357,7 +358,7 @@ async function centralStack(input: { account: string, stack: string; region: str
 		if (profile != undefined) {
 			cmd = cmd + ' --profile ' + profile;
 		}
-		cmd = cmd + ' --region ' + input.region + ' -c stack=central -c organizationId=' + organization.Id + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c deployQuickSight=' + quicksightConfirmation.deployQuickSight+' -c schedule='+input.schedule;
+		cmd = cmd + ' --region ' + input.region + ' -c stack=central -c organizationId=' + organization.Id + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c deployQuickSight=' + quicksightConfirmation.deployQuickSight + ' -c schedule=' + input.schedule;
 		if (quicksightUsersAndGroups.quickSightUsers != undefined) {
 			cmd = cmd + ' -c quickSightUserArns=' + quicksightUsersAndGroups.quickSightUsers.join(',');
 		}
@@ -416,7 +417,7 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 		if (profile != undefined) {
 			cmd = cmd + ' --profile ' + profile;
 		}
-		cmd = cmd + ' --region ' + input.region + ' -c stack=spoke -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationPayerAccountId=' + organization.MasterAccountId+' -c schedule='+input.schedule ;
+		cmd = cmd + ' --region ' + input.region + ' -c stack=spoke -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule;
 		execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'});
 
 
@@ -491,7 +492,7 @@ async function organizationStack(input: { account: string, stack: string; region
 			if (profile != undefined) {
 				cmd = cmd + ' --profile ' + profile;
 			}
-			cmd = cmd + ' --region ' + input.region + ' -c stack=organization -c organizationId=' + organization.Id + ' -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationalUnitIds=' + answer.organizationalUnitIds.join(',') + ' -c organizationPayerAccountId=' + organization.MasterAccountId+' -c schedule='+input.schedule + ' --all';
+			cmd = cmd + ' --region ' + input.region + ' -c stack=organization -c organizationId=' + organization.Id + ' -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationalUnitIds=' + answer.organizationalUnitIds.join(',') + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule + ' --all';
 			execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'})
 
 		} else {
