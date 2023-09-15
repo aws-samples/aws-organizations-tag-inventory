@@ -24,11 +24,13 @@ import { RegionInfo } from 'aws-cdk-lib/region-info';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { SpokeStackProps } from './SpokeStack';
+import {ScheduleExpression} from "../constructs/ScheduleExpression";
 
 export interface OrganizationStackSetProps extends SpokeStackProps {
   organizationalUnitIds?: string[];
   spokeStackTemplateFile: string;
   organizationPayerAccountId?:string;
+  schedule?: string
 }
 
 export class OrganizationStack extends Stack {
@@ -70,6 +72,12 @@ export class OrganizationStack extends Stack {
       type: 'String',
       description: 'The id of the AWS organization payer account',
     });
+    const scheduleParameter = new CfnParameter(this, 'ScheduleParameter', {
+      default: props.schedule,
+      type: 'String',
+      allowedValues: [ScheduleExpression.DAILY, ScheduleExpression.WEEKLY, ScheduleExpression.MONTHLY],
+      description: 'The frequency jobs are run',
+    });
     const asset = new Asset(this, 'SpokeStackTemplate', {
       path: path.join(__dirname, '..', '..', 'cdk.out', props.spokeStackTemplateFile),
     });
@@ -98,6 +106,9 @@ export class OrganizationStack extends Stack {
       }, {
         parameterKey: 'OrganizationPayerAccountIdParameter',
         parameterValue: organizationPayerAccountIdParameter.valueAsString,
+      }, {
+        parameterKey: 'ScheduleParameter',
+        parameterValue: scheduleParameter.valueAsString,
       }],
       stackInstancesGroup: [{
         regions: [this.region],

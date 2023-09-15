@@ -23,6 +23,7 @@ import {GetParameterCommand, SSMClient} from '@aws-sdk/client-ssm';
 import {GetCallerIdentityCommand, STSClient} from '@aws-sdk/client-sts';
 import {fromIni} from '@aws-sdk/credential-providers';
 import {execSync} from "child_process";
+import {ScheduleExpression} from "./constructs/ScheduleExpression";
 
 
 const sharedIniFileLoader = require('@smithy/shared-ini-file-loader');
@@ -149,7 +150,7 @@ async function checkBootstrap(account: string, region: string): Promise<any> {
 	}
 }
 
-async function chooseStack(): Promise<{ account: string, stack: string; region: string }> {
+async function chooseStack(): Promise<{ account: string, stack: string; region: string, schedule: string }> {
 	const allRegions = await getAllRegions();
 
 	const input = await prompts([{
@@ -168,6 +169,15 @@ async function chooseStack(): Promise<{ account: string, stack: string; region: 
 		message: 'What region do you want to deploy to?',
 		choices: allRegions.map(region => {
 			return {title: region, value: region};
+		}),
+
+	}, {
+		type: 'select',
+
+		name: 'schedule',
+		message: 'What schedule do you want jobs to run on?',
+		choices: [ScheduleExpression.DAILY, ScheduleExpression.WEEKLY, ScheduleExpression.MONTHLY].map(schedule => {
+			return {title: schedule, value: schedule};
 		}),
 
 	}]);
@@ -276,7 +286,7 @@ async function getQuickSightUsersAndGroups(input: { account: string, stack: stri
 	}
 }
 
-async function centralStack(input: { account: string, stack: string; region: string }): Promise<void> {
+async function centralStack(input: { account: string, stack: string; region: string, schedule: string }): Promise<void> {
 	const account = input.account
 	const organization = await getOrganization(input.region);
 	const quicksightConfirmation = await prompts([{
@@ -347,7 +357,7 @@ async function centralStack(input: { account: string, stack: string; region: str
 		if (profile != undefined) {
 			cmd = cmd + ' --profile ' + profile;
 		}
-		cmd = cmd + ' --region ' + input.region + ' -c stack=central -c organizationId=' + organization.Id + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c deployQuickSight=' + quicksightConfirmation.deployQuickSight;
+		cmd = cmd + ' --region ' + input.region + ' -c stack=central -c organizationId=' + organization.Id + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c deployQuickSight=' + quicksightConfirmation.deployQuickSight+' -c schedule='+input.schedule;
 		if (quicksightUsersAndGroups.quickSightUsers != undefined) {
 			cmd = cmd + ' -c quickSightUserArns=' + quicksightUsersAndGroups.quickSightUsers.join(',');
 		}
@@ -364,7 +374,7 @@ async function centralStack(input: { account: string, stack: string; region: str
 }
 
 
-async function spokeStack(input: { account: string, stack: string; region: string }): Promise<void> {
+async function spokeStack(input: { account: string, stack: string; region: string, schedule: string }): Promise<void> {
 	console.info('Gathering info on your AWS organization...');
 
 	const organizationClient = new OrganizationsClient({region: input.region});
@@ -406,7 +416,7 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 		if (profile != undefined) {
 			cmd = cmd + ' --profile ' + profile;
 		}
-		cmd = cmd + ' --region ' + input.region + ' -c stack=spoke -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationPayerAccountId=' + organization.MasterAccountId;
+		cmd = cmd + ' --region ' + input.region + ' -c stack=spoke -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationPayerAccountId=' + organization.MasterAccountId+' -c schedule='+input.schedule ;
 		execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'});
 
 
@@ -418,7 +428,7 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 
 }
 
-async function organizationStack(input: { account: string, stack: string; region: string }): Promise<void> {
+async function organizationStack(input: { account: string, stack: string; region: string, schedule: string }): Promise<void> {
 	try {
 		console.info('Gathering info on your AWS organization...');
 		const organizationClient = new OrganizationsClient({region: input.region});
@@ -481,7 +491,7 @@ async function organizationStack(input: { account: string, stack: string; region
 			if (profile != undefined) {
 				cmd = cmd + ' --profile ' + profile;
 			}
-			cmd = cmd + ' --region ' + input.region + ' -c stack=organization -c organizationId=' + organization.Id + ' -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationalUnitIds=' + answer.organizationalUnitIds.join(',') + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' --all';
+			cmd = cmd + ' --region ' + input.region + ' -c stack=organization -c organizationId=' + organization.Id + ' -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationalUnitIds=' + answer.organizationalUnitIds.join(',') + ' -c organizationPayerAccountId=' + organization.MasterAccountId+' -c schedule='+input.schedule + ' --all';
 			execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'})
 
 		} else {

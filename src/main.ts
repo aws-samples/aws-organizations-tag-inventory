@@ -44,6 +44,7 @@ const main = async (): Promise<App> => {
       deployQuickSight: JSON.parse(app.node.tryGetContext('deployQuickSight') ?? false),
       quickSightGroupArns: app.node.tryGetContext('quickSightGroupArns'),
       quickSightUserArns: app.node.tryGetContext('quickSightUserArns'),
+      schedule: app.node.tryGetContext('schedule'),
       synthesizer: new DefaultStackSynthesizer({
         generateBootstrapVersionRule: false,
 
@@ -56,6 +57,7 @@ const main = async (): Promise<App> => {
       aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
       bucketName: app.node.tryGetContext('bucketName'),
       centralRoleArn: app.node.tryGetContext('centralRoleArn'),
+      schedule: app.node.tryGetContext('schedule'),
       synthesizer: new DefaultStackSynthesizer({
         generateBootstrapVersionRule: false,
       }),
@@ -81,6 +83,7 @@ const main = async (): Promise<App> => {
       centralRoleArn: app.node.tryGetContext('centralRoleArn'),
       synthesizer: synthesizer,
       organizationPayerAccountId: app.node.tryGetContext('organizationPayerAccountId'),
+      schedule: app.node.tryGetContext('schedule'),
     });
     spokeStack.addDependency(assetBucketStack);
     spokeStack.synthesizer.synthesize({
@@ -98,6 +101,7 @@ const main = async (): Promise<App> => {
       organizationalUnitIds: app.node.tryGetContext('organizationalUnitIds').split(','),
       spokeStackTemplateFile: spokeStack.templateFile,
       organizationPayerAccountId: app.node.tryGetContext('organizationPayerAccountId'),
+      schedule: app.node.tryGetContext('schedule'),
     });
     organizationStack.addDependency(spokeStack);
 

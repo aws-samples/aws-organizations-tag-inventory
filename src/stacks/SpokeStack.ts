@@ -21,6 +21,7 @@ import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 import { Spoke } from '../constructs/Spoke';
+import {ScheduleExpression} from "../constructs/ScheduleExpression";
 
 
 export interface SpokeStackProps extends StackProps {
@@ -29,6 +30,7 @@ export interface SpokeStackProps extends StackProps {
   bucketName?: string | undefined;
   centralRoleArn?: string | undefined;
   organizationPayerAccountId?:string;
+  schedule?: string
 }
 
 export class SpokeStack extends Stack {
@@ -64,12 +66,20 @@ export class SpokeStack extends Stack {
       type: 'String',
       description: 'The id of the AWS organization payer account',
     });
+    const scheduleParameter = new CfnParameter(this, 'ScheduleParameter', {
+      default: props.schedule,
+      type: 'String',
+      allowedValues: [ScheduleExpression.DAILY, ScheduleExpression.WEEKLY, ScheduleExpression.MONTHLY],
+      description: 'The frequency jobs are run',
+    });
     new Spoke(this, 'spoke', {
       bucketName: bucketNameParameter.valueAsString,
       aggregatorRegion: aggregatorRegionParameter.valueAsString,
       centralRoleArn: centralRoleArnParameter.valueAsString,
       enabledRegions: enabledRegionsParameter.valueAsList.join(','),
       organizationPayerAccountId: organizationPayerAccountIdParameter.valueAsString,
+      // @ts-ignore
+      schedule: ScheduleExpression[scheduleParameter.valueAsString] as ScheduleExpression
     });
     this.cdkNagSuppressions();
     Tags.of(this).add('Solution', 'aws-organizations-tag-inventory');
