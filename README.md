@@ -81,8 +81,10 @@ The easiest way to deploy the solution is using the supplied command line interf
       ![central022.png](images%2Fcentral022.png)
 3. Confirm your choices
    ![central03.png](images%2Fcentral03.png)
-1. Copy the output values for  "**CentralStackPutTagInventoryRoleOutput**" and "**OrganizationsTagInventoryBucketNameOutput**", you'll need these values later
+1. Copy the output values for "**CentralStackNotificationTopicArnOutput**", "**CentralStackPutTagInventoryRoleOutput**", and "**OrganizationsTagInventoryBucketNameOutput**", you'll need these values later
    ![central04.png](images%2Fcentral04.png)
+
+Once the central stack is deployed you can [subscribe to notifications](https://docs.aws.amazon.com/sns/latest/dg/sns-create-subscribe-endpoint-to-topic.html) delivered through the deployed SNS topic. 
 
 ###  Deploy a single spoke stack
 If you would like to deploy just a single spoke stack follow the directions below. However, if you would like to deploy the spoke stack to **multiple** account across your 
@@ -101,6 +103,8 @@ AWS organization jump to [Deploy multiple spoke stacks using Cloudformation Stac
    ![Select schedule](./images/schedule.png)
 8. Enter the central bucket name from [Deploy central stack - Step 8](#deploy-central-stack)
    ![spoke03.png](images%2Fspoke03.png)
+8. Enter the central topic arn from [Deploy central stack - Step 8](#deploy-central-stack)
+   ![spoke032.png](images%2Fspoke032.png)
 9. Enter the arn of the central cross account role from [Deploy central stack - Step 8](#deploy-central-stack)
    ![spoke04.png](images%2Fspoke04.png)
 10. Select the region that you want to setup AWS Resource Explorer indexes in
@@ -125,6 +129,8 @@ Before you can deploy multiple spoke stacks using [stacksets](https://docs.aws.a
    ![Select schedule](./images/schedule.png)
 8. Enter the central bucket name from [Deploy central stack - Step 8](#deploy-central-stack)
    ![organization03.png](images%2Forganization03.png)
+8. Enter the central topic arn from [Deploy central stack - Step 8](#deploy-central-stack)
+   ![spoke032.png](images%2Fspoke032.png)
 9. Enter the arn of the central cross account role from [Deploy central stack - Step 8](#deploy-central-stack)
    ![spoke04.png](images%2Fspoke04.png)
 10. Select the region that you want to setup AWS Resource Explorer indexes in
@@ -145,3 +151,8 @@ The optionally deployed QuickSight dashboard currently shows several example vis
 
 For the purpose of this example the removal policy for all S3 buckets has been configured as **DESTROY**.  This means that when the resource is removed from the app, 
 it will be physically destroyed.
+
+### A note on service quotas
+
+If you have alot of resources in an account and/or you run the reports daily you may end up running up again the "[Aggregator Region search monthly quota](https://console.aws.amazon.com/servicequotas/home/services/resource-explorer-2/quotas/L-A28429E9)" limit. 
+This limit can be increased via [Service Quotas](https://console.aws.amazon.com/servicequotas/home/). 
