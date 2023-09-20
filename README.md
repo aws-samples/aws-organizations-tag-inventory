@@ -154,5 +154,5 @@ it will be physically destroyed.
 
 ### A note on service quotas
 
-If you have alot of resources in an account and/or you run the reports daily you may end up running up again the "[Aggregator Region search monthly quota](https://console.aws.amazon.com/servicequotas/home/services/resource-explorer-2/quotas/L-A28429E9)" limit. 
+If you have alot of resources in an account and/or you run the reports daily you may exceed the "[Aggregator Region search monthly quota](https://console.aws.amazon.com/servicequotas/home/services/resource-explorer-2/quotas/L-A28429E9)" limit. 
 This limit can be increased via [Service Quotas](https://console.aws.amazon.com/servicequotas/home/). 
