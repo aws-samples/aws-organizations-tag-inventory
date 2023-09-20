@@ -34,6 +34,50 @@ export class OrganizationAssetBucketStack extends Stack {
 
   constructor(scope: Construct, id: string, props: OrganizationAssetBucketStackProps) {
     super(scope, id, props);
+    //we have to make sure all the stacks have the same parameters even though they're not used
+    new CfnParameter(this, 'BucketNameParameter', {
+      default: 'NOT USED',
+      type: 'String',
+      description: 'Name of the central account bucket where tag inventory data is stored',
+    });
+     new CfnParameter(this, 'TopicArnParameter', {
+      default: "NOT USED",
+      type: 'String',
+      description: "ARN of the central account's notification topic",
+    });
+    new CfnParameter(this, 'CentralRoleArnParameter', {
+      default: 'NOT USED',
+      type: 'String',
+      description: "ARN of the central account's cross account role with permissions to write to the centralized bucket where tag inventory data is stored",
+    });
+    new CfnParameter(this, 'EnabledRegionsParameter', {
+
+      default: 'NOT USED',
+      type: 'CommaDelimitedList',
+      description: 'Regions to enable Resource Explorer Indexing',
+    });
+    new CfnParameter(this, 'AggregatorRegionParameter', {
+      default: 'NOT USED',
+      type: 'String',
+      description: 'The region that contains teh Resource Explorer aggregator',
+    });
+    new CfnParameter(this, 'OrganizationalUnitIdsParameter', {
+
+      default: 'NOT USED',
+      type: 'CommaDelimitedList',
+      description: 'Organizational units to deploy the spoke stack to',
+    });
+    new CfnParameter(this, 'OrganizationPayerAccountIdParameter', {
+      default: 'NOT USED',
+      type: 'String',
+      description: 'The id of the AWS organization payer account',
+    });
+    new CfnParameter(this, 'ScheduleParameter', {
+      default: 'NOT USED',
+      type: 'String',
+
+      description: 'The frequency jobs are run',
+    });
     const organizationIdParameter = new CfnParameter(this, 'OrganizationIdParameter', {
       default: props.organizationId,
       type: 'String',

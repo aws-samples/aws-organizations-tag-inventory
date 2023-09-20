@@ -2,6 +2,32 @@
 
 exports[`Snapshot 1`] = `
 {
+  "Conditions": {
+    "spokeScheduleDailyCondition2496F6E6": {
+      "Fn::Equals": [
+        {
+          "Ref": "ScheduleParameter",
+        },
+        "DAILY",
+      ],
+    },
+    "spokeScheduleMonthlyConditionCA0116AA": {
+      "Fn::Equals": [
+        {
+          "Ref": "ScheduleParameter",
+        },
+        "MONTHLY",
+      ],
+    },
+    "spokeScheduleWeeklyCondition205254D0": {
+      "Fn::Equals": [
+        {
+          "Ref": "ScheduleParameter",
+        },
+        "WEEKLY",
+      ],
+    },
+  },
   "Mappings": {
     "ServiceprincipalMap": {
       "af-south-1": {
@@ -193,6 +219,15 @@ exports[`Snapshot 1`] = `
     },
     "OrganizationPayerAccountIdParameter": {
       "Description": "The id of the AWS organization payer account",
+      "Type": "String",
+    },
+    "ScheduleParameter": {
+      "AllowedValues": [
+        "DAILY",
+        "WEEKLY",
+        "MONTHLY",
+      ],
+      "Description": "The frequency jobs are run",
       "Type": "String",
     },
   },
@@ -448,6 +483,29 @@ exports[`Snapshot 1`] = `
       },
       "Type": "AWS::IAM::Policy",
     },
+    "spokeErrorNotificationTopicAB25AB54": {
+      "Properties": {
+        "DisplayName": "Spoke Account State Machine Error Notifications",
+        "FifoTopic": false,
+        "KmsMasterKeyId": {
+          "Fn::GetAtt": [
+            "spokeerrorNotificationTopicKey1663BCA0",
+            "Arn",
+          ],
+        },
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+      },
+      "Type": "AWS::SNS::Topic",
+    },
     "spokeMergeResultsfn262D356D": {
       "DependsOn": [
         "spokeMergeResultsfnServiceRole07998249",
@@ -571,7 +629,25 @@ exports[`Snapshot 1`] = `
           "Mode": "FLEXIBLE",
         },
         "Name": "TagInventorySchedule",
-        "ScheduleExpression": "cron(0 1 ? * * *)",
+        "ScheduleExpression": {
+          "Fn::If": [
+            "spokeScheduleDailyCondition2496F6E6",
+            "cron(0 1 ? * * *)",
+            {
+              "Fn::If": [
+                "spokeScheduleWeeklyCondition205254D0",
+                "cron(0 1 ? * SAT *)",
+                {
+                  "Fn::If": [
+                    "spokeScheduleMonthlyConditionCA0116AA",
+                    "cron(0 1 ? 1/1 SAT#4 *)",
+                    "cron(0 1 ? * SAT *)",
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         "ScheduleExpressionTimezone": "America/New_York",
         "State": "ENABLED",
         "Target": {
@@ -651,7 +727,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "690d1d6c714585d76fd82772ffc9a73f6de1be70c40709f32297ba2a2a7eb8d6.zip",
+          "S3Key": "a334fe87e2d70fe0b4207f6714ae1a87ee9d6f6834863f1d334d956d64124be8.zip",
         },
         "Environment": {
           "Variables": {
@@ -777,7 +853,7 @@ exports[`Snapshot 1`] = `
           "Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "Key": "545dc56330a59415542eb272e0b9aec36d53d07f5c77ab02fff93d7e3a0b0699.json",
+          "Key": "1f766ba1785091a35e39a842197dd49792673a31c7f0e77cab18219a71659967.json",
         },
         "DefinitionSubstitutions": {
           "CENTRAL_BUCKET_NAME": {
@@ -797,6 +873,9 @@ exports[`Snapshot 1`] = `
               "spokeSearchfn7ED063A8",
               "Arn",
             ],
+          },
+          "TOPIC_ARN": {
+            "Ref": "spokeErrorNotificationTopicAB25AB54",
           },
         },
         "LoggingConfiguration": {
@@ -905,6 +984,21 @@ exports[`Snapshot 1`] = `
               },
             },
             {
+              "Action": [
+                "kms:Decrypt",
+                "kms:Encrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "spokeerrorNotificationTopicKey1663BCA0",
+                  "Arn",
+                ],
+              },
+            },
+            {
               "Action": "lambda:InvokeFunction",
               "Effect": "Allow",
               "Resource": [
@@ -955,6 +1049,13 @@ exports[`Snapshot 1`] = `
                   ],
                 },
               ],
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "spokeErrorNotificationTopicAB25AB54",
+              },
             },
           ],
           "Version": "2012-10-17",
@@ -1022,6 +1123,78 @@ exports[`Snapshot 1`] = `
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Delete",
     },
+    "spokeerrorNotificationTopicKey1663BCA0": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "Description": "Spoke Account State Machine Error Notifications Topic Key",
+        "EnableKeyRotation": true,
+        "KeyPolicy": {
+          "Statement": [
+            {
+              "Action": "kms:*",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":iam::",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":root",
+                    ],
+                  ],
+                },
+              },
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "kms:Encrypt*",
+                "kms:Decrypt*",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:Describe*",
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "states.",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ".amazonaws.com",
+                    ],
+                  ],
+                },
+              },
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Solution",
+            "Value": "aws-organizations-tag-inventory",
+          },
+          {
+            "Key": "Url",
+            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
+          },
+        ],
+      },
+      "Type": "AWS::KMS::Key",
+      "UpdateReplacePolicy": "Delete",
+    },
     "spokelayerslayerBCD68A79": {
       "DeletionPolicy": "Delete",
       "Properties": {
@@ -1033,7 +1206,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "58044aeaa5a541ea14f56b716d383ce8ed60356a27df6d9558c43a04f6a14336.zip",
+          "S3Key": "17eb212e75808e11a6a0b3778236f11838ddf180f0d48a827a64327a21f08d11.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

@@ -28,15 +28,44 @@
             "ThrottlingException"
           ],
           "IntervalSeconds": 2,
-          "MaxAttempts": 6,
-          "BackoffRate": 2
+          "MaxAttempts": 3,
+          "BackoffRate": 4,
+          "MaxDelaySeconds": 60,
+          "JitterStrategy": "FULL"
         }
       ],
       "Next": "For each resource",
       "ResultSelector": {
         "Result.$": "States.StringToJson($.Payload)"
       },
-      "ResultPath": "$.Payload"
+      "ResultPath": "$.Payload",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "ThrottlingException"
+          ],
+          "Next": "Notify of Throttle Exception"
+        }
+      ]
+    },
+    "Notify of Throttle Exception": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "${TOPIC_ARN}",
+        "Message": {
+          "Message": "Spoke account state machine failed due to throttling exception. To fix this issue increase the 'Aggregator Region search monthly quota' using the Service Quotas console",
+          "StateMachineId.$": "$$.StateMachine.Id"
+        }
+
+      },
+      "Credentials": {
+        "RoleArn": "${CENTRAL_ROLE_ARN}"
+      },
+      "Next": "Fail"
+    },
+    "Fail": {
+      "Type": "Fail"
     },
     "For each resource": {
       "Type": "Map",

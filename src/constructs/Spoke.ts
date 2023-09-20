@@ -18,24 +18,27 @@
 import path from 'path';
 import {Aws, CfnCondition, Duration, Fn} from 'aws-cdk-lib';
 import {Effect, PolicyStatement, Role, ServicePrincipal} from 'aws-cdk-lib/aws-iam';
+
 import {Architecture, LayerVersion, Runtime} from 'aws-cdk-lib/aws-lambda';
 import {NodejsFunction} from 'aws-cdk-lib/aws-lambda-nodejs';
 import {CfnSchedule} from 'aws-cdk-lib/aws-scheduler';
+
+import {ICfnRuleConditionExpression} from 'aws-cdk-lib/core/lib/cfn-condition';
 import {Construct} from 'constructs';
 
 import {Layers} from './Layers';
 import {ResourceExplorerIndex} from './ResourceExplorerIndex';
+import {ScheduleExpression} from './ScheduleExpression';
 import {StateMachineFromFile} from './StateMachineFromFile';
-import {ScheduleExpression} from "./ScheduleExpression";
-import {ICfnRuleConditionExpression} from "aws-cdk-lib/core/lib/cfn-condition";
 
 export interface SpokeConfig {
 	enabledRegions: string;
 	aggregatorRegion: string;
 	bucketName: string;
+	topicArn:string
 	centralRoleArn: string;
 	organizationPayerAccountId: string;
-	schedule: string
+	schedule: string;
 }
 
 export class Spoke extends Construct {
@@ -84,8 +87,9 @@ export class Spoke extends Construct {
 			},
 		});
 
+
 		const stateMachine = new StateMachineFromFile(this, 'SpokeAccountStateMachine',
-			{name: 'SpokeAccountStateMachine', file: path.join(__dirname, '..', 'stateMachines', 'SpokeAccountStateMachine.json'), searchFunction: searchFunction, mergeFunction: mergeFunction, putObjectRoleArn: config.centralRoleArn, bucketName: config.bucketName});
+			{name: 'SpokeAccountStateMachine', file: path.join(__dirname, '..', 'stateMachines', 'SpokeAccountStateMachine.json'), searchFunction: searchFunction, mergeFunction: mergeFunction, putObjectRoleArn: config.centralRoleArn, bucketName: config.bucketName, topicArn: config.topicArn});
 
 		stateMachine.stateMachine.addToRolePolicy(new PolicyStatement({
 			effect: Effect.ALLOW,
@@ -97,8 +101,10 @@ export class Spoke extends Construct {
 			actions: ['sts:AssumeRole'],
 			resources: [config.centralRoleArn],
 		}));
+
 		mergeFunction.grantInvoke(stateMachine.stateMachine);
 		searchFunction.grantInvoke(stateMachine.stateMachine);
+
 		const scheduler = new Role(this, 'SchedulerRole', {assumedBy: new ServicePrincipal('scheduler.amazonaws.com')});
 		stateMachine.stateMachine.grantStartExecution(scheduler);
 		new CfnSchedule(this, 'Scheduler', {
@@ -119,16 +125,16 @@ export class Spoke extends Construct {
 	}
 
 	scheduleExpressionToCron(schedule: string): ICfnRuleConditionExpression {
-		const scheduleDailyCondition = new CfnCondition(this, "ScheduleDailyCondition", {
-			expression: Fn.conditionEquals(schedule, ScheduleExpression.DAILY)
-		})
-		const scheduleWeeklyCondition = new CfnCondition(this, "ScheduleWeeklyCondition", {
-			expression: Fn.conditionEquals(schedule, ScheduleExpression.WEEKLY)
-		})
-		const scheduleMonthlyCondition = new CfnCondition(this, "ScheduleMonthlyCondition", {
-			expression: Fn.conditionEquals(schedule, ScheduleExpression.MONTHLY)
-		})
-		return Fn.conditionIf(scheduleDailyCondition.logicalId, 'cron(0 1 ? * * *)', Fn.conditionIf(scheduleWeeklyCondition.logicalId, 'cron(0 1 ? * SAT *)', Fn.conditionIf(scheduleMonthlyCondition.logicalId, "cron(0 1 ? 1/1 SAT#4 *)", 'cron(0 1 ? * SAT *)')))
+		const scheduleDailyCondition = new CfnCondition(this, 'ScheduleDailyCondition', {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.DAILY),
+		});
+		const scheduleWeeklyCondition = new CfnCondition(this, 'ScheduleWeeklyCondition', {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.WEEKLY),
+		});
+		const scheduleMonthlyCondition = new CfnCondition(this, 'ScheduleMonthlyCondition', {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.MONTHLY),
+		});
+		return Fn.conditionIf(scheduleDailyCondition.logicalId, 'cron(0 1 ? * * *)', Fn.conditionIf(scheduleWeeklyCondition.logicalId, 'cron(0 1 ? * SAT *)', Fn.conditionIf(scheduleMonthlyCondition.logicalId, 'cron(0 1 ? 1/1 SAT#4 *)', 'cron(0 1 ? * SAT *)')));
 
 
 	}

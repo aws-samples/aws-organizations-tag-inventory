@@ -18,6 +18,8 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { ResourceExplorer2Client, SearchCommand } from '@aws-sdk/client-resource-explorer-2';
 const client = new ResourceExplorer2Client({
   region: process.env.VIEW_ARN!.split(':')[3],
+  retryMode: 'adaptive',
+
 });
 
 const logger = new Logger({

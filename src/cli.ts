@@ -151,7 +151,7 @@ async function checkBootstrap(account: string, region: string): Promise<any> {
 	}
 }
 
-async function chooseStack(): Promise<{ account: string, stack: string; region: string, schedule: string }> {
+async function chooseStack(): Promise<{ account: string, stack: string; region: string, schedule: string}> {
 	const allRegions = await getAllRegions();
 
 	const input = await prompts([{
@@ -365,6 +365,7 @@ async function centralStack(input: { account: string, stack: string; region: str
 		if (quicksightUsersAndGroups.quickSightGroups != undefined) {
 			cmd = cmd + ' -c quickSightGroupArns=' + quicksightUsersAndGroups.quickSightGroups?.join(',');
 		}
+		cmd=cmd+" --parameters OrganizationIdParameter="+organization.Id+" --parameters ScheduleParameter="+input.schedule+" --parameters OrganizationPayerAccountIdParameter="+ organization.MasterAccountId
 		execSync(cmd, {stdio: 'inherit', env: {...process.env, "AWS_DEFAULT_REGION": input.region}})
 
 	} else {
@@ -387,6 +388,10 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 		type: 'text',
 		message: 'Enter the name of the bucket in the central account where tag inventory data will be written to: ',
 		name: 'bucketName',
+	},{
+		type: 'text',
+		message: 'Enter the arn of the central account notification topic: ',
+		name: 'topicArn',
 	}, {
 		type: 'text',
 		message: 'Enter the arn of the central cross-account role: ',
@@ -417,7 +422,8 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 		if (profile != undefined) {
 			cmd = cmd + ' --profile ' + profile;
 		}
-		cmd = cmd + ' --region ' + input.region + ' -c stack=spoke -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule;
+		cmd = cmd + ' --region ' + input.region + ' -c stack=spoke -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName +' -c topicArn=' + answer.topicArn +  ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule;
+		cmd = cmd+ " --parameters BucketNameParameter="+ answer.bucketName+ " --parameters TopicArnParameter="+ answer.topicArn+" --parameters CentralRoleArnParameter="+ answer.centralRoleArn+" --parameters EnabledRegionsParameter="+answer.enabledRegions.join(',')+" --parameters AggregatorRegionParameter="+ answer.aggregatorRegion+" --parameters OrganizationPayerAccountIdParameter="+organization.MasterAccountId+" --parameters ScheduleParameter="+input.schedule
 		execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'});
 
 
@@ -429,7 +435,7 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 
 }
 
-async function organizationStack(input: { account: string, stack: string; region: string, schedule: string }): Promise<void> {
+async function organizationStack(input: { account: string, stack: string; region: string, schedule: string}): Promise<void> {
 	try {
 		console.info('Gathering info on your AWS organization...');
 		const organizationClient = new OrganizationsClient({region: input.region});
@@ -450,6 +456,10 @@ async function organizationStack(input: { account: string, stack: string; region
 			message: 'Enter the name of the bucket in the central account where tag inventory data will be written to: ',
 			name: 'bucketName',
 			validate: (value: string) => value == undefined || value.trim().length == 0 ? 'Bucket name required' : true,
+		},{
+			type: 'text',
+			message: 'Enter the arn of the central account notification topic: ',
+			name: 'topicArn',
 		}, {
 			type: 'text',
 			message: 'Enter the arn of the central cross-account role: ',
@@ -492,7 +502,8 @@ async function organizationStack(input: { account: string, stack: string; region
 			if (profile != undefined) {
 				cmd = cmd + ' --profile ' + profile;
 			}
-			cmd = cmd + ' --region ' + input.region + ' -c stack=organization -c organizationId=' + organization.Id + ' -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationalUnitIds=' + answer.organizationalUnitIds.join(',') + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule + ' --all';
+			cmd = cmd + ' --region ' + input.region + ' -c stack=organization -c organizationId=' + organization.Id + ' -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName+' -c topicArn=' + answer.topicArn  + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationalUnitIds=' + answer.organizationalUnitIds.join(',') + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule ;
+			cmd = cmd+ " --parameters BucketNameParameter="+ answer.bucketName+ " --parameters TopicArnParameter="+ answer.topicArn+" --parameters CentralRoleArnParameter="+ answer.centralRoleArn+" --parameters EnabledRegionsParameter="+answer.enabledRegions.join(',')+" --parameters AggregatorRegionParameter="+ answer.aggregatorRegion+" --parameters OrganizationPayerAccountIdParameter="+organization.MasterAccountId+" --parameters ScheduleParameter="+input.schedule+" --parameters OrganizationalUnitIdsParameter="+answer.organizationalUnitIds.join(',')+ ' --all'
 			execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'})
 
 		} else {

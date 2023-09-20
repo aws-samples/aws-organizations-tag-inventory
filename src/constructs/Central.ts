@@ -27,14 +27,15 @@ import {BlockPublicAccess, Bucket, BucketEncryption, CfnBucket, IBucket} from 'a
 import {SqsDestination} from 'aws-cdk-lib/aws-s3-notifications';
 import {CfnSchedule} from 'aws-cdk-lib/aws-scheduler';
 import {Queue, QueueEncryption} from 'aws-cdk-lib/aws-sqs';
+import {ICfnRuleConditionExpression} from 'aws-cdk-lib/core/lib/cfn-condition';
 import {Construct} from 'constructs';
-import {ScheduleExpression} from "./ScheduleExpression";
-import {ICfnRuleConditionExpression} from "aws-cdk-lib/core/lib/cfn-condition";
+import {ScheduleExpression} from './ScheduleExpression';
+import {ITopic, Topic} from "aws-cdk-lib/aws-sns";
 
 export interface CentralConfig {
 	organizationId: string;
 	organizationPayerAccountId: string;
-	schedule: string
+	schedule: string;
 }
 
 export class Central extends Construct {
@@ -45,6 +46,7 @@ export class Central extends Construct {
 	readonly table: CfnTable;
 	readonly database: CfnDatabase;
 	readonly serverAccessLogBucket: IBucket;
+	readonly notificationTopic: ITopic
 
 	constructor(scope: Construct, id: string, config: CentralConfig) {
 		super(scope, id);
@@ -314,6 +316,40 @@ export class Central extends Construct {
 				enforceWorkGroupConfiguration: false,
 			},
 		});
+		const topicKey = new Key(this, 'NotificationTopicKey', {
+			description: 'Spoke Account State Machine Notifications Topic Key',
+			removalPolicy: RemovalPolicy.DESTROY,
+			enableKeyRotation: true,
+			policy: new PolicyDocument({
+				statements: [new PolicyStatement({
+
+					effect: Effect.ALLOW,
+					principals: [new AccountPrincipal(Aws.ACCOUNT_ID)],
+					actions: ['kms:*'],
+					resources: ['*'],
+
+				}), new PolicyStatement({
+					effect: Effect.ALLOW,
+					actions: ['kms:Encrypt*',
+						'kms:Decrypt*',
+						'kms:ReEncrypt*',
+						'kms:GenerateDataKey*',
+						'kms:Describe*'],
+					principals: [new ServicePrincipal(`states.${Aws.REGION}.amazonaws.com`)],
+					resources: ['*'],
+
+
+				})],
+			}),
+
+		});
+		this.notificationTopic = new Topic(this, 'NotificationTopic', {
+			fifo: false,
+			displayName: 'Spoke Account State Machine Notifications',
+			masterKey: topicKey,
+		});
+		this.notificationTopic.grantPublish(centralStackRole)
+		topicKey.grantEncryptDecrypt(centralStackRole)
 		this.workGroup.addDependency(this.athenaWorkGroupBucket.node.defaultChild as CfnBucket);
 		generateCsvReportFunction.addEnvironment('WORKGROUP', this.workGroup.name);
 		new CfnSchedule(this, 'Scheduler', {
@@ -342,38 +378,46 @@ export class Central extends Construct {
 			{
 				description: 'Role with access to write to the central stack\'s OrganizationsTagInventory bucket',
 				value: centralStackRole.roleArn,
-				exportName: 'CentralStackPutTagInventoryRoleO',
+				exportName: 'CentralStackPutTagInventoryRole',
+			},
+		);
+		new CfnOutput(
+			this, 'CentralStackNotificationTopicArnOutput',
+			{
+				description: 'ARN of central account notification topic',
+				value: this.notificationTopic.topicArn,
+				exportName: 'CentralStackNotificationTopicArn',
 			},
 		);
 
 	}
 
 	reportGenerateScheduleCron(schedule: string): ICfnRuleConditionExpression {
-		const reportGenerateDailyCondition=new CfnCondition(this, "ReportGenerateDailyCondition", {
-			expression: Fn.conditionEquals(schedule, ScheduleExpression.DAILY)
-		})
-		const reportGenerateWeeklyCondition=new CfnCondition(this, "ReportGenerateWeeklyCondition", {
-			expression: Fn.conditionEquals(schedule, ScheduleExpression.WEEKLY)
-		})
-		const reportGenerateMonthlyCondition=new CfnCondition(this, "ReportGenerateMonthlyCondition", {
-			expression: Fn.conditionEquals(schedule, ScheduleExpression.MONTHLY)
-		})
-		return Fn.conditionIf(reportGenerateDailyCondition.logicalId, 'cron(0 6 ? * * *)', Fn.conditionIf(reportGenerateWeeklyCondition.logicalId, 'cron(0 6 ? * SAT *)', Fn.conditionIf(reportGenerateMonthlyCondition.logicalId, "cron(0 6 ? 1/1 SAT#4 *)", 'cron(0 6 ? * SAT *)')))
+		const reportGenerateDailyCondition = new CfnCondition(this, 'ReportGenerateDailyCondition', {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.DAILY),
+		});
+		const reportGenerateWeeklyCondition = new CfnCondition(this, 'ReportGenerateWeeklyCondition', {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.WEEKLY),
+		});
+		const reportGenerateMonthlyCondition = new CfnCondition(this, 'ReportGenerateMonthlyCondition', {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.MONTHLY),
+		});
+		return Fn.conditionIf(reportGenerateDailyCondition.logicalId, 'cron(0 6 ? * * *)', Fn.conditionIf(reportGenerateWeeklyCondition.logicalId, 'cron(0 6 ? * SAT *)', Fn.conditionIf(reportGenerateMonthlyCondition.logicalId, 'cron(0 6 ? 1/1 SAT#4 *)', 'cron(0 6 ? * SAT *)')));
 
 
 	}
 
 	crawlerScheduleCron(schedule: string): ICfnRuleConditionExpression {
-		const crawlerDailyCondition = new CfnCondition(this, "CrawlerDailyCondition", {
-			expression: Fn.conditionEquals(schedule, ScheduleExpression.DAILY)
-		})
-		const crawlerWeeklyCondition = new CfnCondition(this, "CrawlerWeeklyCondition", {
-			expression: Fn.conditionEquals(schedule, ScheduleExpression.WEEKLY)
-		})
-		const crawlerMonthlyCondition = new CfnCondition(this, "CrawlerMonthlyCondition", {
-			expression: Fn.conditionEquals(schedule, ScheduleExpression.MONTHLY)
-		})
-		return Fn.conditionIf(crawlerDailyCondition.logicalId, 'cron(0 2 ? * * *)', Fn.conditionIf(crawlerWeeklyCondition.logicalId, 'cron(0 2 ? * SAT *)', Fn.conditionIf(crawlerMonthlyCondition.logicalId, "cron(0 2 ? 1/1 SAT#4 *)", 'cron(0 2 ? * SAT *)')))
+		const crawlerDailyCondition = new CfnCondition(this, 'CrawlerDailyCondition', {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.DAILY),
+		});
+		const crawlerWeeklyCondition = new CfnCondition(this, 'CrawlerWeeklyCondition', {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.WEEKLY),
+		});
+		const crawlerMonthlyCondition = new CfnCondition(this, 'CrawlerMonthlyCondition', {
+			expression: Fn.conditionEquals(schedule, ScheduleExpression.MONTHLY),
+		});
+		return Fn.conditionIf(crawlerDailyCondition.logicalId, 'cron(0 2 ? * * *)', Fn.conditionIf(crawlerWeeklyCondition.logicalId, 'cron(0 2 ? * SAT *)', Fn.conditionIf(crawlerMonthlyCondition.logicalId, 'cron(0 2 ? 1/1 SAT#4 *)', 'cron(0 2 ? * SAT *)')));
 
 
 	}

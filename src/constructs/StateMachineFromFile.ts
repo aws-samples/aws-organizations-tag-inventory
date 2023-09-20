@@ -29,6 +29,7 @@ export interface StateMachineFromFileConfig {
   mergeFunction: IFunction;
   putObjectRoleArn: string;
   bucketName: string;
+  topicArn:string;
 }
 
 export class StateMachineFromFile extends Construct {
@@ -49,6 +50,7 @@ export class StateMachineFromFile extends Construct {
         MERGE_FUNCTION: config.mergeFunction.functionArn,
         CENTRAL_ROLE_ARN: config.putObjectRoleArn,
         CENTRAL_BUCKET_NAME: config.bucketName,
+        TOPIC_ARN: config.topicArn,
       },
       logs: {
         level: LogLevel.ALL,

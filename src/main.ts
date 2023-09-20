@@ -15,7 +15,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { App, Aspects, DefaultStackSynthesizer } from 'aws-cdk-lib';
+import { App, Aspects, CfnParameter, DefaultStackSynthesizer } from 'aws-cdk-lib';
 import { AwsSolutionsChecks } from 'cdk-nag';
 import { CentralStack } from './stacks/CentralStack';
 import { OrganizationAssetBucketStack } from './stacks/OrganizationAssetBucketStack';
@@ -57,6 +57,7 @@ const main = async (): Promise<App> => {
       aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
       bucketName: app.node.tryGetContext('bucketName'),
       centralRoleArn: app.node.tryGetContext('centralRoleArn'),
+      topicArn: app.node.tryGetContext('topicArn'),
       schedule: app.node.tryGetContext('schedule'),
       synthesizer: new DefaultStackSynthesizer({
         generateBootstrapVersionRule: false,
@@ -71,6 +72,8 @@ const main = async (): Promise<App> => {
       bucketName: bucketName,
       organizationId: organizationId,
     });
+
+
     const synthesizer = new DefaultStackSynthesizer({
       generateBootstrapVersionRule: false,
       fileAssetsBucketName: bucketName,
@@ -81,10 +84,22 @@ const main = async (): Promise<App> => {
       aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
       bucketName: app.node.tryGetContext('bucketName'),
       centralRoleArn: app.node.tryGetContext('centralRoleArn'),
+      topicArn: app.node.tryGetContext('topicArn'),
       synthesizer: synthesizer,
       organizationPayerAccountId: app.node.tryGetContext('organizationPayerAccountId'),
       schedule: app.node.tryGetContext('schedule'),
     });
+
+    //we have to make sure all the stacks have the same parameters even though they're not used
+
+    new CfnParameter(spokeStack, 'OrganizationalUnitIdsParameter', {
+
+      default: '',
+      type: 'CommaDelimitedList',
+      description: 'Organizational units to deploy the spoke stack to',
+    });
+
+
     spokeStack.addDependency(assetBucketStack);
     spokeStack.synthesizer.synthesize({
       outdir: app.outdir,
