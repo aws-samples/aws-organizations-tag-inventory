@@ -59,6 +59,8 @@ export class StateMachineFromFile extends Construct {
       },
       tracingEnabled: true,
     });
+    logGroup.grantWrite(this.stateMachine)
+    logGroup.grantRead(this.stateMachine)
   }
 
 }

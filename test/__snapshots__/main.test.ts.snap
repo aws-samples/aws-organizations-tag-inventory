@@ -230,6 +230,10 @@ exports[`Snapshot 1`] = `
       "Description": "The frequency jobs are run",
       "Type": "String",
     },
+    "TopicArnParameter": {
+      "Description": "ARN of the central account's notification topic",
+      "Type": "String",
+    },
   },
   "Resources": {
     "comamazonawscdkcustomresourcesresourceexplorerindexproviderframeworkonEventCA9D2DDB": {
@@ -373,7 +377,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "e2bb314167db21058636d01cd1151e9c7c0388f615fb9380ed80618e75169a9a.zip",
+          "S3Key": "27fd8c5d880849fea9372cf93a0d496bce1e66425a044301b7a4824168c8350e.zip",
         },
         "Environment": {
           "Variables": {
@@ -483,29 +487,6 @@ exports[`Snapshot 1`] = `
       },
       "Type": "AWS::IAM::Policy",
     },
-    "spokeErrorNotificationTopicAB25AB54": {
-      "Properties": {
-        "DisplayName": "Spoke Account State Machine Error Notifications",
-        "FifoTopic": false,
-        "KmsMasterKeyId": {
-          "Fn::GetAtt": [
-            "spokeerrorNotificationTopicKey1663BCA0",
-            "Arn",
-          ],
-        },
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-      },
-      "Type": "AWS::SNS::Topic",
-    },
     "spokeMergeResultsfn262D356D": {
       "DependsOn": [
         "spokeMergeResultsfnServiceRole07998249",
@@ -604,7 +585,7 @@ exports[`Snapshot 1`] = `
       "Type": "AWS::IAM::Role",
     },
     "spokeMyIndexresourceexplorerindexcustomresource40170C84": {
-      "DeletionPolicy": "Delete",
+      "DeletionPolicy": "Retain",
       "Properties": {
         "AGGREGATOR_INDEX_REGION": {
           "Ref": "AggregatorRegionParameter",
@@ -620,7 +601,7 @@ exports[`Snapshot 1`] = `
         },
       },
       "Type": "Custom::ResourceExplorerIndex",
-      "UpdateReplacePolicy": "Delete",
+      "UpdateReplacePolicy": "Retain",
     },
     "spokeSchedulerFAB0B53F": {
       "Properties": {
@@ -853,7 +834,7 @@ exports[`Snapshot 1`] = `
           "Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "Key": "1f766ba1785091a35e39a842197dd49792673a31c7f0e77cab18219a71659967.json",
+          "Key": "50b49bfbcce0a69ef0a1eea4ec522504f517ec57bb2a630243f3eb7110c21312.json",
         },
         "DefinitionSubstitutions": {
           "CENTRAL_BUCKET_NAME": {
@@ -875,7 +856,7 @@ exports[`Snapshot 1`] = `
             ],
           },
           "TOPIC_ARN": {
-            "Ref": "spokeErrorNotificationTopicAB25AB54",
+            "Ref": "TopicArnParameter",
           },
         },
         "LoggingConfiguration": {
@@ -984,21 +965,6 @@ exports[`Snapshot 1`] = `
               },
             },
             {
-              "Action": [
-                "kms:Decrypt",
-                "kms:Encrypt",
-                "kms:ReEncrypt*",
-                "kms:GenerateDataKey*",
-              ],
-              "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "spokeerrorNotificationTopicKey1663BCA0",
-                  "Arn",
-                ],
-              },
-            },
-            {
               "Action": "lambda:InvokeFunction",
               "Effect": "Allow",
               "Resource": [
@@ -1049,13 +1015,6 @@ exports[`Snapshot 1`] = `
                   ],
                 },
               ],
-            },
-            {
-              "Action": "sns:Publish",
-              "Effect": "Allow",
-              "Resource": {
-                "Ref": "spokeErrorNotificationTopicAB25AB54",
-              },
             },
           ],
           "Version": "2012-10-17",
@@ -1123,78 +1082,6 @@ exports[`Snapshot 1`] = `
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Delete",
     },
-    "spokeerrorNotificationTopicKey1663BCA0": {
-      "DeletionPolicy": "Delete",
-      "Properties": {
-        "Description": "Spoke Account State Machine Error Notifications Topic Key",
-        "EnableKeyRotation": true,
-        "KeyPolicy": {
-          "Statement": [
-            {
-              "Action": "kms:*",
-              "Effect": "Allow",
-              "Principal": {
-                "AWS": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":iam::",
-                      {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":root",
-                    ],
-                  ],
-                },
-              },
-              "Resource": "*",
-            },
-            {
-              "Action": [
-                "kms:Encrypt*",
-                "kms:Decrypt*",
-                "kms:ReEncrypt*",
-                "kms:GenerateDataKey*",
-                "kms:Describe*",
-              ],
-              "Effect": "Allow",
-              "Principal": {
-                "Service": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "states.",
-                      {
-                        "Ref": "AWS::Region",
-                      },
-                      ".amazonaws.com",
-                    ],
-                  ],
-                },
-              },
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": [
-          {
-            "Key": "Solution",
-            "Value": "aws-organizations-tag-inventory",
-          },
-          {
-            "Key": "Url",
-            "Value": "https://github.com/aws-samples/aws-organizations-tag-inventory",
-          },
-        ],
-      },
-      "Type": "AWS::KMS::Key",
-      "UpdateReplacePolicy": "Delete",
-    },
     "spokelayerslayerBCD68A79": {
       "DeletionPolicy": "Delete",
       "Properties": {
@@ -1206,7 +1093,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "17eb212e75808e11a6a0b3778236f11838ddf180f0d48a827a64327a21f08d11.zip",
+          "S3Key": "bd35851fe095151f9c95470df7fdf5076bb995c582c0d5c79e75132b9b47b9d3.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

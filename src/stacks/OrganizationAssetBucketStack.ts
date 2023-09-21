@@ -40,8 +40,8 @@ export class OrganizationAssetBucketStack extends Stack {
       type: 'String',
       description: 'Name of the central account bucket where tag inventory data is stored',
     });
-     new CfnParameter(this, 'TopicArnParameter', {
-      default: "NOT USED",
+    new CfnParameter(this, 'TopicArnParameter', {
+      default: 'NOT USED',
       type: 'String',
       description: "ARN of the central account's notification topic",
     });

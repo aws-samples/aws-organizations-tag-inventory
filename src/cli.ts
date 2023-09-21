@@ -24,7 +24,7 @@ import {GetCallerIdentityCommand, STSClient} from '@aws-sdk/client-sts';
 import {fromIni} from '@aws-sdk/credential-providers';
 import {execSync} from "child_process";
 import {ScheduleExpression} from "./constructs/ScheduleExpression";
-
+import * as kleur from 'kleur';
 
 const sharedIniFileLoader = require('@smithy/shared-ini-file-loader');
 const prompts = require('prompts');
@@ -216,7 +216,6 @@ async function getAllOus(region: string, client: OrganizationsClient = new Organ
 	for await (const page of paginatedOus) {
 		if (page.OrganizationalUnits != undefined) {
 			for (const ou of page.OrganizationalUnits) {
-
 				ous.push(...(await getAllOus(region, client, ou)));
 			}
 		}
@@ -347,14 +346,20 @@ async function centralStack(input: { account: string, stack: string; region: str
 	}
 	const quicksightUsersAndGroups = await prompts(quicksightUsersAndGroupsPrompts);
 	const overallConfirmation = await prompts([{
+		type: 'select',
+		name: 'deployOrDestroy',
+		choices: [{title: `${kleur.green('Deploy')}`, value: "deploy"},{title: `${kleur.red('Destroy')}`, value: "destroy"}],
+		message: `Do you want to deploy or destroy this stack?`,
+
+	},{
 		type: 'confirm',
 		name: 'confirm',
-		message: `Are you sure you want to deploy the central stack to region ${input.region} in account ${account}?`,
+		message: (prev:string) =>  `Are you sure you want to ${prev=='deploy' ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the central stack to region ${input.region} in account ${account}?`,
 
 	}]);
 	if (overallConfirmation.confirm) {
 		console.log('Deploying Central Stack');
-		let cmd = 'npm run deploy -- --require-approval never';
+		let cmd = `npm run ${overallConfirmation.deployOrDestroy} -- --require-approval never`;
 		if (profile != undefined) {
 			cmd = cmd + ' --profile ' + profile;
 		}
@@ -411,14 +416,20 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 			return {title: region, value: region};
 		}),
 	}, {
+		type: 'select',
+		name: 'deployOrDestroy',
+		choices: [{title: `${kleur.green('Deploy')}`, value: "deploy"},{title: `${kleur.red('Destroy')}`, value: "destroy"}],
+		message: `Do you want to deploy or destroy this stack?`,
+
+	},{
 		type: 'confirm',
 		name: 'confirm',
-		message: `Are you sure you want to deploy the spoke stack to region ${input.region} in account ${account}?`,
+		message: (prev:string) =>  `Are you sure you want to ${prev=='deploy' ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the central stack to region ${input.region} in account ${account}?`,
 
 	}]);
 	if (answer.confirm) {
-		console.log('Deploying Spoke Stack');
-		let cmd = 'npm run deploy -- --require-approval never';
+		console.log(`${answer.deployOrDestroy} Spoke Stack`);
+		let cmd = `npm run ${answer.deployOrDestroy} -- --require-approval never`;
 		if (profile != undefined) {
 			cmd = cmd + ' --profile ' + profile;
 		}
@@ -491,14 +502,20 @@ async function organizationStack(input: { account: string, stack: string; region
 			}),
 			min: 1,
 		}, {
+			type: 'select',
+			name: 'deployOrDestroy',
+			choices: [{title: `${kleur.green('Deploy')}`, value: "deploy"},{title: `${kleur.red('Destroy')}`, value: "destroy"}],
+			message: `Do you want to deploy or destroy this stack?`,
+
+		},{
 			type: 'confirm',
 			name: 'confirm',
-			message: 'Are you sure you want to deploy the spoke stack to the selected OU(s)?',
+			message: (prev:string) =>  `Are you sure you want to ${prev=='deploy' ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the central stack to region ${input.region} in account ${account}?`,
 
 		}]);
 		if (answer.confirm) {
-			console.log('Deploying Spoke Stacks to Organization');
-			let cmd = 'npm run deploy -- --require-approval never';
+			console.log(`${answer.deployOrDestroy} Spoke Stacks to Organization`);
+			let cmd = `npm run ${answer.deployOrDestroy} -- --require-approval never`;
 			if (profile != undefined) {
 				cmd = cmd + ' --profile ' + profile;
 			}

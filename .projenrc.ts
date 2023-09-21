@@ -25,7 +25,7 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
     copyrightOwner: 'Amazon.com, Inc. or its affiliates. All Rights Reserved.',
     deps: ['@types/aws-lambda', '@aws-sdk/client-resource-explorer-2', 'uuid', '@aws-sdk/client-athena', '@aws-sdk/client-s3', '@aws-lambda-powertools/logger', 'cdk-nag'], /* Runtime dependencies of this module. */
     // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-    devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist', 'cdk-assets', '@aws-sdk/client-organizations', 'prompts', '@types/prompts', '@aws-sdk/client-ec2', '@smithy/shared-ini-file-loader', '@aws-sdk/credential-providers', '@aws-sdk/client-sts', '@aws-sdk/client-iam', '@aws-sdk/client-quicksight', '@aws-sdk/client-ssm'], /* Build dependencies for this module. */
+    devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist', 'cdk-assets', '@aws-sdk/client-organizations', 'prompts', '@types/prompts', '@aws-sdk/client-ec2', '@smithy/shared-ini-file-loader', '@aws-sdk/credential-providers', '@aws-sdk/client-sts', '@aws-sdk/client-iam', '@aws-sdk/client-quicksight', '@aws-sdk/client-ssm', 'kleur'], /* Build dependencies for this module. */
     // packageName: undefined,  /* The "name" in package.json. */
 
   });

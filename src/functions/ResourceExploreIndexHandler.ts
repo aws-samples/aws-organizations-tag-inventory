@@ -28,6 +28,7 @@ import {
   CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
 import { v4 } from 'uuid';
+
 const logger = new Logger({
   serviceName: 'ResourceExploreIndexHandler',
 });
@@ -78,14 +79,17 @@ export const onEvent = async (
       Data: data,
     } as CloudFormationCustomResourceSuccessResponse;
 
-  } else {
+  } else if (event.RequestType == 'Delete') {
     //just return success on delete
+
     return {
       Status: 'SUCCESS',
-      PhysicalResourceId: physicalResourceId,
+      PhysicalResourceId: event.PhysicalResourceId,
       LogicalResourceId: event.LogicalResourceId,
       Data: data,
     } as CloudFormationCustomResourceSuccessResponse;
+  } else {
+    throw new Error(`Unknown request type ${event.RequestType}`);
   }
 
 };

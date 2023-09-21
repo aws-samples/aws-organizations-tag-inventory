@@ -16,7 +16,7 @@
  */
 
 import path from 'path';
-import { CfnOutput, CustomResource, Duration, Stack } from 'aws-cdk-lib';
+import { CfnOutput, CustomResource, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -43,6 +43,7 @@ export class ResourceExplorerIndex extends Construct {
         ENABLED_REGIONS: config.enabledRegions,
         AGGREGATOR_INDEX_REGION: config.aggregatorRegion,
       },
+      removalPolicy: RemovalPolicy.RETAIN,
     });
 
     new CfnOutput(this, 'tag-inventory-all-resources-arn-output', {

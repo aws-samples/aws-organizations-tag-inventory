@@ -79,6 +79,8 @@ The easiest way to deploy the solution is using the supplied command line interf
    ![central021.png](images%2Fcentral021.png)
    1. If you choose to deploy the [QuickSight dashboard](#quicksight-dashboard) you'll be asked to select the users and groups that can access the dashboard
       ![central022.png](images%2Fcentral022.png)
+11. Select whether you want to "Deploy" or "Destroy" this stack
+    ![spoke06.png](images/DeployOrDestroy.png)
 3. Confirm your choices
    ![central03.png](images%2Fcentral03.png)
 1. Copy the output values for "**CentralStackNotificationTopicArnOutput**", "**CentralStackPutTagInventoryRoleOutput**", and "**OrganizationsTagInventoryBucketNameOutput**", you'll need these values later
@@ -101,16 +103,18 @@ AWS organization jump to [Deploy multiple spoke stacks using Cloudformation Stac
    ![spoke02.png](images%2Fspoke02.png)
 2. Select the frequency you want to gather tag inventory
    ![Select schedule](./images/schedule.png)
-8. Enter the central bucket name from [Deploy central stack - Step 11](#deploy-central-stack)
+8. Enter the central bucket name from [Deploy central stack - Step 12](#deploy-central-stack)
    ![spoke03.png](images%2Fspoke03.png)
-8. Enter the central topic arn from [Deploy central stack - Step 11](#deploy-central-stack)
+8. Enter the central topic arn from [Deploy central stack - Step 12](#deploy-central-stack)
    ![spoke032.png](images%2Fspoke032.png)
-9. Enter the arn of the central cross account role from [Deploy central stack - Step 11](#deploy-central-stack)
+9. Enter the arn of the central cross account role from [Deploy central stack - Step 12](#deploy-central-stack)
    ![spoke04.png](images%2Fspoke04.png)
 10. Select the region that you want to setup AWS Resource Explorer indexes in
    ![spoke05.png](images%2Fspoke05.png)
 11. Select the region that you want to setup the AWS Resource Explorer aggregator index in
    ![spoke055.png](images%2Fspoke055.png)
+11. Select whether you want to "Deploy" or "Destroy" this stack
+    ![spoke06.png](images/DeployOrDestroy.png)
 11. Confirm your choices
    ![spoke06.png](images%2Fspoke06.png)
 ### Deploy multiple spoke stacks using Cloudformation StackSets
@@ -127,11 +131,11 @@ Before you can deploy multiple spoke stacks using [stacksets](https://docs.aws.a
    ![organization02.png](images%2Forganization02.png)
 2. Select the frequency you want to gather tag inventory and generate the report 
    ![Select schedule](./images/schedule.png)
-8. Enter the central bucket name from [Deploy central stack - Step 11](#deploy-central-stack)
+8. Enter the central bucket name from [Deploy central stack - Step 12](#deploy-central-stack)
    ![organization03.png](images%2Forganization03.png)
-8. Enter the central topic arn from [Deploy central stack - Step 11](#deploy-central-stack)
+8. Enter the central topic arn from [Deploy central stack - Step 12](#deploy-central-stack)
    ![spoke032.png](images%2Fspoke032.png)
-9. Enter the arn of the central cross account role from [Deploy central stack - Step 11](#deploy-central-stack)
+9. Enter the arn of the central cross account role from [Deploy central stack - Step 12](#deploy-central-stack)
    ![spoke04.png](images%2Fspoke04.png)
 10. Select the region that you want to setup AWS Resource Explorer indexes in
     ![spoke05.png](images%2Fspoke05.png)
@@ -139,7 +143,9 @@ Before you can deploy multiple spoke stacks using [stacksets](https://docs.aws.a
     ![spoke055.png](images%2Fspoke055.png)
 12. Select the organizational unit(s). The spoke stack will be deployed to accounts within these OUs. Choose the 'Root' OU if you want to gather tag inventory from all accounts int the organization.
     ![organization04.png](images%2Forganization04.png)
-13. Confirm your choices
+11. Select whether you want to "Deploy" or "Destroy" the stacks for the organization
+    ![spoke06.png](images/DeployOrDestroy.png)
+14. Confirm your choices
    ![organization05.png](images%2Forganization05.png)
 
 ### QuickSight Dashboard
