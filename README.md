@@ -101,11 +101,11 @@ AWS organization jump to [Deploy multiple spoke stacks using Cloudformation Stac
    ![spoke02.png](images%2Fspoke02.png)
 2. Select the frequency you want to gather tag inventory
    ![Select schedule](./images/schedule.png)
-8. Enter the central bucket name from [Deploy central stack - Step 8](#deploy-central-stack)
+8. Enter the central bucket name from [Deploy central stack - Step 11](#deploy-central-stack)
    ![spoke03.png](images%2Fspoke03.png)
-8. Enter the central topic arn from [Deploy central stack - Step 8](#deploy-central-stack)
+8. Enter the central topic arn from [Deploy central stack - Step 11](#deploy-central-stack)
    ![spoke032.png](images%2Fspoke032.png)
-9. Enter the arn of the central cross account role from [Deploy central stack - Step 8](#deploy-central-stack)
+9. Enter the arn of the central cross account role from [Deploy central stack - Step 11](#deploy-central-stack)
    ![spoke04.png](images%2Fspoke04.png)
 10. Select the region that you want to setup AWS Resource Explorer indexes in
    ![spoke05.png](images%2Fspoke05.png)
@@ -127,11 +127,11 @@ Before you can deploy multiple spoke stacks using [stacksets](https://docs.aws.a
    ![organization02.png](images%2Forganization02.png)
 2. Select the frequency you want to gather tag inventory and generate the report 
    ![Select schedule](./images/schedule.png)
-8. Enter the central bucket name from [Deploy central stack - Step 8](#deploy-central-stack)
+8. Enter the central bucket name from [Deploy central stack - Step 11](#deploy-central-stack)
    ![organization03.png](images%2Forganization03.png)
-8. Enter the central topic arn from [Deploy central stack - Step 8](#deploy-central-stack)
+8. Enter the central topic arn from [Deploy central stack - Step 11](#deploy-central-stack)
    ![spoke032.png](images%2Fspoke032.png)
-9. Enter the arn of the central cross account role from [Deploy central stack - Step 8](#deploy-central-stack)
+9. Enter the arn of the central cross account role from [Deploy central stack - Step 11](#deploy-central-stack)
    ![spoke04.png](images%2Fspoke04.png)
 10. Select the region that you want to setup AWS Resource Explorer indexes in
     ![spoke05.png](images%2Fspoke05.png)
