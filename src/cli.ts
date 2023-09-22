@@ -424,7 +424,7 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 	},{
 		type: 'confirm',
 		name: 'confirm',
-		message: (prev:string) =>  `Are you sure you want to ${prev=='deploy' ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the central stack to region ${input.region} in account ${account}?`,
+		message: (prev:string) =>  `Are you sure you want to ${prev=='deploy' ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the spoke stack to region ${input.region} in account ${account}?`,
 
 	}]);
 	if (answer.confirm) {
