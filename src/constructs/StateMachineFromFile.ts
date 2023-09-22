@@ -16,51 +16,68 @@
  */
 
 
-import { RemovalPolicy } from 'aws-cdk-lib';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { DefinitionBody, LogLevel, StateMachine } from 'aws-cdk-lib/aws-stepfunctions';
-import { Construct } from 'constructs';
+import {RemovalPolicy} from 'aws-cdk-lib';
+import {IFunction} from 'aws-cdk-lib/aws-lambda';
+import {LogGroup, RetentionDays} from 'aws-cdk-lib/aws-logs';
+import {DefinitionBody, LogLevel, StateMachine} from 'aws-cdk-lib/aws-stepfunctions';
+import {Construct} from 'constructs';
+import {Effect, PolicyStatement} from "aws-cdk-lib/aws-iam";
 
 export interface StateMachineFromFileConfig {
-  name: string;
-  file: string;
-  searchFunction: IFunction;
-  mergeFunction: IFunction;
-  putObjectRoleArn: string;
-  bucketName: string;
-  topicArn:string;
+	name: string;
+	file: string;
+	searchFunction: IFunction;
+	mergeFunction: IFunction;
+	putObjectRoleArn: string;
+	bucketName: string;
+	topicArn: string;
 }
 
 export class StateMachineFromFile extends Construct {
 
-  readonly stateMachine: StateMachine;
+	readonly stateMachine: StateMachine;
 
-  constructor(scope: Construct, id: string, config: StateMachineFromFileConfig) {
-    super(scope, id);
-    const logGroup = new LogGroup(this, `${config.name}LogGroup`, {
-      logGroupName: `/aws/statemachine/${config.name}`,
-      removalPolicy: RemovalPolicy.DESTROY,
-      retention: RetentionDays.ONE_MONTH,
-    });
-    this.stateMachine = new StateMachine(this, config.name, {
-      definitionBody: DefinitionBody.fromFile(config.file),
-      definitionSubstitutions: {
-        SEARCH_FUNCTION: config.searchFunction.functionArn,
-        MERGE_FUNCTION: config.mergeFunction.functionArn,
-        CENTRAL_ROLE_ARN: config.putObjectRoleArn,
-        CENTRAL_BUCKET_NAME: config.bucketName,
-        TOPIC_ARN: config.topicArn,
-      },
-      logs: {
-        level: LogLevel.ALL,
-        destination: logGroup,
+	constructor(scope: Construct, id: string, config: StateMachineFromFileConfig) {
+		super(scope, id);
+		const logGroup = new LogGroup(this, `${config.name}LogGroup`, {
+			logGroupName: `/aws/statemachine/${config.name}`,
+			removalPolicy: RemovalPolicy.DESTROY,
+			retention: RetentionDays.ONE_MONTH,
+		});
 
-      },
-      tracingEnabled: true,
-    });
-    logGroup.grantWrite(this.stateMachine)
-    logGroup.grantRead(this.stateMachine)
-  }
+		this.stateMachine = new StateMachine(this, config.name, {
+			definitionBody: DefinitionBody.fromFile(config.file),
+			definitionSubstitutions: {
+				SEARCH_FUNCTION: config.searchFunction.functionArn,
+				MERGE_FUNCTION: config.mergeFunction.functionArn,
+				CENTRAL_ROLE_ARN: config.putObjectRoleArn,
+				CENTRAL_BUCKET_NAME: config.bucketName,
+				TOPIC_ARN: config.topicArn,
+			},
+			logs: {
+				level: LogLevel.ALL,
+				destination: logGroup,
+				includeExecutionData:true,
+			},
+			tracingEnabled: true
+		});
+		logGroup.grantWrite(this.stateMachine)
+		logGroup.grantRead(this.stateMachine)
+		this.stateMachine.addToRolePolicy(new PolicyStatement({
+			effect: Effect.ALLOW,
+			actions: [
+				"logs:CreateLogDelivery",
+				"logs:CreateLogStream",
+				"logs:GetLogDelivery",
+				"logs:UpdateLogDelivery",
+				"logs:DeleteLogDelivery",
+				"logs:ListLogDeliveries",
+				"logs:PutLogEvents",
+				"logs:PutResourcePolicy",
+				"logs:DescribeResourcePolicies",
+				"logs:DescribeLogGroups"],
+			resources: ["*"]
+		}))
+	}
 
 }
