@@ -162,3 +162,11 @@ it will be physically destroyed.
 
 If you have alot of resources in an account and/or you run the reports daily you may exceed the "[Aggregator Region search monthly quota](https://console.aws.amazon.com/servicequotas/home/services/resource-explorer-2/quotas/L-A28429E9)" limit. 
 This limit can be increased via [Service Quotas](https://console.aws.amazon.com/servicequotas/home/). 
+
+### A not on AWS Resource Explorer Search API limitations
+
+Per the [Search API documentation](https://docs.aws.amazon.com/resource-explorer/latest/apireference/API_Search.html#API_Search_RequestParameters) 
+
+> The operation can return only the first 1,000 results. If the resource you want is not included, then use a different value for QueryString to refine the results.
+
+This means that if there are more than 1000 resources in the spoke account, only the first 1000 will be returned. 
