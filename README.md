@@ -57,6 +57,7 @@ Below is the state machine diagram that is run in each spoke account to gather a
 * Install [nodejs](https://nodejs.org/en/download)
 * Install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 * `npm install -g aws-cdk` - Install the [AWS CDK Tooklkit](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
+* `npm run build` - Build the project
 * Be sure to have [AWS credentials available on your terminal](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html)
 
 
