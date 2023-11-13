@@ -238,7 +238,7 @@ export class Central extends Construct {
     const tableArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:table/${this.table.databaseName}`;
     const databaseArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:database/${this.database.ref}`;
     const catalogArn = `arn:${Aws.PARTITION}:glue:${Aws.REGION}:${Aws.ACCOUNT_ID}:catalog/${this.table.catalogId}`;
-    new CfnCrawler(this, 'OrganizationalTagInventoryCrawler', {
+    const tagCrawler = new CfnCrawler(this, 'OrganizationalTagInventoryCrawler', {
       name: `${config.organizationId}-tag-inventory-crawler`,
       description: 'Organizational tag inventory crawler',
       databaseName: this.database.ref,
@@ -265,6 +265,7 @@ export class Central extends Construct {
         scheduleExpression: this.crawlerScheduleCron(config.schedule).toString(),
       },
     });
+    tagCrawler.addDependency(securityConfiguration);
     const centralStackRole = new Role(this, 'CentralStackPutTagInventoryRole', {
       assumedBy: new OrganizationPrincipal(config.organizationId),
       description: "Role with access to write to the central stack's OrganizationsTagInventory bucket",
