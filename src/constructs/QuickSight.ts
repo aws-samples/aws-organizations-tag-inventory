@@ -109,6 +109,8 @@ export class QuickSight extends Construct {
       },
       roles: qsServiceRoleNames,
     });
+    qsServiceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('QuickSightAthenaS3Policy'));
+	  
     const principalArns = [...config.quickSightGroupArns ?? [], ...config.quickSightUserArns ?? []];
     const qsDataSourcePermissions: CfnDataSource.ResourcePermissionProperty[] = principalArns.map(arn => {
       return {
