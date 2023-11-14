@@ -60,6 +60,9 @@ exports[`Snapshot 1`] = `
       "ap-southeast-3": {
         "states": "states.ap-southeast-3.amazonaws.com",
       },
+      "ap-southeast-4": {
+        "states": "states.ap-southeast-4.amazonaws.com",
+      },
       "ca-central-1": {
         "states": "states.ca-central-1.amazonaws.com",
       },
@@ -92,6 +95,9 @@ exports[`Snapshot 1`] = `
       },
       "eu-west-3": {
         "states": "states.eu-west-3.amazonaws.com",
+      },
+      "il-central-1": {
+        "states": "states.il-central-1.amazonaws.com",
       },
       "me-central-1": {
         "states": "states.me-central-1.amazonaws.com",
@@ -142,6 +148,10 @@ exports[`Snapshot 1`] = `
           "id": "AwsSolutions-IAM5",
           "reason": "Wildcard permissions have been scoped down",
         },
+        {
+          "id": "AwsSolutions-L1",
+          "reason": "Manually managing versions",
+        },
       ],
     },
   },
@@ -169,6 +179,7 @@ exports[`Snapshot 1`] = `
         "ap-southeast-1",
         "ap-southeast-2",
         "ap-southeast-3",
+        "ap-southeast-4",
         "ca-central-1",
         "cn-north-1",
         "cn-northwest-1",
@@ -180,6 +191,7 @@ exports[`Snapshot 1`] = `
         "eu-west-1",
         "eu-west-2",
         "eu-west-3",
+        "il-central-1",
         "me-central-1",
         "me-south-1",
         "sa-east-1",
@@ -246,7 +258,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip",
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
         },
         "Description": "AWS CDK resource provider framework - onEvent (test/com.amazonaws.cdk.custom-resources.resource-explorer-index-provider/resource-explorer-index-provider)",
         "Environment": {
@@ -377,7 +389,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "27fd8c5d880849fea9372cf93a0d496bce1e66425a044301b7a4824168c8350e.zip",
+          "S3Key": "f41ea6430644aad7f00b09d3046107637386f03257192b1e1dc88eee1500e7dd.zip",
         },
         "Environment": {
           "Variables": {
@@ -396,7 +408,7 @@ exports[`Snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Tags": [
           {
             "Key": "Solution",
@@ -499,7 +511,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "bd0ba193507f68e8219f006f6347811b4f250f2ffa70233bc32a80e6a31681d8.zip",
+          "S3Key": "b3fdc195f7b82de4226da4f91b9890e6766a77f12ec2b737a846ecb0ddeb640b.zip",
         },
         "Environment": {
           "Variables": {
@@ -528,7 +540,7 @@ exports[`Snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Tags": [
           {
             "Key": "Solution",
@@ -708,7 +720,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "a334fe87e2d70fe0b4207f6714ae1a87ee9d6f6834863f1d334d956d64124be8.zip",
+          "S3Key": "f7fd84e12658d277aefbf1bae3688f7aaef6c52c0708f0caae9370118e8416fe.zip",
         },
         "Environment": {
           "Variables": {
@@ -746,7 +758,7 @@ exports[`Snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Tags": [
           {
             "Key": "Solution",
@@ -872,6 +884,7 @@ exports[`Snapshot 1`] = `
               },
             },
           ],
+          "IncludeExecutionData": true,
           "Level": "ALL",
         },
         "RoleArn": {
@@ -921,6 +934,51 @@ exports[`Snapshot 1`] = `
                 "xray:PutTelemetryRecords",
                 "xray:GetSamplingRules",
                 "xray:GetSamplingTargets",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "spokeSpokeAccountStateMachineSpokeAccountStateMachineLogGroupBF1216DD",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:FilterLogEvents",
+                "logs:GetLogEvents",
+                "logs:GetLogGroupFields",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "spokeSpokeAccountStateMachineSpokeAccountStateMachineLogGroupBF1216DD",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:CreateLogDelivery",
+                "logs:CreateLogStream",
+                "logs:GetLogDelivery",
+                "logs:UpdateLogDelivery",
+                "logs:DeleteLogDelivery",
+                "logs:ListLogDeliveries",
+                "logs:PutLogEvents",
+                "logs:PutResourcePolicy",
+                "logs:DescribeResourcePolicies",
+                "logs:DescribeLogGroups",
               ],
               "Effect": "Allow",
               "Resource": "*",
@@ -1093,7 +1151,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "bd35851fe095151f9c95470df7fdf5076bb995c582c0d5c79e75132b9b47b9d3.zip",
+          "S3Key": "2b5a1d4fbabcaf3c352a6d86722e0ede52225ff0db4296484c6309dbab92988e.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

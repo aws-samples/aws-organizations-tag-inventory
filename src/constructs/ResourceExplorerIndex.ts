@@ -71,7 +71,7 @@ class ResourceExplorerIndexProvider extends Construct {
     this.provider = new Provider(this, 'resource-explorer-index-provider', {
       onEventHandler: new NodejsFunction(this, 'resource-explorer-index-fn', {
         architecture: Architecture.ARM_64,
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         entry: path.join(__dirname, '..', 'functions', 'ResourceExploreIndexHandler.ts'),
         handler: 'index.onEvent',
         timeout: Duration.seconds(60),

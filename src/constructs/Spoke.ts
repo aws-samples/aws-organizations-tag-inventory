@@ -59,7 +59,7 @@ export class Spoke extends Construct {
 
     const searchFunction = new NodejsFunction(this, 'Search-fn', {
       architecture: Architecture.ARM_64,
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       entry: path.join(__dirname, '..', 'functions', 'Search.ts'),
       handler: 'index.onEvent',
       timeout: Duration.seconds(60),
@@ -76,7 +76,7 @@ export class Spoke extends Construct {
     });
     const mergeFunction = new NodejsFunction(this, 'MergeResults-fn', {
       architecture: Architecture.ARM_64,
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       entry: path.join(__dirname, '..', 'functions', 'MergeResults.ts'),
       handler: 'index.onEvent',
       timeout: Duration.seconds(60),

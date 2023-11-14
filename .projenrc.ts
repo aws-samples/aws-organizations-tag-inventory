@@ -10,7 +10,7 @@ const Arborist = require('@npmcli/arborist');
 
 const app = async (): Promise<AwsCdkTypeScriptApp> => {
   const project = new awscdk.AwsCdkTypeScriptApp({
-    cdkVersion: '2.82.0',
+    cdkVersion: '2.105.0',
     defaultReleaseBranch: 'main',
     name: 'aws-organizations-tag-inventory',
     projenrcTs: true,
@@ -123,8 +123,10 @@ app().then(project => {
 
 
   });
-  project.tasks.tryFind('deploy')?.prependExec('cdk synth', {
-    receiveArgs: true,
+  // project.tasks.tryFind('deploy')?.prependExec('cdk synth', {
+  //   receiveArgs: true,
+  // });
+  project.tasks.tryFind('deploy')?.prependExec('npm run build', {
   });
   project.synth();
 }).catch(reason => {
