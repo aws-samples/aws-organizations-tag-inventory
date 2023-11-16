@@ -19,7 +19,7 @@ import { Aws, RemovalPolicy } from 'aws-cdk-lib';
 import { CfnWorkGroup } from 'aws-cdk-lib/aws-athena';
 import { CfnManagedPolicy, ManagedPolicy, Role } from 'aws-cdk-lib/aws-iam';
 import { CfnAnalysis, CfnDataSet, CfnDataSource } from 'aws-cdk-lib/aws-quicksight';
-import { BlockPublicAccess, Bucket, BucketEncryption, IBucket } from 'aws-cdk-lib/aws-s3';
+import { BlockPublicAccess, Bucket, BucketEncryption, CfnBucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { Central } from './Central';
 
@@ -100,7 +100,10 @@ export class QuickSight extends Construct {
             ],
             Effect: 'Allow',
             Resource: [
+              'arn:aws:s3:::aws-athena-query-results-*',
+              `arn:aws:s3:::${athenaWorkGroupBucket.bucketName}`,
               `arn:aws:s3:::${athenaWorkGroupBucket.bucketName}/*`,
+              `arn:aws:s3:::${qsBucket.bucketName}`,
               `arn:aws:s3:::${qsBucket.bucketName}/*`,
             ],
           },
@@ -109,8 +112,11 @@ export class QuickSight extends Construct {
       },
       roles: qsServiceRoleNames,
     });
+    qsManagedPolicy.addDependency(tagInventoryBucket.node.defaultChild as CfnBucket);
+    qsManagedPolicy.addDependency(athenaWorkGroupBucket.node.defaultChild as CfnBucket);
+    qsManagedPolicy.addDependency(qsBucket.node.defaultChild as CfnBucket);
     qsServiceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('QuickSightAthenaS3Policy'));
-	  
+
     const principalArns = [...config.quickSightGroupArns ?? [], ...config.quickSightUserArns ?? []];
     const qsDataSourcePermissions: CfnDataSource.ResourcePermissionProperty[] = principalArns.map(arn => {
       return {
@@ -149,9 +155,9 @@ export class QuickSight extends Construct {
       awsAccountId: Aws.ACCOUNT_ID,
       permissions: qsDataSourcePermissions,
     });
-    dataSource.addDependency(qsManagedPolicy);
+    dataSource.addDependency(workGroup);
 
-    new CfnDataSet(this, 'TagInventoryAllDataSet', {
+    const tagInventoryAllDataSet=new CfnDataSet(this, 'TagInventoryAllDataSet', {
       name: 'tag-inventory-all-data-set',
       dataSetId: 'tag-inventory-all-data-set',
       awsAccountId: Aws.ACCOUNT_ID,
@@ -195,6 +201,7 @@ export class QuickSight extends Construct {
         },
       },
     });
+    tagInventoryAllDataSet.addDependency(dataSource);
     const tagInventoryLatestViewDataSet = new CfnDataSet(this, 'TagInventoryLatestDataSet', {
       name: 'tag-inventory-latest-data-set',
       dataSetId: 'tag-inventory-latest-data-set',
@@ -239,7 +246,7 @@ export class QuickSight extends Construct {
         },
       },
     });
-
+    tagInventoryLatestViewDataSet.addDependency(dataSource);
     const tagInventoryLatestTopTenViewDataSet = new CfnDataSet(this, 'TagInventoryLatestTopTenViewDataSet', {
       name: 'tag-inventory-latest-top-ten-data-set',
       dataSetId: 'tag-inventory-latest-top-ten-data-set',
@@ -269,6 +276,7 @@ export class QuickSight extends Construct {
         },
       },
     });
+    tagInventoryLatestTopTenViewDataSet.addDependency(dataSource);
     const tagInventoryLatestTaggedVsUntagggedViewDataSet = new CfnDataSet(this, 'tagInventoryLatestTaggedVsUntagggedViewDataSet', {
       name: 'tag-inventory-latest-tagged-vs-untagged-data-set',
       dataSetId: 'tag-inventory-latest-tagged-vs-untagged-data-set',
@@ -295,7 +303,7 @@ export class QuickSight extends Construct {
         },
       },
     });
-
+    tagInventoryLatestTaggedVsUntagggedViewDataSet.addDependency(dataSource);
     new CfnAnalysis(this, 'TagInventoryAnalysis', {
       name: 'Tag Inventory',
       awsAccountId: Aws.ACCOUNT_ID,

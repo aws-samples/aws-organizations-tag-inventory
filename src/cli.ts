@@ -359,7 +359,7 @@ async function centralStack(input: { account: string, stack: string; region: str
 	}]);
 	if (overallConfirmation.confirm) {
 		console.log('Deploying Central Stack');
-		let cmd = `npm run ${overallConfirmation.deployOrDestroy} -- --require-approval never`;
+		let cmd = `npm run ${overallConfirmation.deployOrDestroy} --  --require-approval never`;
 		if (profile != undefined) {
 			cmd = cmd + ' --profile ' + profile;
 		}
