@@ -143,6 +143,9 @@ export class OrganizationAssetBucketStack extends Stack {
       {
         id: 'AwsSolutions-IAM5',
         reason: 'Wildcard permissions have been scoped down',
+      }, {
+        id: 'AwsSolutions-L1',
+        reason: 'Manually managing versions',
       },
     ]);
   }

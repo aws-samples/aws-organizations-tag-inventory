@@ -274,7 +274,7 @@ export class Central extends Construct {
     const workgroupName = 'TagInventoryAthenaWorkGroup';
     const generateCsvReportFunction = new NodejsFunction(this, 'GenerateCsvReportFunction', {
       architecture: Architecture.ARM_64,
-      runtime: Runtime.NODEJS_LATEST,
+      runtime: Runtime.NODEJS_20_X,
       entry: path.join(__dirname, '..', 'functions', 'GenerateReportCSV.ts'),
       handler: 'index.onEvent',
       timeout: Duration.seconds(120),

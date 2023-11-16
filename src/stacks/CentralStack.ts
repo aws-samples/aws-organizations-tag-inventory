@@ -91,6 +91,9 @@ export class CentralStack extends Stack {
       {
         id: 'AwsSolutions-GL1',
         reason: 'No sensitive data stored in cloudwatch logs',
+      }, {
+        id: 'AwsSolutions-L1',
+        reason: 'Manually managing versions',
       },
     ]);
   }

@@ -140,7 +140,9 @@ export class OrganizationStack extends Stack {
   }
 
   private cdkNagSuppressions() {
-
-    NagSuppressions.addStackSuppressions(this, []);
+    NagSuppressions.addStackSuppressions(this, [{
+      id: 'AwsSolutions-L1',
+      reason: 'Manually managing versions',
+    }]);
   }
 }
