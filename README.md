@@ -79,7 +79,10 @@ The easiest way to deploy the solution is using the supplied command line interf
    ![central021.png](images%2Fcentral021.png)
    1. If you choose to deploy the [QuickSight dashboard](#quicksight-dashboard) you'll be asked to select the users and groups that can access the dashboard
       ![central022.png](images%2Fcentral022.png)
-11. Select whether you want to "Deploy" or "Destroy" this stack
+> [!NOTE]
+> You **MUST** have the Enterprise Edition of Quicksight to use this feature
+      
+10. Select whether you want to "Deploy" or "Destroy" this stack
     ![spoke06.png](images/DeployOrDestroy.png)
 3. Confirm your choices
    ![central03.png](images%2Fcentral03.png)
