@@ -163,7 +163,7 @@ it will be physically destroyed.
 If you have alot of resources in an account and/or you run the reports daily you may exceed the "[Aggregator Region search monthly quota](https://console.aws.amazon.com/servicequotas/home/services/resource-explorer-2/quotas/L-A28429E9)" limit. 
 This limit can be increased via [Service Quotas](https://console.aws.amazon.com/servicequotas/home/). 
 
-### A not on AWS Resource Explorer Search API limitations
+### A note on AWS Resource Explorer Search API limitations
 
 Per the [Search API documentation](https://docs.aws.amazon.com/resource-explorer/latest/apireference/API_Search.html#API_Search_RequestParameters) 
 
