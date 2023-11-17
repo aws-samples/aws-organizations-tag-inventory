@@ -63,6 +63,9 @@ Below is the state machine diagram that is run in each spoke account to gather a
 ## Deployment
 The easiest way to deploy the solution is using the supplied command line interface (cli) 
 
+> [!NOTE]
+> The Resource Explorer API is not available in all AWS regions. Check for availability via the [AWS console](https://resource-explorer.console.aws.amazon.com/resource-explorer/home) before deploying.
+
 ### Deploy central stack
 1. Open a terminal on your local machine, 
 1. Ensure there are  [AWS credentials available on your terminal](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html) for the account that you want to deploy the central stack to.
