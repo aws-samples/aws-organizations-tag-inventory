@@ -99,6 +99,31 @@
         }
       ]
     },
+    "deploy:cli": {
+      "name": "deploy:cli",
+      "steps": [
+        {
+          "spawn": "default"
+        },
+        {
+          "spawn": "pre-compile"
+        },
+        {
+          "spawn": "compile"
+        },
+        {
+          "spawn": "post-compile"
+        },
+        {
+          "spawn": "synth:silent",
+          "receiveArgs": true
+        },
+        {
+          "exec": "cdk deploy",
+          "receiveArgs": true
+        }
+      ]
+    },
     "destroy": {
       "name": "destroy",
       "description": "Destroys your cdk app in the AWS cloud",
@@ -226,13 +251,13 @@
           "exec": "npm update npm-check-updates"
         },
         {
-          "exec": "npm-check-updates --upgrade --target=minor --peer --dep=dev,peer,prod,optional --filter=@aws-sdk/client-ec2,@aws-sdk/client-iam,@aws-sdk/client-organizations,@aws-sdk/client-quicksight,@aws-sdk/client-ssm,@aws-sdk/client-sts,@aws-sdk/credential-providers,@npmcli/arborist,@smithy/shared-ini-file-loader,@types/jest,@types/node,@types/npm-packlist,@types/npmcli__arborist,@types/prompts,@types/uuid,@typescript-eslint/eslint-plugin,@typescript-eslint/parser,aws-cdk,cdk-assets,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,eslint,jest,jest-junit,kleur,npm-check-updates,projen,prompts,ts-jest,ts-node,typescript,@aws-lambda-powertools/logger,@aws-sdk/client-athena,@aws-sdk/client-resource-explorer-2,@aws-sdk/client-s3,@types/aws-lambda,aws-cdk-lib,cdk-nag,constructs,uuid"
+          "exec": "npm-check-updates --upgrade --target=minor --peer --dep=dev,peer,prod,optional --filter=@aws-sdk/client-ec2,@aws-sdk/client-iam,@aws-sdk/client-organizations,@aws-sdk/client-quicksight,@aws-sdk/client-ssm,@aws-sdk/client-sts,@aws-sdk/credential-providers,@npmcli/arborist,@smithy/shared-ini-file-loader,@types/jest,@types/node,@types/npm-packlist,@types/npmcli__arborist,@types/prompts,@types/uuid,@typescript-eslint/eslint-plugin,@typescript-eslint/parser,aws-cdk,cdk-assets,esbuild,eslint-config-prettier,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,eslint,jest,jest-junit,kleur,npm-check-updates,prettier,projen,prompts,ts-jest,ts-node,typescript,@aws-lambda-powertools/logger,@aws-sdk/client-athena,@aws-sdk/client-resource-explorer-2,@aws-sdk/client-s3,@types/aws-lambda,aws-cdk-lib,cdk-nag,constructs,uuid"
         },
         {
           "exec": "npm install"
         },
         {
-          "exec": "npm update @aws-sdk/client-ec2 @aws-sdk/client-iam @aws-sdk/client-organizations @aws-sdk/client-quicksight @aws-sdk/client-ssm @aws-sdk/client-sts @aws-sdk/credential-providers @npmcli/arborist @smithy/shared-ini-file-loader @types/jest @types/node @types/npm-packlist @types/npmcli__arborist @types/prompts @types/uuid @typescript-eslint/eslint-plugin @typescript-eslint/parser aws-cdk cdk-assets esbuild eslint-import-resolver-typescript eslint-plugin-import eslint jest jest-junit kleur npm-check-updates projen prompts ts-jest ts-node typescript @aws-lambda-powertools/logger @aws-sdk/client-athena @aws-sdk/client-resource-explorer-2 @aws-sdk/client-s3 @types/aws-lambda aws-cdk-lib cdk-nag constructs uuid"
+          "exec": "npm update @aws-sdk/client-ec2 @aws-sdk/client-iam @aws-sdk/client-organizations @aws-sdk/client-quicksight @aws-sdk/client-ssm @aws-sdk/client-sts @aws-sdk/credential-providers @npmcli/arborist @smithy/shared-ini-file-loader @types/jest @types/node @types/npm-packlist @types/npmcli__arborist @types/prompts @types/uuid @typescript-eslint/eslint-plugin @typescript-eslint/parser aws-cdk cdk-assets esbuild eslint-config-prettier eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier eslint jest jest-junit kleur npm-check-updates prettier projen prompts ts-jest ts-node typescript @aws-lambda-powertools/logger @aws-sdk/client-athena @aws-sdk/client-resource-explorer-2 @aws-sdk/client-s3 @types/aws-lambda aws-cdk-lib cdk-nag constructs uuid"
         },
         {
           "exec": "npx projen"

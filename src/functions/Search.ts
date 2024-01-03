@@ -14,16 +14,18 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { Logger } from '@aws-lambda-powertools/logger';
-import { ResourceExplorer2Client, SearchCommand } from '@aws-sdk/client-resource-explorer-2';
+import { Logger } from "@aws-lambda-powertools/logger";
+import {
+  ResourceExplorer2Client,
+  SearchCommand,
+} from "@aws-sdk/client-resource-explorer-2";
 const client = new ResourceExplorer2Client({
-  region: process.env.VIEW_ARN!.split(':')[3],
-  retryMode: 'adaptive',
-
+  region: process.env.VIEW_ARN!.split(":")[3],
+  retryMode: "adaptive",
 });
 
 const logger = new Logger({
-  serviceName: 'Search',
+  serviceName: "Search",
 });
 
 export const onEvent = async (
@@ -35,7 +37,12 @@ export const onEvent = async (
 ): Promise<string> => {
   logger.info(`Event: ${JSON.stringify(event)}`);
 
-  const command = new SearchCommand({ ViewArn: process.env.VIEW_ARN, MaxResults: event.MaxResults==undefined ? 10 : event.MaxResults, QueryString: '', NextToken: event?.NextToken });
+  const command = new SearchCommand({
+    ViewArn: process.env.VIEW_ARN,
+    MaxResults: event.MaxResults == undefined ? 10 : event.MaxResults,
+    QueryString: process.env.QUERY_STRING ?? "",
+    NextToken: event?.NextToken,
+  });
   const response = await client.send(command);
   return JSON.stringify({
     ViewArn: response.ViewArn,
@@ -43,6 +50,4 @@ export const onEvent = async (
     NextToken: response.NextToken,
     Resources: response.Resources,
   });
-
-
 };

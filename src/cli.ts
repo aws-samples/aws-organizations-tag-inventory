@@ -348,13 +348,13 @@ async function centralStack(input: { account: string, stack: string; region: str
 	const overallConfirmation = await prompts([{
 		type: 'select',
 		name: 'deployOrDestroy',
-		choices: [{title: `${kleur.green('Deploy')}`, value: "deploy"},{title: `${kleur.red('Destroy')}`, value: "destroy"}],
+		choices: [{title: `${kleur.green('Deploy')}`, value: "deploy:cli"},{title: `${kleur.red('Destroy')}`, value: "destroy"}],
 		message: `Do you want to deploy or destroy this stack?`,
 
 	},{
 		type: 'confirm',
 		name: 'confirm',
-		message: (prev:string) =>  `Are you sure you want to ${prev=='deploy' ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the central stack to region ${input.region} in account ${account}?`,
+		message: (prev:string) =>  `Are you sure you want to ${prev=="deploy:cli" ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the central stack to region ${input.region} in account ${account}?`,
 
 	}]);
 	if (overallConfirmation.confirm) {
@@ -416,15 +416,20 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 			return {title: region, value: region};
 		}),
 	}, {
+		type: 'text',
+		message: '[Optional] Enter the Resource Explorer query to run. Defaults to all resources. \n See https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html: ',
+		name: 'queryString',
+		default:""
+	},{
 		type: 'select',
 		name: 'deployOrDestroy',
-		choices: [{title: `${kleur.green('Deploy')}`, value: "deploy"},{title: `${kleur.red('Destroy')}`, value: "destroy"}],
+		choices: [{title: `${kleur.green('Deploy')}`, value: "deploy:cli"},{title: `${kleur.red('Destroy')}`, value: "destroy"}],
 		message: `Do you want to deploy or destroy this stack?`,
 
 	},{
 		type: 'confirm',
 		name: 'confirm',
-		message: (prev:string) =>  `Are you sure you want to ${prev=='deploy' ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the spoke stack to region ${input.region} in account ${account}?`,
+		message: (prev:string) =>  `Are you sure you want to ${prev=="deploy:cli" ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the spoke stack to region ${input.region} in account ${account}?`,
 
 	}]);
 	if (answer.confirm) {
@@ -433,8 +438,8 @@ async function spokeStack(input: { account: string, stack: string; region: strin
 		if (profile != undefined) {
 			cmd = cmd + ' --profile ' + profile;
 		}
-		cmd = cmd + ' --region ' + input.region + ' -c stack=spoke -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName +' -c topicArn=' + answer.topicArn +  ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule;
-		cmd = cmd+ " --parameters BucketNameParameter="+ answer.bucketName+ " --parameters TopicArnParameter="+ answer.topicArn+" --parameters CentralRoleArnParameter="+ answer.centralRoleArn+" --parameters EnabledRegionsParameter="+answer.enabledRegions.join(',')+" --parameters AggregatorRegionParameter="+ answer.aggregatorRegion+" --parameters OrganizationPayerAccountIdParameter="+organization.MasterAccountId+" --parameters ScheduleParameter="+input.schedule
+		cmd = cmd + ' --region ' + input.region + ' -c stack=spoke -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName +' -c topicArn=' + answer.topicArn +  ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule +" -c queryString="+answer.queryString;
+		cmd = cmd+ " --parameters BucketNameParameter="+ answer.bucketName+ " --parameters TopicArnParameter="+ answer.topicArn+" --parameters CentralRoleArnParameter="+ answer.centralRoleArn+" --parameters EnabledRegionsParameter="+answer.enabledRegions.join(',')+" --parameters AggregatorRegionParameter="+ answer.aggregatorRegion+" --parameters OrganizationPayerAccountIdParameter="+organization.MasterAccountId+" --parameters ScheduleParameter="+input.schedule+" --parameters QueryStringParameter="+answer.queryString
 		execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'});
 
 
@@ -494,6 +499,11 @@ async function organizationStack(input: { account: string, stack: string; region
 			}),
 
 		}, {
+			type: 'text',
+			message: '[Optional] Enter the Resource Explorer query to run. Defaults to all resources. \n See https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html: ',
+			name: 'queryString',
+			default:""
+		}, {
 			type: 'multiselect',
 			message: 'Select the organizational units to deploy the spoke stacks to: ',
 			name: 'organizationalUnitIds',
@@ -504,13 +514,13 @@ async function organizationStack(input: { account: string, stack: string; region
 		}, {
 			type: 'select',
 			name: 'deployOrDestroy',
-			choices: [{title: `${kleur.green('Deploy')}`, value: "deploy"},{title: `${kleur.red('Destroy')}`, value: "destroy"}],
+			choices: [{title: `${kleur.green('Deploy')}`, value: "deploy:cli"},{title: `${kleur.red('Destroy')}`, value: "destroy"}],
 			message: `Do you want to deploy or destroy this stack?`,
 
 		},{
 			type: 'confirm',
 			name: 'confirm',
-			message: (prev:string) =>  `Are you sure you want to ${prev=='deploy' ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the central stack to region ${input.region} in account ${account}?`,
+			message: (prev:string) =>  `Are you sure you want to ${prev=="deploy:cli" ? kleur.bold(kleur.green('DEPLOY')) : kleur.bold(kleur.red('DESTROY'))} the central stack to region ${input.region} in account ${account}?`,
 
 		}]);
 		if (answer.confirm) {
@@ -519,8 +529,8 @@ async function organizationStack(input: { account: string, stack: string; region
 			if (profile != undefined) {
 				cmd = cmd + ' --profile ' + profile;
 			}
-			cmd = cmd + ' --region ' + input.region + ' -c stack=organization -c organizationId=' + organization.Id + ' -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName+' -c topicArn=' + answer.topicArn  + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationalUnitIds=' + answer.organizationalUnitIds.join(',') + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule ;
-			cmd = cmd+ " --parameters BucketNameParameter="+ answer.bucketName+ " --parameters TopicArnParameter="+ answer.topicArn+" --parameters CentralRoleArnParameter="+ answer.centralRoleArn+" --parameters EnabledRegionsParameter="+answer.enabledRegions.join(',')+" --parameters AggregatorRegionParameter="+ answer.aggregatorRegion+" --parameters OrganizationPayerAccountIdParameter="+organization.MasterAccountId+" --parameters ScheduleParameter="+input.schedule+" --parameters OrganizationalUnitIdsParameter="+answer.organizationalUnitIds.join(',')+ ' --all'
+			cmd = cmd + ' --region ' + input.region + ' -c stack=organization -c organizationId=' + organization.Id + ' -c enabledRegions=' + answer.enabledRegions.join(',') + ' -c aggregatorRegion=' + answer.aggregatorRegion + ' -c bucketName=' + answer.bucketName+' -c topicArn=' + answer.topicArn  + ' -c centralRoleArn=' + answer.centralRoleArn + ' -c organizationalUnitIds=' + answer.organizationalUnitIds.join(',') + ' -c organizationPayerAccountId=' + organization.MasterAccountId + ' -c schedule=' + input.schedule+" -c queryString="+answer.queryString; ;
+			cmd = cmd+ " --parameters BucketNameParameter="+ answer.bucketName+ " --parameters TopicArnParameter="+ answer.topicArn+" --parameters CentralRoleArnParameter="+ answer.centralRoleArn+" --parameters EnabledRegionsParameter="+answer.enabledRegions.join(',')+" --parameters AggregatorRegionParameter="+ answer.aggregatorRegion+" --parameters OrganizationPayerAccountIdParameter="+organization.MasterAccountId+" --parameters ScheduleParameter="+input.schedule+" --parameters OrganizationalUnitIdsParameter="+answer.organizationalUnitIds.join(',')+" --parameters QueryStringParameter="+answer.queryString+ ' --all'
 			execSync(cmd, {env: {...process.env, "AWS_DEFAULT_REGION": input.region}, stdio: 'inherit'})
 
 		} else {

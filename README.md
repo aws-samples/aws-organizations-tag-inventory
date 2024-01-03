@@ -119,6 +119,8 @@ AWS organization jump to [Deploy multiple spoke stacks using Cloudformation Stac
    ![spoke05.png](images%2Fspoke05.png)
 11. Select the region that you want to setup the AWS Resource Explorer aggregator index in
    ![spoke055.png](images%2Fspoke055.png)
+12.  Optionally, specify an [AWS Resource Explorer query](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html) for example "tag:none". The default value will query all resources.
+     ![spoke056.png](images%2Fspoke056.png)
 11. Select whether you want to "Deploy" or "Destroy" this stack
     ![spoke06.png](images/DeployOrDestroy.png)
 11. Confirm your choices
@@ -147,9 +149,11 @@ Before you can deploy multiple spoke stacks using [stacksets](https://docs.aws.a
     ![spoke05.png](images%2Fspoke05.png)
 11. Select the region that you want to setup the AWS Resource Explorer aggregator index in
     ![spoke055.png](images%2Fspoke055.png)
+12. Optionally, specify an [AWS Resource Explorer query](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html) for example "tag:none". The default value will query all resources.
+    ![spoke056.png](images%2Fspoke056.png)
 12. Select the organizational unit(s). The spoke stack will be deployed to accounts within these OUs. Choose the 'Root' OU if you want to gather tag inventory from all accounts int the organization.
     ![organization04.png](images%2Forganization04.png)
-11. Select whether you want to "Deploy" or "Destroy" the stacks for the organization
+13. Select whether you want to "Deploy" or "Destroy" the stacks for the organization
     ![spoke06.png](images/DeployOrDestroy.png)
 14. Confirm your choices
    ![organization05.png](images%2Forganization05.png)
