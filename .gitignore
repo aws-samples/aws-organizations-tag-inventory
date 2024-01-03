@@ -33,7 +33,7 @@ jspm_packages/
 *.iml
 .DS_Store
 repolinter.txt
-.$architecture.drawio.bkp
+.$architecture.drawio.*
 *.output.txt
 QuestionsQuicksightShouldAnswer.md
 definition.json

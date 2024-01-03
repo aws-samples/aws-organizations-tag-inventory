@@ -15,16 +15,15 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import * as path from "path";
+import { CfnParameter, CfnStackSet, Stack, Tags, Fn } from "aws-cdk-lib";
 
-import * as path from 'path';
-import { CfnParameter, CfnStackSet, Stack, Tags, Fn } from 'aws-cdk-lib';
-
-import { Asset } from 'aws-cdk-lib/aws-s3-assets';
-import { RegionInfo } from 'aws-cdk-lib/region-info';
-import { NagSuppressions } from 'cdk-nag';
-import { Construct } from 'constructs';
-import { SpokeStackProps } from './SpokeStack';
-import { ScheduleExpression } from '../constructs/ScheduleExpression';
+import { Asset } from "aws-cdk-lib/aws-s3-assets";
+import { RegionInfo } from "aws-cdk-lib/region-info";
+import { NagSuppressions } from "cdk-nag";
+import { Construct } from "constructs";
+import { SpokeStackProps } from "./SpokeStack";
+import { ScheduleExpression } from "../constructs/ScheduleExpression";
 
 export interface OrganizationStackSetProps extends SpokeStackProps {
   organizationalUnitIds?: string[];
@@ -34,115 +33,186 @@ export interface OrganizationStackSetProps extends SpokeStackProps {
 }
 
 export class OrganizationStack extends Stack {
-
   constructor(scope: Construct, id: string, props: OrganizationStackSetProps) {
     super(scope, id, props);
-    const bucketNameParameter = new CfnParameter(this, 'BucketNameParameter', {
+    const bucketNameParameter = new CfnParameter(this, "BucketNameParameter", {
       default: props.bucketName,
-      type: 'String',
-      description: 'Name of the central account bucket where tag inventory data is stored',
+      type: "String",
+      description:
+        "Name of the central account bucket where tag inventory data is stored",
     });
-    const centralTopicArnParameter = new CfnParameter(this, 'TopicArnParameter', {
-      default: props.topicArn,
-      type: 'String',
-      description: "ARN of the central account's notification topic",
-    });
-    const centralRoleArnParameter = new CfnParameter(this, 'CentralRoleArnParameter', {
-      default: props.centralRoleArn,
-      type: 'String',
-      description: "ARN of the central account's cross account role with permissions to write to the centralized bucket where tag inventory data is stored",
-    });
-    const enabledRegionsParameter = new CfnParameter(this, 'EnabledRegionsParameter', {
-
-      default: props.enabledRegions,
-      type: 'CommaDelimitedList',
-      description: 'Regions to enable Resource Explorer Indexing',
-    });
-    const aggregatorRegionParameter = new CfnParameter(this, 'AggregatorRegionParameter', {
-      allowedValues: RegionInfo.regions.map(value => {
-        return value.name;
-      }),
-      default: props.aggregatorRegion,
-      type: 'String',
-      description: 'The region that contains teh Resource Explorer aggregator',
-    });
-    const organizationalUnitIdsParameter = new CfnParameter(this, 'OrganizationalUnitIdsParameter', {
-
-      default: props.organizationalUnitIds?.join(','),
-      type: 'CommaDelimitedList',
-      description: 'Organizational units to deploy the spoke stack to',
-    });
-    const organizationPayerAccountIdParameter = new CfnParameter(this, 'OrganizationPayerAccountIdParameter', {
-      default: props.organizationPayerAccountId,
-      type: 'String',
-      description: 'The id of the AWS organization payer account',
-    });
-    const scheduleParameter = new CfnParameter(this, 'ScheduleParameter', {
+    const centralTopicArnParameter = new CfnParameter(
+      this,
+      "TopicArnParameter",
+      {
+        default: props.topicArn,
+        type: "String",
+        description: "ARN of the central account's notification topic",
+      },
+    );
+    const centralRoleArnParameter = new CfnParameter(
+      this,
+      "CentralRoleArnParameter",
+      {
+        default: props.centralRoleArn,
+        type: "String",
+        description:
+          "ARN of the central account's cross account role with permissions to write to the centralized bucket where tag inventory data is stored",
+      },
+    );
+    const enabledRegionsParameter = new CfnParameter(
+      this,
+      "EnabledRegionsParameter",
+      {
+        default: props.enabledRegions,
+        type: "CommaDelimitedList",
+        description: "Regions to enable Resource Explorer Indexing",
+      },
+    );
+    const aggregatorRegionParameter = new CfnParameter(
+      this,
+      "AggregatorRegionParameter",
+      {
+        allowedValues: RegionInfo.regions.map((value) => {
+          return value.name;
+        }),
+        default: props.aggregatorRegion,
+        type: "String",
+        description:
+          "The region that contains teh Resource Explorer aggregator",
+      },
+    );
+    const organizationalUnitIdsParameter = new CfnParameter(
+      this,
+      "OrganizationalUnitIdsParameter",
+      {
+        default: props.organizationalUnitIds?.join(","),
+        type: "CommaDelimitedList",
+        description: "Organizational units to deploy the spoke stack to",
+      },
+    );
+    const organizationPayerAccountIdParameter = new CfnParameter(
+      this,
+      "OrganizationPayerAccountIdParameter",
+      {
+        default: props.organizationPayerAccountId,
+        type: "String",
+        description: "The id of the AWS organization payer account",
+      },
+    );
+    const scheduleParameter = new CfnParameter(this, "ScheduleParameter", {
       default: props.schedule,
-      type: 'String',
-      allowedValues: [ScheduleExpression.DAILY, ScheduleExpression.WEEKLY, ScheduleExpression.MONTHLY],
-      description: 'The frequency jobs are run',
+      type: "String",
+      allowedValues: [
+        ScheduleExpression.DAILY,
+        ScheduleExpression.WEEKLY,
+        ScheduleExpression.MONTHLY,
+      ],
+      description: "The frequency jobs are run",
     });
-    const asset = new Asset(this, 'SpokeStackTemplate', {
-      path: path.join(__dirname, '..', '..', 'cdk.out', props.spokeStackTemplateFile),
-    });
-    new CfnStackSet(this, 'aws-organizations-tag-inventory-spoke-account-stack-set', {
-      description: 'StackSet for deploy the aws-organizations-tag-inventory-spoke-stack to account across the organization',
-      stackSetName: 'aws-organizations-tag-inventory-spoke-account-stack-set',
-      permissionModel: 'SERVICE_MANAGED',
-      capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
-      autoDeployment: {
-        enabled: true,
-        retainStacksOnAccountRemoval: true,
+    const queryStringParameter = new CfnParameter(
+      this,
+      "QueryStringParameter",
+      {
+        default: props.queryString ?? "",
+        type: "String",
+        description:
+          "Query string for Resource Explorer to run. See https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html",
       },
-      templateUrl: asset.httpUrl,
-      parameters: [{
-        parameterKey: 'BucketNameParameter',
-        parameterValue: bucketNameParameter.valueAsString,
-      }, {
-        parameterKey: 'TopicArnParameter',
-        parameterValue: centralTopicArnParameter.valueAsString,
-      }, {
-        parameterKey: 'CentralRoleArnParameter',
-        parameterValue: centralRoleArnParameter.valueAsString,
-      }, {
-        parameterKey: 'EnabledRegionsParameter',
-        parameterValue: Fn.join(',', enabledRegionsParameter.valueAsList),
-      }, {
-        parameterKey: 'AggregatorRegionParameter',
-        parameterValue: aggregatorRegionParameter.valueAsString,
-      }, {
-        parameterKey: 'OrganizationPayerAccountIdParameter',
-        parameterValue: organizationPayerAccountIdParameter.valueAsString,
-      }, {
-        parameterKey: 'ScheduleParameter',
-        parameterValue: scheduleParameter.valueAsString,
-      }, {
-        parameterKey: 'OrganizationalUnitIdsParameter',
-        parameterValue: Fn.join(',', organizationalUnitIdsParameter.valueAsList),
-      }],
-      stackInstancesGroup: [{
-        regions: [this.region],
-        deploymentTargets: {
-          organizationalUnitIds: organizationalUnitIdsParameter.valueAsList,
+    );
+    const asset = new Asset(this, "SpokeStackTemplate", {
+      path: path.join(
+        __dirname,
+        "..",
+        "..",
+        "cdk.out",
+        props.spokeStackTemplateFile,
+      ),
+    });
+    new CfnStackSet(
+      this,
+      "aws-organizations-tag-inventory-spoke-account-stack-set",
+      {
+        description:
+          "StackSet for deploy the aws-organizations-tag-inventory-spoke-stack to account across the organization",
+        stackSetName: "aws-organizations-tag-inventory-spoke-account-stack-set",
+        permissionModel: "SERVICE_MANAGED",
+        capabilities: ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"],
+        autoDeployment: {
+          enabled: true,
+          retainStacksOnAccountRemoval: true,
         },
-      }],
-      operationPreferences: {
-        failureToleranceCount: 999,
-        regionConcurrencyType: 'PARALLEL',
-        maxConcurrentCount: 10,
+        templateUrl: asset.httpUrl,
+        parameters: [
+          {
+            parameterKey: "BucketNameParameter",
+            parameterValue: bucketNameParameter.valueAsString,
+          },
+          {
+            parameterKey: "TopicArnParameter",
+            parameterValue: centralTopicArnParameter.valueAsString,
+          },
+          {
+            parameterKey: "CentralRoleArnParameter",
+            parameterValue: centralRoleArnParameter.valueAsString,
+          },
+          {
+            parameterKey: "EnabledRegionsParameter",
+            parameterValue: Fn.join(",", enabledRegionsParameter.valueAsList),
+          },
+          {
+            parameterKey: "AggregatorRegionParameter",
+            parameterValue: aggregatorRegionParameter.valueAsString,
+          },
+          {
+            parameterKey: "OrganizationPayerAccountIdParameter",
+            parameterValue: organizationPayerAccountIdParameter.valueAsString,
+          },
+          {
+            parameterKey: "ScheduleParameter",
+            parameterValue: scheduleParameter.valueAsString,
+          },
+          {
+            parameterKey: "OrganizationalUnitIdsParameter",
+            parameterValue: Fn.join(
+              ",",
+              organizationalUnitIdsParameter.valueAsList,
+            ),
+          },
+          {
+            parameterKey: "QueryStringParameter",
+            parameterValue: queryStringParameter.valueAsString,
+          },
+        ],
+        stackInstancesGroup: [
+          {
+            regions: [this.region],
+            deploymentTargets: {
+              organizationalUnitIds: organizationalUnitIdsParameter.valueAsList,
+            },
+          },
+        ],
+        operationPreferences: {
+          failureToleranceCount: 999,
+          regionConcurrencyType: "PARALLEL",
+          maxConcurrentCount: 10,
+        },
       },
-
-    });
+    );
     this.cdkNagSuppressions();
-    Tags.of(this).add('Solution', 'aws-organizations-tag-inventory');
-    Tags.of(this).add('Url', 'https://github.com/aws-samples/aws-organizations-tag-inventory');
+    Tags.of(this).add("Solution", "aws-organizations-tag-inventory");
+    Tags.of(this).add(
+      "Url",
+      "https://github.com/aws-samples/aws-organizations-tag-inventory",
+    );
   }
 
   private cdkNagSuppressions() {
-    NagSuppressions.addStackSuppressions(this, [{
-      id: 'AwsSolutions-L1',
-      reason: 'Manually managing versions',
-    }]);
+    NagSuppressions.addStackSuppressions(this, [
+      {
+        id: "AwsSolutions-L1",
+        reason: "Manually managing versions",
+      },
+    ]);
   }
 }

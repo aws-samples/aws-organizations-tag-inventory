@@ -15,15 +15,13 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { CfnParameter, Stack, StackProps, Tags } from "aws-cdk-lib";
 
-import { CfnParameter, Stack, StackProps, Tags } from 'aws-cdk-lib';
-
-import { NagSuppressions } from 'cdk-nag';
-import { Construct } from 'constructs';
-import { Central } from '../constructs/Central';
-import { QuickSight } from '../constructs/QuickSight';
-import { ScheduleExpression } from '../constructs/ScheduleExpression';
-
+import { NagSuppressions } from "cdk-nag";
+import { Construct } from "constructs";
+import { Central } from "../constructs/Central";
+import { QuickSight } from "../constructs/QuickSight";
+import { ScheduleExpression } from "../constructs/ScheduleExpression";
 
 export interface CentralStackProps extends StackProps {
   organizationId?: string;
@@ -35,65 +33,82 @@ export interface CentralStackProps extends StackProps {
 }
 
 export class CentralStack extends Stack {
-
   constructor(scope: Construct, id: string, props: CentralStackProps) {
     super(scope, id, props);
-    const organizationIdParameter = new CfnParameter(this, 'OrganizationIdParameter', {
-      default: props.organizationId,
-      type: 'String',
-      description: 'The AWS organization ID',
-    });
-    const scheduleParameter = new CfnParameter(this, 'ScheduleParameter', {
+    const organizationIdParameter = new CfnParameter(
+      this,
+      "OrganizationIdParameter",
+      {
+        default: props.organizationId,
+        type: "String",
+        description: "The AWS organization ID",
+      },
+    );
+    const scheduleParameter = new CfnParameter(this, "ScheduleParameter", {
       default: props.schedule,
-      type: 'String',
-      allowedValues: [ScheduleExpression.DAILY, ScheduleExpression.WEEKLY, ScheduleExpression.MONTHLY],
-      description: 'The frequency jobs are run',
+      type: "String",
+      allowedValues: [
+        ScheduleExpression.DAILY,
+        ScheduleExpression.WEEKLY,
+        ScheduleExpression.MONTHLY,
+      ],
+      description: "The frequency jobs are run",
     });
-    const organizationPayerAccountIdParameter = new CfnParameter(this, 'OrganizationPayerAccountIdParameter', {
-      default: props.organizationPayerAccountId,
-      type: 'String',
-      description: 'The id of the AWS organization payer account',
-    });
-    const central = new Central(this, 'central', {
+    const organizationPayerAccountIdParameter = new CfnParameter(
+      this,
+      "OrganizationPayerAccountIdParameter",
+      {
+        default: props.organizationPayerAccountId,
+        type: "String",
+        description: "The id of the AWS organization payer account",
+      },
+    );
+    const central = new Central(this, "central", {
       organizationId: organizationIdParameter.valueAsString,
-      organizationPayerAccountId: organizationPayerAccountIdParameter.valueAsString,
+      organizationPayerAccountId:
+        organizationPayerAccountIdParameter.valueAsString,
       // @ts-ignore
       schedule: scheduleParameter.valueAsString,
     });
     //right now this option is only available through cdk generation
     if (props.deployQuickSight) {
-      new QuickSight(this, 'QuickSight', {
+      new QuickSight(this, "QuickSight", {
         central: central,
-        quickSightUserArns: props.quickSightUserArns?.split(','),
-        quickSightGroupArns: props.quickSightGroupArns?.split(','),
+        quickSightUserArns: props.quickSightUserArns?.split(","),
+        quickSightGroupArns: props.quickSightGroupArns?.split(","),
         organizationId: organizationIdParameter.valueAsString,
       });
     }
     this.cdkNagSuppressions();
-    Tags.of(this).add('Solution', 'aws-organizations-tag-inventory');
-    Tags.of(this).add('Url', 'https://github.com/aws-samples/aws-organizations-tag-inventory');
+    Tags.of(this).add("Solution", "aws-organizations-tag-inventory");
+    Tags.of(this).add(
+      "Url",
+      "https://github.com/aws-samples/aws-organizations-tag-inventory",
+    );
   }
 
   private cdkNagSuppressions() {
-
     NagSuppressions.addStackSuppressions(this, [
       {
-        id: 'AwsSolutions-IAM4',
-        reason: 'AWS managed policies acceptable for sample',
-      }, {
-        id: 'AwsSolutions-ATH1',
-        reason: 'Because the lambda is writing to an external table it needs to use client configuration',
+        id: "AwsSolutions-IAM4",
+        reason: "AWS managed policies acceptable for sample",
       },
       {
-        id: 'AwsSolutions-IAM5',
-        reason: 'Wildcard permissions have been scoped down',
+        id: "AwsSolutions-ATH1",
+        reason:
+          "Because the lambda is writing to an external table it needs to use client configuration",
       },
       {
-        id: 'AwsSolutions-GL1',
-        reason: 'No sensitive data stored in cloudwatch logs',
-      }, {
-        id: 'AwsSolutions-L1',
-        reason: 'Manually managing versions',
+        id: "AwsSolutions-IAM5",
+        reason: "Wildcard permissions have been scoped down",
+      },
+      {
+        id: "AwsSolutions-GL1",
+        reason: "No sensitive data stored in cloudwatch logs",
+      },
+      {
+        id: "AwsSolutions-L1",
+        reason: "Manually managing versions",
       },
     ]);
   }

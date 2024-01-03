@@ -15,13 +15,22 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
-import { RemovalPolicy } from 'aws-cdk-lib';
-import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { DefinitionBody, LogLevel, StateMachine } from 'aws-cdk-lib/aws-stepfunctions';
-import { Construct } from 'constructs';
+import { RemovalPolicy } from "aws-cdk-lib";
+import {
+  Effect,
+  PolicyDocument,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
+import { IFunction } from "aws-cdk-lib/aws-lambda";
+import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
+import {
+  DefinitionBody,
+  LogLevel,
+  StateMachine,
+} from "aws-cdk-lib/aws-stepfunctions";
+import { Construct } from "constructs";
 
 export interface StateMachineFromFileConfig {
   name: string;
@@ -34,18 +43,59 @@ export interface StateMachineFromFileConfig {
 }
 
 export class StateMachineFromFile extends Construct {
-
   readonly stateMachine: StateMachine;
 
-  constructor(scope: Construct, id: string, config: StateMachineFromFileConfig) {
+  constructor(
+    scope: Construct,
+    id: string,
+    config: StateMachineFromFileConfig,
+  ) {
     super(scope, id);
     const logGroup = new LogGroup(this, `${config.name}LogGroup`, {
       logGroupName: `/aws/statemachine/${config.name}`,
       removalPolicy: RemovalPolicy.DESTROY,
       retention: RetentionDays.ONE_MONTH,
     });
-
+    const stateMachineRole = new Role(this, "StateMachineRole", {
+      assumedBy: new ServicePrincipal("states.amazonaws.com"),
+      inlinePolicies: {
+        CloudWatch: new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: [
+                "logs:CreateLogDelivery",
+                "logs:GetLogDelivery",
+                "logs:UpdateLogDelivery",
+                "logs:DeleteLogDelivery",
+                "logs:ListLogDeliveries",
+                "logs:PutResourcePolicy",
+                "logs:DescribeResourcePolicies",
+                "logs:DescribeLogGroups",
+              ],
+              resources: ["*"],
+            }),
+          ],
+        }),
+        XRay: new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+                "xray:GetSamplingRules",
+                "xray:GetSamplingTargets",
+              ],
+              resources: ["*"],
+            }),
+          ],
+        }),
+      },
+    });
+    logGroup.grantWrite(stateMachineRole);
     this.stateMachine = new StateMachine(this, config.name, {
+      role: stateMachineRole,
       definitionBody: DefinitionBody.fromFile(config.file),
       definitionSubstitutions: {
         SEARCH_FUNCTION: config.searchFunction.functionArn,
@@ -61,24 +111,6 @@ export class StateMachineFromFile extends Construct {
       },
       tracingEnabled: true,
     });
-    logGroup.grantWrite(this.stateMachine);
-    logGroup.grantRead(this.stateMachine);
-    this.stateMachine.addToRolePolicy(new PolicyStatement({
-      effect: Effect.ALLOW,
-      actions: [
-        'logs:CreateLogDelivery',
-        'logs:CreateLogStream',
-        'logs:GetLogDelivery',
-        'logs:UpdateLogDelivery',
-        'logs:DeleteLogDelivery',
-        'logs:ListLogDeliveries',
-        'logs:PutLogEvents',
-        'logs:PutResourcePolicy',
-        'logs:DescribeResourcePolicies',
-        'logs:DescribeLogGroups',
-      ],
-      resources: ['*'],
-    }));
+    this.stateMachine.node.addDependency(logGroup);
   }
-
 }

@@ -233,6 +233,11 @@ exports[`Snapshot 1`] = `
       "Description": "The id of the AWS organization payer account",
       "Type": "String",
     },
+    "QueryStringParameter": {
+      "Default": "",
+      "Description": "Query string for Resource Explorer to run. See https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html",
+      "Type": "String",
+    },
     "ScheduleParameter": {
       "AllowedValues": [
         "DAILY",
@@ -720,12 +725,15 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "f7fd84e12658d277aefbf1bae3688f7aaef6c52c0708f0caae9370118e8416fe.zip",
+          "S3Key": "ffc95796e2f47272e360ed5cc323d36d7b7e1ef27093b3391cafdf6b8c6307cc.zip",
         },
         "Environment": {
           "Variables": {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "LOG_LEVEL": "DEBUG",
+            "QUERY_STRING": {
+              "Ref": "QueryStringParameter",
+            },
             "VIEW_ARN": {
               "Fn::GetAtt": [
                 "spokeMyIndexresourceexplorerindexcustomresource40170C84",
@@ -1151,7 +1159,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "da436c1c20c60720e3c33cf202cb9d211767bef0e9f30dfb09715c1638ab637c.zip",
+          "S3Key": "d0b09c5272e342c96d95488511395df1b8033a28571d6ccf1c5a335521a4485c.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",

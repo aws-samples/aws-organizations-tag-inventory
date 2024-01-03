@@ -15,9 +15,9 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Logger } from '@aws-lambda-powertools/logger';
+import { Logger } from "@aws-lambda-powertools/logger";
 const logger = new Logger({
-  serviceName: 'MergeResults',
+  serviceName: "MergeResults",
 });
 export const onEvent = async (
   event?: any,
@@ -28,7 +28,8 @@ export const onEvent = async (
 ): Promise<string> => {
   logger.info(`Event: ${JSON.stringify(event)}`);
   const flatten: Object[] = event.Results.flatten;
-  let result: { [key: string]: any } = event.PreviousResults!=undefined ? event.PreviousResults : {};
+  let result: { [key: string]: any } =
+    event.PreviousResults != undefined ? event.PreviousResults : {};
   flatten.forEach((value: { [key: string]: any }) => {
     const tagName = Object.keys(value)[0];
     const tagValue = Object.keys(value[tagName] as {})[0];
@@ -56,17 +57,14 @@ export const onEvent = async (
   const resultArray: [{ [key: string]: any }] = [];
   for (const k of Object.keys(result)) {
     const newResult: { [key: string]: any } = {};
-    newResult.TagName=k;
+    newResult.TagName = k;
     const tagValue = Object.keys(result[k])[0];
-    newResult.TagValue=tagValue;
-    newResult.Resources=result[k][tagValue];
+    newResult.TagValue = tagValue;
+    newResult.Resources = result[k][tagValue];
     resultArray.push(newResult);
-
   }
   return JSON.stringify({
     NextToken: event?.Payload?.Result?.NextToken,
     Results: resultArray,
   });
-
-
 };

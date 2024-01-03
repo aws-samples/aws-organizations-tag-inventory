@@ -1,45 +1,88 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { Link, Node } from '@npmcli/arborist';
-import { awscdk } from 'projen';
-import { AwsCdkTypeScriptApp } from 'projen/lib/awscdk';
-import { NodePackageManager, NodeProject } from 'projen/lib/javascript';
+import * as fs from "fs";
+import * as path from "path";
+import { Link, Node } from "@npmcli/arborist";
+import { awscdk } from "projen";
+import { AwsCdkTypeScriptApp } from "projen/lib/awscdk";
+import { NodePackageManager, NodeProject } from "projen/lib/javascript";
 
-
-const Arborist = require('@npmcli/arborist');
+const Arborist = require("@npmcli/arborist");
 
 const app = async (): Promise<AwsCdkTypeScriptApp> => {
   const project = new awscdk.AwsCdkTypeScriptApp({
-    cdkVersion: '2.105.0',
-    defaultReleaseBranch: 'main',
-    name: 'aws-organizations-tag-inventory',
+    cdkVersion: "2.105.0",
+    defaultReleaseBranch: "main",
+    name: "aws-organizations-tag-inventory",
     projenrcTs: true,
     packageManager: NodePackageManager.NPM,
-    gitignore: ['.idea', '*.iml', '.DS_Store', 'repolinter.txt', '.$architecture.drawio.bkp', '*.output.txt', 'QuestionsQuicksightShouldAnswer.md', 'definition.json'],
-    license: 'MIT-0',
+    gitignore: [
+      ".idea",
+      "*.iml",
+      ".DS_Store",
+      "repolinter.txt",
+      ".$architecture.drawio.*",
+      "*.output.txt",
+      "QuestionsQuicksightShouldAnswer.md",
+      "definition.json",
+    ],
+    license: "MIT-0",
     github: false,
     eslintOptions: {
-      dirs: ['src'],
-      ignorePatterns: ['cli.ts'],
+      dirs: ["src"],
+      ignorePatterns: ["cli.ts"],
+      prettier: true,
     },
-    copyrightOwner: 'Amazon.com, Inc. or its affiliates. All Rights Reserved.',
-    deps: ['@types/aws-lambda', '@aws-sdk/client-resource-explorer-2', 'uuid', '@aws-sdk/client-athena', '@aws-sdk/client-s3', '@aws-lambda-powertools/logger', 'cdk-nag'], /* Runtime dependencies of this module. */
+    prettierOptions: {
+      settings: {
+        printWidth: 160,
+      },
+    },
+    copyrightOwner: "Amazon.com, Inc. or its affiliates. All Rights Reserved.",
+    deps: [
+      "@types/aws-lambda",
+      "@aws-sdk/client-resource-explorer-2",
+      "uuid",
+      "@aws-sdk/client-athena",
+      "@aws-sdk/client-s3",
+      "@aws-lambda-powertools/logger",
+      "cdk-nag",
+    ] /* Runtime dependencies of this module. */,
     // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-    devDeps: ['@types/uuid', '@npmcli/arborist', '@types/npm-packlist', '@types/npmcli__arborist', 'cdk-assets', '@aws-sdk/client-organizations', 'prompts', '@types/prompts', '@aws-sdk/client-ec2', '@smithy/shared-ini-file-loader', '@aws-sdk/credential-providers', '@aws-sdk/client-sts', '@aws-sdk/client-iam', '@aws-sdk/client-quicksight', '@aws-sdk/client-ssm', 'kleur'], /* Build dependencies for this module. */
+    devDeps: [
+      "@types/uuid",
+      "@npmcli/arborist",
+      "@types/npm-packlist",
+      "@types/npmcli__arborist",
+      "cdk-assets",
+      "@aws-sdk/client-organizations",
+      "prompts",
+      "@types/prompts",
+      "@aws-sdk/client-ec2",
+      "@smithy/shared-ini-file-loader",
+      "@aws-sdk/credential-providers",
+      "@aws-sdk/client-sts",
+      "@aws-sdk/client-iam",
+      "@aws-sdk/client-quicksight",
+      "@aws-sdk/client-ssm",
+      "kleur",
+    ] /* Build dependencies for this module. */,
     // packageName: undefined,  /* The "name" in package.json. */
-
   });
-  await addZipLayerTask(project, ['@aws-lambda-powertools', 'aws-cdk-lib', 'constructs', '@types']);
+  await addZipLayerTask(project, [
+    "@aws-lambda-powertools",
+    "aws-cdk-lib",
+    "constructs",
+    "@types",
+  ]);
 
   /**
-	 * This function walks the package.json for the project and zips all production dependencies for use in a lambda layer
-	 * @param p
-	 * @param exclude
-	 */
+   * This function walks the package.json for the project and zips all production dependencies for use in a lambda layer
+   * @param p
+   * @param exclude
+   */
   async function addZipLayerTask(p: NodeProject, exclude: string[] = []) {
     const steps = [
       {
-        exec: 'rm -Rf ./dist',
+        exec: "rm -Rf ./dist",
       },
       {
         exec: `rm -Rf /tmp/${p.name}`,
@@ -47,9 +90,7 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
       {
         exec: `mkdir -p /tmp/${p.name}/nodejs/node_modules/${p.package.packageName}`,
       },
-
     ];
-
 
     const a = new Arborist({ path: p.outdir });
     const depNames: string[] = [];
@@ -78,7 +119,6 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
                 steps.push({
                   exec: `cp -R ${relativePath}/* /tmp/${p.name}/nodejs/node_modules/${depName}`,
                 });
-
               }
 
               recursivelyGetDependencies(d);
@@ -92,45 +132,66 @@ const app = async (): Promise<AwsCdkTypeScriptApp> => {
     const tree = await a.loadActual();
     recursivelyGetDependencies(tree);
 
-
     steps.push({
       exec: `mkdir ./dist;(cd /tmp/${p.name} && zip -r /${p.outdir}/dist/${p.name}-layer.zip ./nodejs)`,
     });
 
-    p.addTask('zip-layer', {
+    p.addTask("zip-layer", {
       cwd: p.outdir,
       steps: steps,
     });
-    p.tasks.tryFind('compile')?.exec('npm run zip-layer');
+    p.tasks.tryFind("compile")?.exec("npm run zip-layer");
   }
 
   return project;
 };
 
-app().then(project => {
-  project.tasks.addTask('cli', {
-    exec: 'npx ts-node -P tsconfig.json --prefer-ts-exts src/cli.ts',
+app()
+  .then((project) => {
+    project.tasks.addTask("cli", {
+      exec: "npx ts-node -P tsconfig.json --prefer-ts-exts src/cli.ts",
+    });
+    project.tasks.tryFind("post-compile")?.reset();
+    project.tasks.tryFind("synth")?.reset("cdk synth", {
+      receiveArgs: true,
+    });
+    project.tasks.tryFind("synth:silent")?.reset("cdk synth -q", {
+      receiveArgs: true,
+    });
+    project.tasks.tryFind("deploy")?.reset("cdk deploy", {
+      receiveArgs: true,
+    });
+    project.tasks.addTask("deploy:cli", {
+      steps: [
+        {
+          spawn: "default",
+        },
+        {
+          spawn: "pre-compile",
+        },
+        {
+          spawn: "compile",
+        },
+        {
+          spawn: "post-compile",
+        },
+        {
+          spawn: "synth:silent",
+          receiveArgs: true,
+        },
+        {
+          exec: "cdk deploy",
+          receiveArgs: true,
+        },
+      ],
+      receiveArgs: true,
+    });
+    // project.tasks.tryFind('deploy')?.prependExec('cdk synth', {
+    //   receiveArgs: true,
+    // });
+    project.tasks.tryFind("deploy")?.prependExec("npm run build", {});
+    project.synth();
+  })
+  .catch((reason) => {
+    throw new Error(reason);
   });
-  project.tasks.tryFind('post-compile')?.reset();
-  project.tasks.tryFind('synth')?.reset('cdk synth', {
-    receiveArgs: true,
-  });
-  project.tasks.tryFind('synth:silent')?.reset('cdk synth -q', {
-    receiveArgs: true,
-  });
-  project.tasks.tryFind('deploy')?.reset('cdk deploy', {
-    receiveArgs: true,
-
-
-  });
-  // project.tasks.tryFind('deploy')?.prependExec('cdk synth', {
-  //   receiveArgs: true,
-  // });
-  project.tasks.tryFind('deploy')?.prependExec('npm run build', {
-  });
-  project.synth();
-}).catch(reason => {
-  throw new Error(reason);
-});
-
-

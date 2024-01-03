@@ -15,90 +15,107 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { App, Aspects, CfnParameter, DefaultStackSynthesizer } from 'aws-cdk-lib';
-import { AwsSolutionsChecks } from 'cdk-nag';
-import { CentralStack } from './stacks/CentralStack';
-import { OrganizationAssetBucketStack } from './stacks/OrganizationAssetBucketStack';
-import { OrganizationStack } from './stacks/OrganizationStack';
-import { SpokeStack } from './stacks/SpokeStack';
-
+import {
+  App,
+  Aspects,
+  CfnParameter,
+  DefaultStackSynthesizer,
+} from "aws-cdk-lib";
+import { AwsSolutionsChecks } from "cdk-nag";
+import { CentralStack } from "./stacks/CentralStack";
+import { OrganizationAssetBucketStack } from "./stacks/OrganizationAssetBucketStack";
+import { OrganizationStack } from "./stacks/OrganizationStack";
+import { SpokeStack } from "./stacks/SpokeStack";
 
 const main = async (): Promise<App> => {
-
   // for development, use account/region from cdk cli
 
   const app = new App();
   const env = {
-    account: app.node.tryGetContext('account') ?? process.env.CDK_DEFAULT_ACCOUNT,
-    region: app.node.tryGetContext('region') ?? process.env.CDK_DEFAULT_REGION,
-
+    account:
+      app.node.tryGetContext("account") ?? process.env.CDK_DEFAULT_ACCOUNT,
+    region: app.node.tryGetContext("region") ?? process.env.CDK_DEFAULT_REGION,
   };
 
   Aspects.of(app).add(new AwsSolutionsChecks({}));
-  const stackToDeploy = app.node.tryGetContext('stack') as String | undefined;
-  if (stackToDeploy == 'central') {
-    new CentralStack(app, 'aws-organizations-tag-inventory-central-stack', {
+  const stackToDeploy = app.node.tryGetContext("stack") as String | undefined;
+  if (stackToDeploy == "central") {
+    new CentralStack(app, "aws-organizations-tag-inventory-central-stack", {
       env: env,
-      organizationId: app.node.tryGetContext('organizationId'),
-      organizationPayerAccountId: app.node.tryGetContext('organizationPayerAccountId'),
-      deployQuickSight: JSON.parse(app.node.tryGetContext('deployQuickSight') ?? false),
-      quickSightGroupArns: app.node.tryGetContext('quickSightGroupArns'),
-      quickSightUserArns: app.node.tryGetContext('quickSightUserArns'),
-      schedule: app.node.tryGetContext('schedule'),
-      synthesizer: new DefaultStackSynthesizer({
-        generateBootstrapVersionRule: false,
-
-      }),
-    });
-  } else if (stackToDeploy == 'spoke') {
-    new SpokeStack(app, 'aws-organizations-tag-inventory-spoke-stack', {
-      env: env,
-      enabledRegions: app.node.tryGetContext('enabledRegions'),
-      aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
-      bucketName: app.node.tryGetContext('bucketName'),
-      centralRoleArn: app.node.tryGetContext('centralRoleArn'),
-      topicArn: app.node.tryGetContext('topicArn'),
-      schedule: app.node.tryGetContext('schedule'),
+      organizationId: app.node.tryGetContext("organizationId"),
+      organizationPayerAccountId: app.node.tryGetContext(
+        "organizationPayerAccountId",
+      ),
+      deployQuickSight: JSON.parse(
+        app.node.tryGetContext("deployQuickSight") ?? false,
+      ),
+      quickSightGroupArns: app.node.tryGetContext("quickSightGroupArns"),
+      quickSightUserArns: app.node.tryGetContext("quickSightUserArns"),
+      schedule: app.node.tryGetContext("schedule"),
       synthesizer: new DefaultStackSynthesizer({
         generateBootstrapVersionRule: false,
       }),
-      organizationPayerAccountId: app.node.tryGetContext('organizationPayerAccountId'),
     });
-  } else if (stackToDeploy == 'organization') {
-    const organizationId = app.node.tryGetContext('organizationId');
+  } else if (stackToDeploy == "spoke") {
+    new SpokeStack(app, "aws-organizations-tag-inventory-spoke-stack", {
+      env: env,
+      enabledRegions: app.node.tryGetContext("enabledRegions"),
+      aggregatorRegion: app.node.tryGetContext("aggregatorRegion"),
+      bucketName: app.node.tryGetContext("bucketName"),
+      centralRoleArn: app.node.tryGetContext("centralRoleArn"),
+      topicArn: app.node.tryGetContext("topicArn"),
+      schedule: app.node.tryGetContext("schedule"),
+      synthesizer: new DefaultStackSynthesizer({
+        generateBootstrapVersionRule: false,
+      }),
+      organizationPayerAccountId: app.node.tryGetContext(
+        "organizationPayerAccountId",
+      ),
+      queryString: app.node.tryGetContext("queryString"),
+    });
+  } else if (stackToDeploy == "organization") {
+    const organizationId = app.node.tryGetContext("organizationId");
     const bucketName = `awsorgtaginvcdkassetbucket-${env.account}-${env.region}`;
-    const assetBucketStack = new OrganizationAssetBucketStack(app, 'aws-organizations-tag-inventory-asset-bucket-stack', {
-      env: env,
-      bucketName: bucketName,
-      organizationId: organizationId,
-    });
-
+    const assetBucketStack = new OrganizationAssetBucketStack(
+      app,
+      "aws-organizations-tag-inventory-asset-bucket-stack",
+      {
+        env: env,
+        bucketName: bucketName,
+        organizationId: organizationId,
+      },
+    );
 
     const synthesizer = new DefaultStackSynthesizer({
       generateBootstrapVersionRule: false,
       fileAssetsBucketName: bucketName,
     });
-    const spokeStack = new SpokeStack(app, 'aws-organizations-tag-inventory-spoke-stack', {
-      env: env,
-      enabledRegions: app.node.tryGetContext('enabledRegions'),
-      aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
-      bucketName: app.node.tryGetContext('bucketName'),
-      centralRoleArn: app.node.tryGetContext('centralRoleArn'),
-      topicArn: app.node.tryGetContext('topicArn'),
-      synthesizer: synthesizer,
-      organizationPayerAccountId: app.node.tryGetContext('organizationPayerAccountId'),
-      schedule: app.node.tryGetContext('schedule'),
-    });
+    const spokeStack = new SpokeStack(
+      app,
+      "aws-organizations-tag-inventory-spoke-stack",
+      {
+        env: env,
+        enabledRegions: app.node.tryGetContext("enabledRegions"),
+        aggregatorRegion: app.node.tryGetContext("aggregatorRegion"),
+        bucketName: app.node.tryGetContext("bucketName"),
+        centralRoleArn: app.node.tryGetContext("centralRoleArn"),
+        topicArn: app.node.tryGetContext("topicArn"),
+        synthesizer: synthesizer,
+        organizationPayerAccountId: app.node.tryGetContext(
+          "organizationPayerAccountId",
+        ),
+        schedule: app.node.tryGetContext("schedule"),
+        queryString: app.node.tryGetContext("queryString"),
+      },
+    );
 
     //we have to make sure all the stacks have the same parameters even though they're not used
 
-    new CfnParameter(spokeStack, 'OrganizationalUnitIdsParameter', {
-
-      default: '',
-      type: 'CommaDelimitedList',
-      description: 'Organizational units to deploy the spoke stack to',
+    new CfnParameter(spokeStack, "OrganizationalUnitIdsParameter", {
+      default: "",
+      type: "CommaDelimitedList",
+      description: "Organizational units to deploy the spoke stack to",
     });
-
 
     spokeStack.addDependency(assetBucketStack);
     spokeStack.synthesizer.synthesize({
@@ -106,34 +123,42 @@ const main = async (): Promise<App> => {
       assembly: app._assemblyBuilder,
       validateOnSynth: true,
     });
-    const organizationStack = new OrganizationStack(app, 'aws-organizations-tag-inventory-spoke-stacks', {
-      env: env,
-      enabledRegions: app.node.tryGetContext('enabledRegions'),
-      aggregatorRegion: app.node.tryGetContext('aggregatorRegion'),
-      bucketName: app.node.tryGetContext('bucketName'),
-      centralRoleArn: app.node.tryGetContext('centralRoleArn'),
-      synthesizer: synthesizer,
-      organizationalUnitIds: app.node.tryGetContext('organizationalUnitIds').split(','),
-      spokeStackTemplateFile: spokeStack.templateFile,
-      organizationPayerAccountId: app.node.tryGetContext('organizationPayerAccountId'),
-      schedule: app.node.tryGetContext('schedule'),
-    });
+    const organizationStack = new OrganizationStack(
+      app,
+      "aws-organizations-tag-inventory-spoke-stacks",
+      {
+        env: env,
+        enabledRegions: app.node.tryGetContext("enabledRegions"),
+        aggregatorRegion: app.node.tryGetContext("aggregatorRegion"),
+        bucketName: app.node.tryGetContext("bucketName"),
+        centralRoleArn: app.node.tryGetContext("centralRoleArn"),
+        synthesizer: synthesizer,
+        organizationalUnitIds: app.node
+          .tryGetContext("organizationalUnitIds")
+          .split(","),
+        spokeStackTemplateFile: spokeStack.templateFile,
+        organizationPayerAccountId: app.node.tryGetContext(
+          "organizationPayerAccountId",
+        ),
+        schedule: app.node.tryGetContext("schedule"),
+        queryString: app.node.tryGetContext("queryString"),
+      },
+    );
     organizationStack.addDependency(spokeStack);
-
-
   }
 
   return app;
 };
 
-main().then(app => {
-  if (app.node.children.length == 0) {
-    console.error('Unable to find any stacks to deploy');
-  } else {
-    app.synth();
-  }
-}).catch(reason => {
-  console.error(reason);
-}).finally(() => {
-
-});
+main()
+  .then((app) => {
+    if (app.node.children.length == 0) {
+      console.error("Unable to find any stacks to deploy");
+    } else {
+      app.synth();
+    }
+  })
+  .catch((reason) => {
+    console.error(reason);
+  })
+  .finally(() => {});
