@@ -367,7 +367,7 @@ async function centralStack(input: { account: string, stack: string; region: str
 		if (quicksightUsersAndGroups.quickSightUsers != undefined) {
 			cmd = cmd + ' -c quickSightUserArns=' + quicksightUsersAndGroups.quickSightUsers.join(',');
 		}
-		if (quicksightUsersAndGroups.quickSightGroups != undefined) {
+		if (quicksightUsersAndGroups.quickSightGroups != undefined && quicksightUsersAndGroups.quickSightGroups.length > 0 ) {
 			cmd = cmd + ' -c quickSightGroupArns=' + quicksightUsersAndGroups.quickSightGroups?.join(',');
 		}
 		cmd=cmd+" --parameters OrganizationIdParameter="+organization.Id+" --parameters ScheduleParameter="+input.schedule+" --parameters OrganizationPayerAccountIdParameter="+ organization.MasterAccountId
